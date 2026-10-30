@@ -136,3 +136,24 @@ class DisplayTests(unittest.TestCase):
         packet = event(0x8C, struct.pack('<H', 4 + len(text)) + text, direction='SEND')
         self.assertEqual(display.decode(packet).text, 'SEND public_chat "こんにちは"')
 
+    def test_rathena_display_covers_auriga_packet_ids_without_auriga_instance_commands(self):
+        from tests.support.world import map_packet
+        root = Path(__file__).resolve().parents[2]
+        auriga = json.loads((root / 'config' / 'auriga' / 'display.json').read_text(encoding='utf-8'))
+        rathena_path = root / 'config' / 'rathena' / 'display.json'
+        document = json.loads(rathena_path.read_text(encoding='utf-8'))
+        auriga_ids = {packet_id for packet in auriga['packets'] for packet_id in packet['ids']}
+        rathena_ids = {packet_id for packet in document['packets'] for packet_id in packet['ids']}
+        self.assertEqual(rathena_ids, auriga_ids)
+        self.assertFalse(document.get('entity_metadata'))
+        for key in ('instance_warp', 'instance_entry_warp', 'instance_map_reference'):
+            self.assertNotIn(key, document)
+        text = rathena_path.read_text(encoding='utf-8')
+        self.assertNotIn('getmdmapname', text)
+        self.assertNotIn('mdenter', text)
+        display = ReceiveDisplay(DisplayProfile.load(rathena_path))
+        self.assertEqual(display.decode(variable(0xB4, struct.pack('<I', 42) + 'hi'.encode('cp932') + b'\0')).text,
+                         'mes "hi";')
+        self.assertEqual(display.decode(map_packet('1@toy.gat')).text, 'warp "1@toy.gat", 100, 120;')
+        self.assertTrue(display.decode(event(0xBA2, struct.pack('<II', 10, 20))).text.startswith('// messize'))
+

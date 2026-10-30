@@ -1,5 +1,16 @@
 # Development baseline and plan
 
+## rAthena receive-display JSON parity (2026-10-30)
+
+Expanded config/rathena/display.json from the four-dialogue seed to the same
+packet-ID set as config/auriga/display.json for emulator log viewing. Omitted
+Auriga instance_* getmdmapname/mdenter keys; left entity_metadata false; rewrote
+unverified messize/mespos/mesalign/mdcreate/self-unittalk lines as review
+comments. Did not invent rathena/status_ids entries or generation profiles
+(dialogue/shops/mob_*/entity_metadata/event_timers/script_commands): those need
+verified rAthena sources and/or loader path changes. Targeted display and
+related GUI emulator checks only; no full discovery.
+
 ## GitHub management bootstrap (2026-10-30)
 
 Added CONTRIBUTING.md, SECURITY.md, NOTICE, Issue/PR templates, CODEOWNERS,

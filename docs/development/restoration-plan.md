@@ -73,13 +73,16 @@ Aurigaのmob_skill_db形式は公式doc/db_ref.txtと照合して出力する。
 ### 5. rAthenaプロファイル
 
 Auriga側の意味イベントと中間表現を共有し、出力だけ分離する。
-現在は会話4 IDの雛形のみ。Auriga固有命令をrAthena対応済みとして出力しない。
+受信ログ用 `config/rathena/display.json` はAurigaと同IDの表示定義を持つ。
+Auriga固有のインスタンス命令をrAthena対応済みとして出力しない。
+コード生成用プロファイル（dialogue / shops / mob_* / status_ids 等）のrAthena版と、
+それらを切り替える本体改変は未着手。
 
 ## 今回完了した土台
 
 - 初期HTTP開始行／HTTP/2 prefaceの認識による両方向PASS。
 - Aurigaの既定表示: `config/auriga/display.json`（既存73 IDを含む93 ID）。
-- rAthenaの低優先度雛形: `config/rathena/display.json`（会話4 IDのみ）。
+- rAthenaの受信ログ表示: `config/rathena/display.json`（Aurigaと同ID。生成用JSONは未分離）。
 - `config/receive_display.json` は既存設定の互換用に残す。
 - 旧ファイルやカスタム設定はGUIのBrowseで引き続き選択できる。
 - 第1段階のNPC/MOB状態保持・一覧・観測JSON保存・ログ再構築を追加した。
