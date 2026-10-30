@@ -14,6 +14,69 @@ from tests.support.qt import WindowTestCase
 
 
 class RestorationGuiTests(WindowTestCase):
+    def test_dialogue_json_is_deferred_reused_and_tracks_selection_revision_and_merge(self):
+        from tests.support.dialogue import layout_conversation
+        from copy import deepcopy
+        from dataclasses import asdict
+        w=self.window;panel=w.dialogue_panel
+        w.dialogues.sessions=[layout_conversation(identifier=1),layout_conversation(320,2,2)]
+        w.dialogues.revision+=1
+        before=deepcopy(w.dialogues.snapshot())
+        with patch('gui.dialogues.asdict',wraps=asdict) as serialized:
+            panel.refresh()
+            self.assertEqual(panel.evidence.document().toPlainText(),'')
+            self.assertEqual(panel.presentations.document().toPlainText(),'')
+            self.assertEqual(serialized.call_count,0)
+            evidence=json.loads(panel.evidence.toPlainText())
+            self.assertEqual(evidence['conversation']['id'],1)
+            panel.evidence.toPlainText();panel.refresh_selected()
+            self.assertEqual(serialized.call_count,1)
+            global_json=panel.presentations.toPlainText()
+            updates=[];panel.presentations.textChanged.connect(lambda:updates.append(True))
+            panel.selection.setCurrentIndex(1)
+            self.assertEqual(panel.evidence.document().toPlainText(),'')
+            self.assertEqual(json.loads(panel.evidence.toPlainText())['conversation']['id'],2)
+            self.assertEqual(panel.presentations.toPlainText(),global_json)
+            self.assertFalse(updates)
+            panel.merge_checkbox.setChecked(True)
+            self.assertIn('merged_group',json.loads(panel.evidence.toPlainText()))
+            w.dialogues.revision+=1;panel.refresh()
+            self.assertEqual(panel.presentations.document().toPlainText(),'')
+            self.assertEqual(json.loads(panel.presentations.toPlainText())['observations'],[])
+        self.assertEqual(w.dialogues.snapshot(),before)
+        # A packet update can arrive before the regular GUI refresh timer.
+        panel.merge_checkbox.setChecked(False)
+        w.dialogues.sessions[1].steps[1]['fields']['text']='latest before refresh'
+        w.dialogues.revision+=1
+        evidence=json.loads(panel.evidence.toPlainText())
+        self.assertEqual(evidence['conversation']['steps'][1]['fields']['text'],'latest before refresh')
+        self.assertEqual(panel.revision,w.dialogues.revision)
+
+    def test_deferred_json_materializes_when_shown_and_store_replacement_invalidates_merge(self):
+        from gui.deferred_json import DeferredJsonView
+        from reconstruction.dialogue import DialogueStore
+        from tests.support.dialogue import layout_conversation
+        view=DeferredJsonView();calls=[]
+        try:
+            view.set_document(1,lambda:calls.append(1) or {'value':1})
+            self.assertFalse(calls)
+            view.show();self.app.processEvents()
+            self.assertEqual(json.loads(view.toPlainText()),{'value':1})
+            self.assertEqual(calls,[1])
+            view.set_document(2,lambda:{'value':2})
+            self.assertEqual(json.loads(view.document().toPlainText()),{'value':2})
+            view.clear();self.assertEqual(view.toPlainText(),'')
+        finally:view.close()
+        panel=self.window.dialogue_panel;old=panel.store
+        old.sessions=[layout_conversation()];old.revision+=1;panel.refresh()
+        first=panel.merged_report()
+        replacement=DialogueStore();replacement.revision=old.revision
+        replacement.sessions=[layout_conversation(identifier=9)]
+        panel.store=replacement;panel.refresh()
+        self.assertEqual(panel.selected().id,9)
+        self.assertIsNot(panel.merged_report(),first)
+        self.assertEqual(json.loads(panel.evidence.toPlainText())['conversation']['id'],9)
+
     def test_reference_browser_pages_and_filters_without_changing_observations(self):
         from copy import deepcopy
         w=self.window;browser=w.reference_browser

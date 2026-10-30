@@ -2210,3 +2210,16 @@ Updated collection priorities; evidence absence is not a parser failure or captu
 Fixed legacy analyze_dialogues export: protected destinations checked before analysis, bounded replay,
 source and CLI definition before/after hashes, atomic observation export preserving existing reports on failure.
 Three focused tests passed, including equality with one-pass session analysis. Frozen snapshots unchanged.
+
+### 2026-10-30: deferred dialogue JSON views
+
+Added DeferredJsonView: hidden JSON tabs stage a producer, materialize on show or explicit text access,
+and reuse unchanged output. Dialogue evidence now serializes once after merge selection instead of twice.
+Keys include store identity/revision; selected evidence additionally includes conversation, source refs and merge mode.
+Display checks synchronize pending ingestion before materialization to avoid mixing updated dialogue with old timelines.
+Also fixed same-revision store replacement reusing an old merge cache. Full-model export is unchanged.
+Seven focused GUI tests pass: hidden/reused/visible output, updates before refresh, store replacement,
+timeout normalization, progress, quests, status notifications and unanswered close behavior.
+Synthetic 5000 observations, 20 hidden updates: JSON matches all 918306 characters; zero hidden serializations, one on access.
+Schedule ~0.18ms, first materialization ~86ms, cached access ~3.2ms. No capture/end-to-end speed claim.
+Report: logs/deferred-dialogue-json-review.json. Frozen snapshots unchanged.

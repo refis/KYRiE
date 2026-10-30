@@ -17,6 +17,7 @@ from reconstruction.branches import build_merged, observation_key
 from gui.timing_comparison import TimingComparisonPanel
 from gui.event_trials import EventTrialPanel
 from gui.external_presentations import ExternalPresentationPanel
+from gui.deferred_json import DeferredJsonView
 from storage.observation_export import save_observations, save_observation_text
 
 INTERVAL_LABELS = {'anchor': '基準', 'input_wait': '入力応答まで', 'during_input_wait': '入力待ち中',
@@ -54,6 +55,8 @@ class DialoguePanel(QWidget):
         self.store, self.show_source = store, show_source
         self.names=names if names is not None else empty_client_names()
         self.revision = -1
+        self._refreshed_store = None
+        self._json_state = None
         layout = QVBoxLayout(self)
         self.caption = QLabel('Auriga会話候補。起因・変数判定は生成対象外です。')
         layout.addWidget(self.caption)
@@ -90,7 +93,7 @@ class DialoguePanel(QWidget):
         split = QSplitter(Qt.Vertical)
         self.splitter = split
         split.setChildrenCollapsible(False)
-        self.code, self.evidence = QPlainTextEdit(), QPlainTextEdit()
+        self.code, self.evidence = QPlainTextEdit(), DeferredJsonView(ensure_current=self.ensure_json_current)
         self.code.setReadOnly(True)
         self.evidence.setReadOnly(True)
         self.code.setPlaceholderText('NPCへ話しかけると、観測した経路のコード候補を表示します。')
@@ -117,7 +120,7 @@ class DialoguePanel(QWidget):
         details.addTab(timeline_page, '時間経過')
         self.timing_comparison = TimingComparisonPanel(store, show_source)
         details.addTab(self.timing_comparison, '反復比較')
-        self.presentations = QPlainTextEdit()
+        self.presentations = DeferredJsonView(ensure_current=self.ensure_json_current)
         self.presentations.setReadOnly(True)
         details.addTab(self.presentations, '並行・会話外演出')
         self.external_presentations = ExternalPresentationPanel(show_source)
@@ -149,7 +152,7 @@ class DialoguePanel(QWidget):
         layout.addWidget(split,1)
 
     def refresh(self):
-        if self.revision == self.store.revision:
+        if self._refreshed_store is self.store and self.revision == self.store.revision:
             return
         selected = self.selection.currentIndex()
         self.selection.blockSignals(True)
@@ -160,6 +163,7 @@ class DialoguePanel(QWidget):
         self.selection.setCurrentIndex(max(0, min(selected, len(self.store.sessions) - 1)))
         self.selection.blockSignals(False)
         self.revision = self.store.revision
+        self._refreshed_store = self.store
         self.caption.setText('Auriga会話候補。起因・変数判定は生成対象外。'
                              f' 会話 {len(self.store.sessions)}件 / 解析問題 {self.store.issue_count}件（JSONに記録）')
         self.refresh_selected()
@@ -210,17 +214,29 @@ class DialoguePanel(QWidget):
         index = self.selection.currentIndex()
         return self.store.sessions[index] if 0 <= index < len(self.store.sessions) else None
 
+    def json_state(self):
+        item=self.selected()
+        return (self.store,self.store.revision,id(item),tuple(sorted(self.store.source_refs.items())),self.merge_checkbox.isChecked())
+
+    def ensure_json_current(self):
+        # Packet ingestion may precede the regular view refresh. Rebuild both the
+        # timeline and conversation source before materializing a stale document.
+        if self._json_state!=self.json_state():
+            if self._refreshed_store is not self.store or self.revision!=self.store.revision:
+                self.refresh()
+            else:self.refresh_selected()
+
     def refresh_selected(self, *args):
+        self._json_state=self.json_state()
         self.timing_comparison.set_conversation(self.selected())
         self.event_trials.check_revision()
-        self.presentations.setPlainText(json.dumps(dict(
-            observations=self.store.presentation_observations,
-            quest_observations=self.store.quest_observations, quest_dropped=self.store.quest_dropped,
-            progress_observations=self.store.progress.snapshot(),
-            dropped=self.store.presentation_dropped, script_commands=self.store.commands.observations,
-            script_command_dropped=self.store.commands.dropped,
-            note='入力待ち中・会話外を含む観測。会話が原因とは未確定。命令生成は種別ごとの条件に従い、元の受信順序はこの欄に保持します。'),
-            ensure_ascii=False, indent=2))
+        self.presentations.set_document((self.store,self.store.revision),lambda store=self.store:dict(
+            observations=store.presentation_observations,
+            quest_observations=store.quest_observations, quest_dropped=store.quest_dropped,
+            progress_observations=store.progress.snapshot(),
+            dropped=store.presentation_dropped, script_commands=store.commands.observations,
+            script_command_dropped=store.commands.dropped,
+            note='入力待ち中・会話外を含む観測。会話が原因とは未確定。命令生成は種別ごとの条件に従い、元の受信順序はこの欄に保持します。'))
         item = self.selected()
         if item is None:
             self.external_presentations.set_conversation(None)
@@ -231,8 +247,8 @@ class DialoguePanel(QWidget):
             return
         timing = build_timeline(item, self.store.source_refs.get(item.capture_session, ''),
             player_notifications=index_player_notifications(self.store.presentation_observations))
-        self.evidence.setPlainText(json.dumps(dict(conversation=asdict(item), timeline=timing),
-                                             ensure_ascii=False, indent=2))
+        evidence_key=(self.store,self.store.revision,id(item),tuple(sorted(self.store.source_refs.items())),self.merge_checkbox.isChecked())
+        evidence_document=lambda:dict(conversation=asdict(item),timeline=timing)
         self.timeline.setRowCount(len(timing['rows']))
         quest_fields = {record['packet_index']: record for record in item.resource_observations
                         if record['kind'].startswith('quest_')}
@@ -306,8 +322,8 @@ class DialoguePanel(QWidget):
                         if (row['source_ref'], row['capture_session'], row['conversation_id']) == key), None)
                     if excluded and excluded['reason'] in ('node_capacity', 'semantic_capacity', 'step_capacity'):
                         self.merge_status.setText('統合データの保持上限に到達。根拠JSONを確認してください')
-                self.evidence.setPlainText(json.dumps(dict(conversation=asdict(item), timeline=timing,
-                    merged_group=group, excluded=self.merged_report()['excluded']), ensure_ascii=False, indent=2))
+                excluded_rows=self.merged_report()['excluded']
+                evidence_document=lambda:dict(conversation=asdict(item),timeline=timing,merged_group=group,excluded=excluded_rows)
             else:
                 code = renderer.render(item, presentation_check=check)
                 self.merge_status.clear()
@@ -316,12 +332,14 @@ class DialoguePanel(QWidget):
             if self.merge_checkbox.isChecked() and group and group.get('timeout_normalizations'):
                 self.merge_status.setText(self.merge_status.text() + f' / 未応答終了の前方一致 {len(group["timeout_normalizations"])}件')
         except (OSError, ValueError) as exc:
+            self.evidence.set_document(evidence_key,evidence_document)
             self.code.setPlainText(f'コード候補を生成できません: {exc}')
             return
+        self.evidence.set_document(evidence_key,evidence_document)
         self.code.setPlainText(code)
 
     def merged_report(self):
-        key = (self.store.revision, tuple(sorted(self.store.source_refs.items())))
+        key = (self.store,self.store.revision, tuple(sorted(self.store.source_refs.items())))
         if key != self._merge_key:
             self._merge_report = build_merged((self.store.source_refs.get(item.capture_session, ''), item)
                                                for item in self.store.sessions)
