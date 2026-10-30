@@ -1,0 +1,62 @@
+name: Feature / investigation
+description: 機能追加、復元範囲の拡張、観測調査
+title: "[enhancement] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        完了条件は観測で確認できる範囲に限って書いてください。
+        方針は [作業合意](https://github.com/refis/KYRiE/blob/main/docs/development/working-agreement.md) を参照。
+  - type: textarea
+    id: goal
+    attributes:
+      label: 目的
+      description: 何ができるようになればよいか。
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: 観測境界
+      description: 推測しないこと／未対応のまま残すことを明記。
+      placeholder: |
+        - 観測する:
+        - 推測しない / 自動補完しない:
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 領域
+      multiple: true
+      options:
+        - npc
+        - mob
+        - gui
+        - capture-stack
+        - storage
+        - config-dict
+        - documentation
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: 完了条件
+      description: テストグループ、docs更新、手動確認の有無まで。
+      placeholder: |
+        - tools.run_tests …
+        - docs/… を更新
+        - 実機 / Auriga 確認は不要 or 必要
+    validations:
+      required: true
+  - type: checkboxes
+    id: priority_hint
+    attributes:
+      label: 優先の目安
+      options:
+        - label: P0（取得破損・保存破壊・誤ったパケット合成に近い）
+        - label: P1（復元結果の誤り・根拠欠落）
+        - label: P2（表示・辞書・操作性）

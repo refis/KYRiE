@@ -1,5 +1,15 @@
 # Development baseline and plan
 
+## GitHub management bootstrap (2026-10-30)
+
+Added CONTRIBUTING.md, SECURITY.md, NOTICE, Issue/PR templates, CODEOWNERS,
+offscreen CI workflow, docs/development/working-agreement.md,
+docs/development/github-labels.md and docs/releases/README.md. Snapshot allowlist
+now packages .github templates and the new root docs. Custom labels could not be
+created by the integration token (403); maintainer runs github-labels.md once.
+Targeted release/selection checks passed, including the new snapshot packaging
+case. No full discovery. Branch protection remains a manual GitHub setting.
+
 ## Profile packet-table insertion and durable DB writes (post-v0.0.4, 2026-10-29)
 
 Added profile_packet_path using temporary synthetic SQLite files and a bare

@@ -1,0 +1,67 @@
+name: Bug
+description: 観測・復元・GUI・取得の不具合
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        生ログ・DB・EXEはIssueに貼らないでください。必要な場合は別保管のパス／SHA-256／件数だけ書いてください。
+        詳細は [SECURITY.md](https://github.com/refis/KYRiE/blob/main/SECURITY.md) を参照。
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何が起きているか、一文で。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 再現手順
+      description: GUI操作、再解析、CLIのどれか。オフライン再解析ならログの識別情報のみ。
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 環境
+      description: OS／Python／クライアント版／PacketLengthの出所（パスや版名のみ）
+      placeholder: Windows 10 / Python 3.13 / PacketLength.txt（同梱）
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待と実際
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 領域
+      multiple: true
+      options:
+        - npc
+        - mob
+        - gui
+        - capture-stack
+        - storage
+        - config-dict
+        - documentation
+        - other
+  - type: textarea
+    id: tests
+    attributes:
+      label: 関連テスト
+      description: 分かる範囲で `python -m tools.run_tests` のグループ名やモジュール名。
+      placeholder: gui-restoration / tests.unit.test_skills
+  - type: checkboxes
+    id: evidence
+    attributes:
+      label: 確認
+      options:
+        - label: 未観測のサーバー条件やタイマー値を推測した記述にしていない
+        - label: 生パケット本文やアカウント情報を本文・添付に含めていない
