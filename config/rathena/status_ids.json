@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "target": "rathena",
+  "id_namespace": "client_status_icon",
+  "source": {
+    "note": "未照合。Aurigaの数値を流用せず、対象rAthena版の検証後に追加する。"
+  },
+  "entries": {}
+}

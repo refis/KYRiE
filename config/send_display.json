@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "encoding": "cp932",
+  "defaults": {},
+  "fallback": "@send 0x{packet_id:04X}; // {length} bytes (display undefined; plaintext unverified)",
+  "error": "@send_decode_error 0x{packet_id:04X} ({name}): {error}",
+  "timestamp": "/* {time} */\t",
+  "packets": [
+    {
+      "ids": [
+        "0064"
+      ],
+      "name": "Login request",
+      "template": "SEND login_request version={version}, client_type={client_type}",
+      "fields": {
+        "version": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "client_type": {
+          "offset": 54,
+          "type": "u8"
+        }
+      },
+      "min_length": 55
+    },
+    {
+      "ids": [
+        "0065"
+      ],
+      "name": "Character server login",
+      "template": "SEND character_login account={account_id}, sex={sex}",
+      "fields": {
+        "account_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "sex": {
+          "offset": 16,
+          "type": "u8"
+        }
+      },
+      "min_length": 17
+    },
+    {
+      "ids": [
+        "0066"
+      ],
+      "name": "Character selection",
+      "template": "SEND select_character slot={slot}",
+      "fields": {
+        "slot": {
+          "offset": 2,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "0072"
+      ],
+      "name": "Map server login",
+      "template": "SEND map_login account={account_id}, character={character_id}, sex={sex}",
+      "fields": {},
+      "min_length": 19,
+      "decoder": "player"
+    },
+    {
+      "ids": [
+        "0436"
+      ],
+      "name": "Map server login (23-byte layout)",
+      "template": "SEND map_login account={account_id}, character={character_id}, sex={sex}",
+      "fields": {},
+      "min_length": 23,
+      "decoder": "player"
+    },
+    {
+      "ids": [
+        "007D"
+      ],
+      "name": "Map loaded",
+      "template": "SEND map_loaded",
+      "fields": {}
+    },
+    {
+      "ids": [
+        "007E"
+      ],
+      "name": "Client tick",
+      "template": "SEND sync tick={tick}",
+      "fields": {
+        "tick": {
+          "offset": 2,
+          "type": "u32"
+        }
+      }
+    },
+    {
+      "ids": [
+        "0085"
+      ],
+      "name": "Move request",
+      "template": "SEND move packed_position={position}",
+      "fields": {
+        "position": {
+          "offset": 2,
+          "type": "bytes",
+          "length": 3
+        }
+      }
+    },
+    {
+      "ids": [
+        "0089",
+        "0437"
+      ],
+      "name": "Actor action",
+      "template": "SEND actor_action target={target_id}, type={action}",
+      "fields": {
+        "target_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "action": {
+          "offset": 6,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "008C"
+      ],
+      "name": "Public chat",
+      "template": "SEND public_chat {text:q}",
+      "fields": {
+        "text": {
+          "offset": 4,
+          "type": "string"
+        }
+      },
+      "min_length": 5
+    },
+    {
+      "ids": [
+        "0090"
+      ],
+      "name": "NPC interaction",
+      "template": "SEND npc_talk npc={npc_id}, type={kind}",
+      "fields": {
+        "npc_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "0094",
+        "0368"
+      ],
+      "name": "Actor information request",
+      "template": "SEND actor_info target={target_id}",
+      "fields": {
+        "target_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      }
+    },
+    {
+      "ids": [
+        "009B"
+      ],
+      "name": "Look direction",
+      "template": "SEND look head={head}, body={body}",
+      "fields": {
+        "head": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "body": {
+          "offset": 4,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "009F"
+      ],
+      "name": "Pick up item",
+      "template": "SEND item_take object={object_id}",
+      "fields": {
+        "object_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00A2",
+        "0363"
+      ],
+      "name": "Drop item",
+      "template": "SEND item_drop inventory_index={index}, amount={amount}",
+      "fields": {
+        "index": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "amount": {
+          "offset": 4,
+          "type": "u16"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00A7",
+        "0439"
+      ],
+      "name": "Use item",
+      "template": "SEND item_use inventory_index={index}, target={target_id}",
+      "fields": {
+        "index": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "target_id": {
+          "offset": 4,
+          "type": "u32"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00AB"
+      ],
+      "name": "Unequip item",
+      "template": "SEND item_unequip inventory_index={index}",
+      "fields": {
+        "index": {
+          "offset": 2,
+          "type": "u16"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00B2"
+      ],
+      "name": "Restart request",
+      "template": "SEND restart type={kind}",
+      "fields": {
+        "kind": {
+          "offset": 2,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00B8"
+      ],
+      "name": "NPC menu response",
+      "template": "SEND npc_select npc={npc_id}, response={response}",
+      "fields": {
+        "npc_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "response": {
+          "offset": 6,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00B9"
+      ],
+      "name": "NPC dialogue continue",
+      "template": "SEND npc_next npc={npc_id}",
+      "fields": {
+        "npc_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00BF"
+      ],
+      "name": "Emotion request",
+      "template": "SEND emotion type={emotion}",
+      "fields": {
+        "emotion": {
+          "offset": 2,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00C1"
+      ],
+      "name": "User count request",
+      "template": "SEND request_user_count",
+      "fields": {}
+    },
+    {
+      "ids": [
+        "00C5"
+      ],
+      "name": "NPC shop selection",
+      "template": "SEND shop_select npc={npc_id}, type={kind}",
+      "fields": {
+        "npc_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u8"
+        }
+      }
+    },
+    {
+      "ids": [
+        "0143"
+      ],
+      "name": "NPC numeric response",
+      "template": "SEND npc_input_number npc={npc_id}, value={value}",
+      "fields": {
+        "npc_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "value": {
+          "offset": 6,
+          "type": "i32"
+        }
+      }
+    },
+    {
+      "ids": [
+        "0146"
+      ],
+      "name": "NPC dialogue close",
+      "template": "SEND npc_close npc={npc_id}",
+      "fields": {
+        "npc_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      }
+    }
+  ]
+}

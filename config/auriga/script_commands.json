@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "correlation_ms": 2000,
+  "equip_slots": {
+    "256": 1,
+    "16": 2,
+    "32": 3,
+    "2": 4,
+    "4": 5,
+    "64": 6,
+    "8": 7,
+    "128": 8,
+    "512": 9,
+    "1": 10,
+    "32768": 11,
+    "1024": 12,
+    "2048": 13,
+    "4096": 14,
+    "8192": 15,
+    "16384": 16,
+    "65536": 17,
+    "131072": 18,
+    "262144": 19,
+    "524288": 20,
+    "1048576": 21,
+    "2097152": 22
+  },
+  "request_ids": {
+    "unequip": [
+      "00AB"
+    ],
+    "posture": [
+      "0089",
+      "0437"
+    ],
+    "drop": [
+      "00A2",
+      "0363"
+    ],
+    "walk": [
+      "0085",
+      "035F"
+    ]
+  },
+  "dropitem_lifetime_ms": 60000,
+  "flooritem_base_lifetime_ms": 60000,
+  "flooritem_base_reference": "Auriga/conf/battle_auriga.conf:flooritem_lifetime"
+}

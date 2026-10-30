@@ -1,0 +1,11 @@
+{
+  "header": "// Auriga mob_skill_db 編集用候補。全行コメント。未確認値は ? とし、稼働DBへ直接投入しません。\n// MOB_IDは観測クラス値です。出力先DBとの対応を確認してください。\n// 観測間隔は設定ディレイではありません。確率・AI条件は推定していません。",
+  "quality": "// 候補 {count}件 / 解析問題 {issues}件 / 分類不可通知 {unattributed}件 / 観測上限到達 {saturated} / 通信品質は未検証",
+  "columns": "// MOB_ID,NAME,STATE,SKILL_ID,SKILL_LV,RATE,CASTTIME,DELAY,CANCEL,TARGET,CONDITION,CONDITION_VALUE,VAL1,VAL2,VAL3,VAL4,VAL5,VAL6,EMOTION",
+  "candidate": "// {row}",
+  "evidence": "// 観測個体 {appearances} / 生レベル {raw_levels} / 詠唱通知ms {cast_ms} / 個体内の最短観測間隔ms {observed_intervals}",
+  "incomplete": "// 要編集: {fields}",
+  "name": "{monster_name}＠{skill_name}",
+  "unknown_monster": "MOB_ID_{mob_id}",
+  "unknown_skill": "SKILL_ID_{skill_id}"
+}

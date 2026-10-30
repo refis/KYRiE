@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "encoding": "cp932",
+  "defaults": {},
+  "fallback": "// unhandled packet 0x{packet_id:04X} ({length} bytes)",
+  "error": "// decode error 0x{packet_id:04X}: {error}",
+  "timestamp": "// {time}\n",
+  "packets": [
+    {
+      "ids": [
+        "00B4"
+      ],
+      "name": "NPC dialogue",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 8,
+          "type": "string"
+        }
+      },
+      "template": "mes {text:q};",
+      "min_length": 9
+    },
+    {
+      "ids": [
+        "00B5"
+      ],
+      "name": "Dialogue next",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "next;",
+      "min_length": 6
+    },
+    {
+      "ids": [
+        "00B6"
+      ],
+      "name": "Dialogue close",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "close;"
+    },
+    {
+      "ids": [
+        "00B7"
+      ],
+      "name": "Dialogue choices",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 8,
+          "type": "string"
+        }
+      },
+      "template": "menu {text:q},-;",
+      "min_length": 9
+    },
+    {
+      "ids": [
+        "099D",
+        "0B72"
+      ],
+      "name": "Character list",
+      "decoder": "player",
+      "template": "@character_list {character_count}; // キャラクター詳細は基本データJSONを参照",
+      "fields": {}
+    }
+  ]
+}

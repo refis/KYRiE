@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.reference/
+packets.sqlite3
+packets.sqlite3-*
+logs/
+client/*.exe
+
+/dist/
+/.venv/

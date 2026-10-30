@@ -1,0 +1,14 @@
+{
+  "effect_remove": "delmisceffect {value};",
+  "announcement": "announce {text},{flag}; // 観測窓内の関連候補。配信範囲・起因は未確定。",
+  "announcement_styled": "announce {text},0x9,{color},{font_type},{font_size},{font_align},{font_y}; // 観測窓内の関連候補。配信範囲・起因は未確定。",
+  "header": "// 手動採用したNPCタイマーラベルの編集用候補。対象 {npc_name} / map={map_name} / 試行 {trial}\n// 時刻は利用者の手入力。起因・開始条件・元のタイマー設定は未復元。\n// 対象NPCの本文へ統合し、既存ラベルとの重複・対象範囲を検証してください。自動開始・再開・ループは生成しません。",
+  "indent": "    ",
+  "entry_end": "end;",
+  "label": "OnTimer{time_ms}:",
+  "evidence": "// Packet {packet}: 観測基準から {observed_ms} ms / 手入力 {manual_ms} ms",
+  "unittalk": "unittalk {text};",
+  "emotion": "emotion {value};",
+  "effect": "misceffect {value};",
+  "label_end": "end;"
+}

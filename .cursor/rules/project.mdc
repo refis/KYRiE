@@ -1,0 +1,27 @@
+---
+description: KYRiE project-wide development rules
+alwaysApply: true
+---
+
+- Preserve passive receive capture and existing SQLite columns.
+- Add regression coverage for behavior changes; run only affected methods/modules by default.
+- Use `python -m tools.run_tests --list` and select relevant feature groups; see tests/README.md.
+- Broaden checks only for concrete dependencies, failures, or unresolved concerns. Run full discovery for releases or justified cross-cutting changes, not every edit.
+- Report the scope actually run; never imply a selected run verified the full suite.
+- Keep tests grouped by responsibility; retain useful regression coverage and avoid duplicate implementation-only checks.
+- Packet IDs and variable lengths are little endian; lengths include headers.
+- Duplicate definitions use the last entry. Never guess boundaries after unknown IDs.
+- Keep framing, TCP assembly, IPC decoding and GUI responsibilities separate.
+- Bound external buffers and fail the affected stream closed on invalid input.
+- Synchronize capture state shared with process discovery; call UI through Qt signals.
+- Missing bytes must wait for retransmission; never synthesize packet contents.
+- Keep PacketEvent independent of Scapy, Qt and native pointer sizes.
+- Never log plaintext payloads in diagnostic messages.
+- Document native wire formats, ownership, shutdown and overflow behavior.
+- Validate with synthetic traffic before authorized Windows/game integration tests.
+- Prioritize Auriga NPC code restoration (including timed events) and MOB analysis, following MARiA's functionality.
+- Keep rAthena rendering separate and lower priority; keep all wording in external profiles.
+- Separate semantic/state analysis from text rendering and emulator-specific code generation.
+- Preserve evidence for inferred timing, branches and skill statistics; never invent unseen server logic.
+- Compute MOB skill intervals per individual before aggregating by class.
+- Recognized initial HTTP traffic is PASS, not a game framing error; never scan unknown game bytes for synchronization.

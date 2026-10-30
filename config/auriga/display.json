@@ -1,0 +1,2157 @@
+{
+  "instance_map_reference": "getmdmapname({map:q})",
+  "instance_warp": "warp {map_reference}, {x}, {y};",
+  "instance_entry_warp": "// warp {map:q}, {x}, {y}; // インスタンスへの入場候補。mdenter内の移動の可能性があるため未実行。元MAP不明時も要確認。",
+  "entity_metadata": true,
+  "version": 1,
+  "encoding": "cp932",
+  "defaults": {
+    "ctx_cutin": 255,
+    "ctx_map": "unknown"
+  },
+  "fallback": "@packet 0x{packet_id:04X}; // {length} bytes (display undefined)",
+  "error": "@decode_error 0x{packet_id:04X} ({name}): {error}",
+  "timestamp": "/* {time} */\t",
+  "packets": [
+    {
+      "ids": [
+        "00B4"
+      ],
+      "name": "NPC dialogue",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 8,
+          "type": "string"
+        }
+      },
+      "template": "mes {text:q};",
+      "min_length": 9
+    },
+    {
+      "ids": [
+        "0972"
+      ],
+      "name": "Typed NPC dialogue",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 8,
+          "type": "u8"
+        },
+        "text": {
+          "offset": 9,
+          "type": "string"
+        }
+      },
+      "template": "mes {text:q};\t//type:{kind}",
+      "min_length": 10
+    },
+    {
+      "ids": [
+        "00B5"
+      ],
+      "name": "Dialogue next",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "next;",
+      "min_length": 6
+    },
+    {
+      "ids": [
+        "0973"
+      ],
+      "name": "Typed dialogue next",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u8"
+        }
+      },
+      "template": "next;\t//type:{kind}"
+    },
+    {
+      "ids": [
+        "00B6"
+      ],
+      "name": "Dialogue close",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "close;"
+    },
+    {
+      "ids": [
+        "08D6"
+      ],
+      "name": "Dialogue clear",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "clear;"
+    },
+    {
+      "ids": [
+        "00B7"
+      ],
+      "name": "Dialogue choices",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 8,
+          "type": "string"
+        }
+      },
+      "template": "menu {text:q},-;",
+      "min_length": 9
+    },
+    {
+      "ids": [
+        "0142"
+      ],
+      "name": "Numeric input",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "input '@num;"
+    },
+    {
+      "ids": [
+        "01D4"
+      ],
+      "name": "Text input",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "input '@str$;"
+    },
+    {
+      "ids": [
+        "01B3"
+      ],
+      "name": "Cutin",
+      "fields": {
+        "image": {
+          "offset": 2,
+          "type": "string",
+          "length": 64
+        },
+        "kind": {
+          "offset": 66,
+          "type": "u8"
+        }
+      },
+      "template": "cutin {image:q}, {kind};",
+      "remember": {
+        "ctx_cutin": "kind"
+      }
+    },
+    {
+      "ids": [
+        "02B3",
+        "09F9",
+        "0B0C"
+      ],
+      "name": "Quest added",
+      "fields": {
+        "quest_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "state": {
+          "offset": 6,
+          "type": "u8"
+        }
+      },
+      "template": "setquest {quest_id};\t// state={state}"
+    },
+    {
+      "ids": [
+        "02B4"
+      ],
+      "name": "Quest removed",
+      "fields": {
+        "quest_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "delquest {quest_id};"
+    },
+    {
+      "ids": [
+        "009A"
+      ],
+      "name": "Broadcast",
+      "fields": {
+        "text": {
+          "offset": 4,
+          "type": "string"
+        }
+      },
+      "template": "announce {text:q}, 0;",
+      "min_length": 5
+    },
+    {
+      "ids": [
+        "01C3",
+        "040C"
+      ],
+      "name": "Styled announcement",
+      "fields": {
+        "color": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "font_type": {
+          "offset": 8,
+          "type": "u16"
+        },
+        "font_size": {
+          "offset": 10,
+          "type": "u16"
+        },
+        "font_align": {
+          "offset": 12,
+          "type": "u16"
+        },
+        "font_y": {
+          "offset": 14,
+          "type": "u16"
+        },
+        "text": {
+          "offset": 16,
+          "type": "string"
+        }
+      },
+      "template": "announce {text:q}, 0x9, {color:#08x}, {font_type:#06x}, {font_size}, {font_align}, {font_y};",
+      "variants": [
+        {
+          "when": {
+            "font_type": 400,
+            "font_size": 12,
+            "font_align": 0,
+            "font_y": 0
+          },
+          "template": "announce {text:q}, 0x9, {color:#08x};"
+        }
+      ],
+      "min_length": 17
+    },
+    {
+      "ids": [
+        "02F0"
+      ],
+      "name": "Progress bar",
+      "fields": {
+        "color": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "seconds": {
+          "offset": 6,
+          "type": "u32"
+        }
+      },
+      "template": "progressbar {seconds};\t//color={color:#08x}"
+    },
+    {
+      "ids": [
+        "09D1"
+      ],
+      "name": "Unit progress bar",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "color": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "seconds": {
+          "offset": 10,
+          "type": "u32"
+        }
+      },
+      "template": "progressbar {seconds};\t//color={color:#08x}, aid={actor_id}"
+    },
+    {
+      "ids": [
+        "0144"
+      ],
+      "name": "Map marker",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "x": {
+          "offset": 10,
+          "type": "u32"
+        },
+        "y": {
+          "offset": 14,
+          "type": "u32"
+        },
+        "marker_id": {
+          "offset": 18,
+          "type": "u8"
+        },
+        "color": {
+          "offset": 19,
+          "type": "u32",
+          "mask": 16777215
+        }
+      },
+      "template": "viewpoint {kind}, {x}, {y}, {marker_id}, 0x{color:06X};\t// {actor_id}"
+    },
+    {
+      "ids": [
+        "00D7"
+      ],
+      "name": "Waiting room",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "chat_id": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 17,
+          "type": "string"
+        }
+      },
+      "template": "waitingroom {text:q}, 0;\t// {actor_id}",
+      "min_length": 18
+    },
+    {
+      "ids": [
+        "0192"
+      ],
+      "name": "Map cell",
+      "fields": {
+        "x": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 4,
+          "type": "u16"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u16"
+        },
+        "map": {
+          "offset": 8,
+          "type": "string",
+          "length": 16
+        }
+      },
+      "template": "setcell {map:q}, {x}, {y}, {kind};"
+    },
+    {
+      "ids": [
+        "01D3"
+      ],
+      "name": "Sound effect",
+      "fields": {
+        "sound": {
+          "offset": 2,
+          "type": "string",
+          "length": 24
+        },
+        "kind": {
+          "offset": 26,
+          "type": "u8"
+        },
+        "interval": {
+          "offset": 27,
+          "type": "u32"
+        },
+        "actor_id": {
+          "offset": 31,
+          "type": "u32"
+        }
+      },
+      "template": "soundeffect {sound:q}, {kind}, {interval};\t// {actor_id}"
+    },
+    {
+      "ids": [
+        "07FE"
+      ],
+      "name": "Music",
+      "fields": {
+        "music": {
+          "offset": 2,
+          "type": "string",
+          "length": 24
+        }
+      },
+      "template": "musiceffect {music:q};"
+    },
+    {
+      "ids": [
+        "0B8C"
+      ],
+      "name": "Typed music",
+      "fields": {
+        "kind": {
+          "offset": 4,
+          "type": "u8"
+        },
+        "music": {
+          "offset": 5,
+          "type": "string"
+        }
+      },
+      "template": "musiceffect {music:q},{kind};",
+      "min_length": 6
+    },
+    {
+      "ids": [
+        "0091"
+      ],
+      "name": "Map changed",
+      "fields": {
+        "map": {
+          "offset": 2,
+          "type": "string",
+          "length": 16
+        },
+        "x": {
+          "offset": 18,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 20,
+          "type": "u16"
+        }
+      },
+      "template": "warp {map:q}, {x}, {y};",
+      "remember": {
+        "ctx_map": "map"
+      }
+    },
+    {
+      "ids": [
+        "0092"
+      ],
+      "name": "Map server changed",
+      "fields": {
+        "map": {
+          "offset": 2,
+          "type": "string",
+          "length": 16
+        },
+        "x": {
+          "offset": 18,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 20,
+          "type": "u16"
+        },
+        "server_ip": {
+          "offset": 22,
+          "type": "bytes",
+          "length": 4
+        },
+        "port": {
+          "offset": 26,
+          "type": "u16"
+        }
+      },
+      "template": "warp {map:q}, {x}, {y};\t// port: {port}",
+      "remember": {
+        "ctx_map": "map"
+      }
+    },
+    {
+      "ids": [
+        "008D"
+      ],
+      "name": "Unit speech",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 8,
+          "type": "string"
+        }
+      },
+      "template": "@unittalk {text:q};\t// {actor_id}",
+      "min_length": 9
+    },
+    {
+      "ids": [
+        "008E"
+      ],
+      "name": "Player speech",
+      "fields": {
+        "text": {
+          "offset": 4,
+          "type": "string"
+        }
+      },
+      "template": "unittalk getcharid(3),{text:q},1;\t// self:hidden",
+      "min_length": 5
+    },
+    {
+      "ids": [
+        "02C1"
+      ],
+      "name": "Colored unit speech",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "color": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 12,
+          "type": "string"
+        }
+      },
+      "template": "@talk {text:q}, color: {color:#08x}, id: {actor_id}",
+      "min_length": 13
+    },
+    {
+      "ids": [
+        "08B3"
+      ],
+      "name": "Overhead message",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "text": {
+          "offset": 8,
+          "type": "string"
+        }
+      },
+      "template": "@showmessage {text:q};\t// {actor_id}",
+      "min_length": 9
+    },
+    {
+      "ids": [
+        "02CB"
+      ],
+      "name": "Instance creation",
+      "fields": {
+        "instance": {
+          "offset": 2,
+          "type": "string",
+          "length": 60
+        }
+      },
+      "template": "mdcreate {instance:q};"
+    },
+    {
+      "ids": [
+        "0A24"
+      ],
+      "name": "Achievement",
+      "fields": {
+        "achievement_id": {
+          "offset": 16,
+          "type": "u32"
+        }
+      },
+      "template": "achievement {achievement_id};"
+    },
+    {
+      "ids": [
+        "0AB9",
+        "0B13"
+      ],
+      "name": "Item preview",
+      "fields": {
+        "index": {
+          "offset": 2,
+          "type": "u16",
+          "add": -2
+        }
+      },
+      "template": "itempreview {index};"
+    },
+    {
+      "ids": [
+        "01D6"
+      ],
+      "name": "Map property",
+      "fields": {
+        "kind": {
+          "offset": 2,
+          "type": "u16"
+        }
+      },
+      "template": "@mapproperty map: {ctx_map}, type: {kind}"
+    },
+    {
+      "ids": [
+        "099B"
+      ],
+      "name": "Map property flags",
+      "fields": {
+        "kind": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "flags": {
+          "offset": 4,
+          "type": "u32"
+        }
+      },
+      "template": "@mapproperty_r map: {ctx_map}, type: {kind}, bit: {flags:#x}"
+    },
+    {
+      "ids": [
+        "0977"
+      ],
+      "name": "Unit HP",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "hp": {
+          "offset": 6,
+          "type": "i32"
+        },
+        "max_hp": {
+          "offset": 10,
+          "type": "i32"
+        }
+      },
+      "template": "@hpinfo aid: {actor_id}, HP: {hp}/{max_hp}"
+    },
+    {
+      "ids": [
+        "0A36"
+      ],
+      "name": "Unit HP percent",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "percent": {
+          "offset": 6,
+          "type": "u8",
+          "scale": 5
+        }
+      },
+      "template": "@hp_info_tiny aid: {actor_id}, per: {percent}%"
+    },
+    {
+      "ids": [
+        "0446"
+      ],
+      "name": "NPC event marker",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "x": {
+          "offset": 6,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 8,
+          "type": "u16"
+        },
+        "state": {
+          "offset": 10,
+          "type": "u16"
+        },
+        "kind": {
+          "offset": 12,
+          "type": "u16"
+        }
+      },
+      "template": "@showevent {state}, {kind};\t// {actor_id}: {x}, {y}"
+    },
+    {
+      "ids": [
+        "0A3B"
+      ],
+      "name": "Hat effect",
+      "fields": {
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "enabled": {
+          "offset": 8,
+          "type": "u8"
+        },
+        "effect_id": {
+          "offset": 9,
+          "type": "u16"
+        }
+      },
+      "template": "@hat_effect {effect_id};\t// {actor_id}",
+      "variants": [
+        {
+          "when": {
+            "enabled": 0
+          },
+          "template": "@hat_effect_end {effect_id};\t// {actor_id}"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "029B"
+      ],
+      "name": "Mercenary",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "actor_name": {
+          "offset": 22,
+          "type": "string",
+          "length": 24
+        },
+        "duration": {
+          "offset": 64,
+          "type": "u32"
+        }
+      },
+      "template": "@makemerc time: {duration}\t// {actor_name}({actor_id})"
+    },
+    {
+      "ids": [
+        "0B0D"
+      ],
+      "name": "Remove effect",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "effect_id": {
+          "offset": 6,
+          "type": "u32"
+        }
+      },
+      "template": "@delmisceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "decoder": "visual_effect_name",
+      "min_length": 10
+    },
+    {
+      "ids": [
+        "0BA2"
+      ],
+      "name": "Dialogue size",
+      "fields": {
+        "height": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "width": {
+          "offset": 6,
+          "type": "u32"
+        }
+      },
+      "template": "messize {height},{width};"
+    },
+    {
+      "ids": [
+        "0BA3",
+        "0BB5"
+      ],
+      "name": "Dialogue position",
+      "fields": {
+        "x": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "y": {
+          "offset": 6,
+          "type": "u32"
+        }
+      },
+      "template": "mespos {x},{y};"
+    },
+    {
+      "ids": [
+        "0BA1"
+      ],
+      "name": "Dialogue alignment",
+      "fields": {
+        "alignment": {
+          "offset": 2,
+          "type": "u8"
+        }
+      },
+      "template": "mesalign {alignment};"
+    },
+    {
+      "ids": [
+        "00C0"
+      ],
+      "name": "Emotion",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u8"
+        }
+      },
+      "template": "@emotion {kind};\t// {actor_id}"
+    },
+    {
+      "ids": [
+        "019B",
+        "01F3"
+      ],
+      "name": "Visual effect",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "effect_id": {
+          "offset": 6,
+          "type": "u32"
+        }
+      },
+      "template": "@misceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "decoder": "visual_effect_name",
+      "min_length": 10
+    },
+    {
+      "ids": [
+        "0284"
+      ],
+      "name": "Effect value",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "effect_id": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "value": {
+          "offset": 10,
+          "type": "u32"
+        }
+      },
+      "template": "@misceffect_value {effect_id},{value};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "decoder": "visual_effect_name",
+      "min_length": 14
+    },
+    {
+      "ids": [
+        "0080"
+      ],
+      "name": "Unit removed",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u8"
+        }
+      },
+      "template": "@unit_removed aid: {actor_id}, type: {kind}"
+    },
+    {
+      "ids": [
+        "01B0"
+      ],
+      "name": "Class changed",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "kind": {
+          "offset": 6,
+          "type": "u8"
+        },
+        "class_id": {
+          "offset": 7,
+          "type": "u32"
+        }
+      },
+      "template": "@classchange aid: {actor_id}, class: {class_id}, type: {kind}"
+    },
+    {
+      "ids": [
+        "01B9"
+      ],
+      "name": "Cast cancelled",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        }
+      },
+      "template": "@skill_castcancel aid: {actor_id}"
+    },
+    {
+      "ids": [
+        "013E",
+        "07FB"
+      ],
+      "name": "Skill casting",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "target_id": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "skill_id": {
+          "offset": 14,
+          "type": "u16"
+        },
+        "cast_ms": {
+          "offset": 20,
+          "type": "u32"
+        }
+      },
+      "template": "@skillcasting(src: {actor_id}, dst: {target_id}, skill: {skill_id}, casttime: {cast_ms})"
+    },
+    {
+      "ids": [
+        "008A"
+      ],
+      "name": "Normal attack",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "target_id": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "tick": {
+          "offset": 10,
+          "type": "u32"
+        },
+        "source_delay": {
+          "offset": 14,
+          "type": "i32"
+        },
+        "target_delay": {
+          "offset": 18,
+          "type": "i32"
+        },
+        "damage": {
+          "offset": 22,
+          "type": "i16"
+        },
+        "kind": {
+          "offset": 26,
+          "type": "u8"
+        },
+        "divisions": {
+          "offset": 24,
+          "type": "i16"
+        },
+        "left_damage": {
+          "offset": 27,
+          "type": "i16"
+        }
+      },
+      "template": "@normalattack(src: {actor_id}, dst: {target_id}, damage: {damage}, sDelay: {source_delay}, dDelay: {target_delay}, tick: {tick}, type: {kind}) // left={left_damage}, div={divisions}",
+      "min_length": 29,
+      "variants": [
+        {
+          "when": {
+            "kind": 1
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        },
+        {
+          "when": {
+            "kind": 2
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        },
+        {
+          "when": {
+            "kind": 3
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "02E1"
+      ],
+      "name": "Normal attack",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "target_id": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "tick": {
+          "offset": 10,
+          "type": "u32"
+        },
+        "source_delay": {
+          "offset": 14,
+          "type": "i32"
+        },
+        "target_delay": {
+          "offset": 18,
+          "type": "i32"
+        },
+        "damage": {
+          "offset": 22,
+          "type": "i32"
+        },
+        "kind": {
+          "offset": 28,
+          "type": "u8"
+        },
+        "divisions": {
+          "offset": 26,
+          "type": "i16"
+        },
+        "left_damage": {
+          "offset": 29,
+          "type": "i32"
+        }
+      },
+      "template": "@normalattack(src: {actor_id}, dst: {target_id}, damage: {damage}, sDelay: {source_delay}, dDelay: {target_delay}, tick: {tick}, type: {kind}) // left={left_damage}, div={divisions}",
+      "min_length": 33,
+      "variants": [
+        {
+          "when": {
+            "kind": 1
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        },
+        {
+          "when": {
+            "kind": 2
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        },
+        {
+          "when": {
+            "kind": 3
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "08C8"
+      ],
+      "name": "Normal attack",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "target_id": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "tick": {
+          "offset": 10,
+          "type": "u32"
+        },
+        "source_delay": {
+          "offset": 14,
+          "type": "i32"
+        },
+        "target_delay": {
+          "offset": 18,
+          "type": "i32"
+        },
+        "damage": {
+          "offset": 22,
+          "type": "i32"
+        },
+        "kind": {
+          "offset": 29,
+          "type": "u8"
+        },
+        "divisions": {
+          "offset": 27,
+          "type": "i16"
+        },
+        "left_damage": {
+          "offset": 30,
+          "type": "i32"
+        },
+        "sp_damage": {
+          "offset": 26,
+          "type": "u8"
+        }
+      },
+      "template": "@normalattack(src: {actor_id}, dst: {target_id}, damage: {damage}, sDelay: {source_delay}, dDelay: {target_delay}, tick: {tick}, type: {kind}) // left={left_damage}, div={divisions}, SP flag={sp_damage}",
+      "min_length": 34,
+      "variants": [
+        {
+          "when": {
+            "kind": 1
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        },
+        {
+          "when": {
+            "kind": 2
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        },
+        {
+          "when": {
+            "kind": 3
+          },
+          "template": "@unit_action ID={actor_id}, type={kind}; // 攻撃集計対象外"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "01DE"
+      ],
+      "name": "Skill damage",
+      "fields": {
+        "skill_id": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "target_id": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "tick": {
+          "offset": 12,
+          "type": "u32"
+        },
+        "source_delay": {
+          "offset": 16,
+          "type": "i32"
+        },
+        "target_delay": {
+          "offset": 20,
+          "type": "i32"
+        },
+        "damage": {
+          "offset": 24,
+          "type": "i32"
+        },
+        "level": {
+          "offset": 28,
+          "type": "u16"
+        },
+        "divisions": {
+          "offset": 30,
+          "type": "i16"
+        },
+        "hit": {
+          "offset": 32,
+          "type": "u8"
+        }
+      },
+      "template": "@skillattack(src: {actor_id}, dst: {target_id}, skill: {skill_id}, skill_lv: {level}, damage: {damage}, sDelay: {source_delay}, dDelay: {target_delay}, div: {divisions}, hit: {hit}, tick: {tick})"
+    },
+    {
+      "ids": [
+        "011A"
+      ],
+      "name": "Skill without damage",
+      "fields": {
+        "skill_id": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "value": {
+          "offset": 4,
+          "type": "u16"
+        },
+        "target_id": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "actor_id": {
+          "offset": 10,
+          "type": "u32"
+        }
+      },
+      "template": "@skillnodamage(src: {actor_id}, dst: {target_id}, skill: {skill_id}, val: {value})"
+    },
+    {
+      "ids": [
+        "09CB"
+      ],
+      "name": "Skill without damage",
+      "fields": {
+        "skill_id": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "value": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "target_id": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "actor_id": {
+          "offset": 12,
+          "type": "u32"
+        }
+      },
+      "template": "@skillnodamage(src: {actor_id}, dst: {target_id}, skill: {skill_id}, val: {value})"
+    },
+    {
+      "ids": [
+        "0117"
+      ],
+      "name": "Ground skill",
+      "fields": {
+        "skill_id": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "value": {
+          "offset": 8,
+          "type": "u16"
+        },
+        "x": {
+          "offset": 10,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 12,
+          "type": "u16"
+        },
+        "tick": {
+          "offset": 14,
+          "type": "u32"
+        }
+      },
+      "template": "@skillposeffect(src: {actor_id}, skill: {skill_id}, val: {value}, pos({x}, {y}), tick: {tick})"
+    },
+    {
+      "ids": [
+        "09CA"
+      ],
+      "name": "Skill unit",
+      "decoder": "skill_unit",
+      "min_length": 23,
+      "fields": {
+        "unit_actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "source_actor_id": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "actor_id": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "x": {
+          "offset": 12,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 14,
+          "type": "u16"
+        },
+        "unit_id": {
+          "offset": 16,
+          "type": "u32"
+        },
+        "level": {
+          "offset": 22,
+          "type": "u8"
+        }
+      },
+      "template": "@skillunit_appeared(src: {source_actor_id}, unit_actor: {unit_actor_id}, pos({x}, {y}), unit_id: {unit_id:#x}, symbol: {unit_symbol}, name: {unit_name}, skill_candidates: [{unit_skill_ids}], skill_lv: {level})"
+    },
+    {
+      "ids": [
+        "0A41"
+      ],
+      "name": "Skill warning",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "skill_id": {
+          "offset": 6,
+          "type": "u16"
+        },
+        "level": {
+          "offset": 8,
+          "type": "u16"
+        },
+        "x": {
+          "offset": 10,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 12,
+          "type": "u16"
+        }
+      },
+      "template": "@skill_warningplane({actor_id}, pos({x}, {y}), skill_id: {skill_id}, skill_lv: {level})"
+    },
+    {
+      "ids": [
+        "0ACC"
+      ],
+      "name": "Experience gain",
+      "fields": {
+        "experience": {
+          "offset": 6,
+          "type": "u64"
+        },
+        "kind": {
+          "offset": 14,
+          "type": "u16"
+        },
+        "quest": {
+          "offset": 16,
+          "type": "u16"
+        }
+      },
+      "template": "getexp 0,{experience},{quest};",
+      "variants": [
+        {
+          "when": {
+            "kind": 1
+          },
+          "template": "getexp {experience},0,{quest};"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "00B1"
+      ],
+      "name": "Status value",
+      "fields": {},
+      "template": "@update_status(type: {status_type}, value: {value})",
+      "decoder": "player",
+      "variants": [
+        {
+          "when": {
+            "event_kind": "zeny",
+            "delta_known": true
+          },
+          "template": "set Zeny, Zeny {delta:+d}; // 現在 {zeny:,d}"
+        },
+        {
+          "when": {
+            "event_kind": "zeny",
+            "delta_known": false
+          },
+          "template": "@Zeny {zeny:,d}; // 初回観測・差分不明"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "0ACB"
+      ],
+      "name": "Status value 64",
+      "fields": {},
+      "template": "@update_status(type: {status_type}, value: {value})",
+      "decoder": "player",
+      "variants": [
+        {
+          "when": {
+            "event_kind": "zeny",
+            "delta_known": true
+          },
+          "template": "set Zeny, Zeny {delta:+d}; // 現在 {zeny:,d}"
+        },
+        {
+          "when": {
+            "event_kind": "zeny",
+            "delta_known": false
+          },
+          "template": "@Zeny {zeny:,d}; // 初回観測・差分不明"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "0983"
+      ],
+      "name": "Status effect",
+      "fields": {
+        "effect_id": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "flag": {
+          "offset": 8,
+          "type": "u8"
+        },
+        "remaining_ms": {
+          "offset": 9,
+          "type": "u32"
+        },
+        "tick": {
+          "offset": 13,
+          "type": "u32"
+        },
+        "value1": {
+          "offset": 17,
+          "type": "u32"
+        },
+        "value2": {
+          "offset": 21,
+          "type": "u32"
+        },
+        "value3": {
+          "offset": 25,
+          "type": "u32"
+        }
+      },
+      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "decoder": "status_icon_name",
+      "min_length": 29
+    },
+    {
+      "ids": [
+        "043F"
+      ],
+      "name": "Status effect",
+      "fields": {
+        "effect_id": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "flag": {
+          "offset": 8,
+          "type": "u8"
+        },
+        "remaining_ms": {
+          "offset": 9,
+          "type": "u32"
+        },
+        "value1": {
+          "offset": 13,
+          "type": "u32"
+        },
+        "value2": {
+          "offset": 17,
+          "type": "u32"
+        },
+        "value3": {
+          "offset": 21,
+          "type": "u32"
+        }
+      },
+      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "decoder": "status_icon_name",
+      "min_length": 25
+    },
+    {
+      "ids": [
+        "08FF"
+      ],
+      "name": "Status effect on enter",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "effect_id": {
+          "offset": 6,
+          "type": "u16"
+        },
+        "remaining_ms": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "value1": {
+          "offset": 12,
+          "type": "u32"
+        },
+        "value2": {
+          "offset": 16,
+          "type": "u32"
+        },
+        "value3": {
+          "offset": 20,
+          "type": "u32"
+        }
+      },
+      "template": "@effect_enter {effect_id},{value1},{value2},{value3},0,{remaining_ms};\t// {actor_id}"
+    },
+    {
+      "ids": [
+        "0984"
+      ],
+      "name": "Status effect on enter",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "effect_id": {
+          "offset": 6,
+          "type": "u16"
+        },
+        "remaining_ms": {
+          "offset": 8,
+          "type": "u32"
+        },
+        "tick": {
+          "offset": 12,
+          "type": "u32"
+        },
+        "value1": {
+          "offset": 16,
+          "type": "u32"
+        },
+        "value2": {
+          "offset": 20,
+          "type": "u32"
+        },
+        "value3": {
+          "offset": 24,
+          "type": "u32"
+        }
+      },
+      "template": "@effect_enter {effect_id},{value1},{value2},{value3},0,{remaining_ms};\t// {actor_id}"
+    },
+    {
+      "ids": [
+        "0196"
+      ],
+      "name": "Status effect state",
+      "fields": {
+        "effect_id": {
+          "offset": 2,
+          "type": "u16"
+        },
+        "actor_id": {
+          "offset": 4,
+          "type": "u32"
+        },
+        "flag": {
+          "offset": 8,
+          "type": "u8"
+        }
+      },
+      "template": "@status_load type: {effect_id}, aid: {actor_id}, flag: {flag} [{reference_namespace}: {reference_symbols}]",
+      "variants": [
+        {
+          "when": {
+            "flag": 0
+          },
+          "template": "sc_end {effect_id},{actor_id};"
+        }
+      ],
+      "decoder": "status_icon_name",
+      "min_length": 9
+    },
+    {
+      "ids": [
+        "09FE"
+      ],
+      "name": "Unit 出現",
+      "decoder": "actor",
+      "min_length": 83,
+      "template": "",
+      "variants": [
+        {
+          "when": {
+            "actor_type": 5,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@MOB 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 5,
+            "first_seen": true
+          },
+          "template": "@MOB 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 5,
+            "name_valid": false
+          },
+          "template": "@MOB 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 5
+          },
+          "template": "@MOB 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@NPC 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "first_seen": true
+          },
+          "template": "@NPC 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "name_valid": false
+          },
+          "template": "@NPC 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 6
+          },
+          "template": "@NPC 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "first_seen": true
+          },
+          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "name_valid": false
+          },
+          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 12
+          },
+          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "09FF"
+      ],
+      "name": "Unit 待機",
+      "decoder": "actor",
+      "min_length": 84,
+      "template": "",
+      "variants": [
+        {
+          "when": {
+            "actor_type": 5,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@MOB 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 5,
+            "first_seen": true
+          },
+          "template": "@MOB 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 5,
+            "name_valid": false
+          },
+          "template": "@MOB 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 5
+          },
+          "template": "@MOB 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@NPC 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "first_seen": true
+          },
+          "template": "@NPC 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "name_valid": false
+          },
+          "template": "@NPC 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 6
+          },
+          "template": "@NPC 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "first_seen": true
+          },
+          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "name_valid": false
+          },
+          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 12
+          },
+          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "09FD"
+      ],
+      "name": "Unit 移動",
+      "decoder": "actor",
+      "min_length": 90,
+      "template": "",
+      "variants": [
+        {
+          "when": {
+            "actor_type": 5,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@MOB 初回観測/移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 5,
+            "first_seen": true
+          },
+          "template": "@MOB 初回観測/移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 5,
+            "name_valid": false
+          },
+          "template": "@MOB 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 5
+          },
+          "template": "@MOB 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y});"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@NPC 初回観測/移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "first_seen": true
+          },
+          "template": "@NPC 初回観測/移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 6,
+            "name_valid": false
+          },
+          "template": "@NPC 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 6
+          },
+          "template": "@NPC 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y});"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "first_seen": true,
+            "name_valid": false
+          },
+          "template": "@NPC(歩行型) 初回観測/移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "first_seen": true
+          },
+          "template": "@NPC(歩行型) 初回観測/移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // speed={speed}, option={options:#x}"
+        },
+        {
+          "when": {
+            "actor_type": 12,
+            "name_valid": false
+          },
+          "template": "@NPC(歩行型) 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // 名前解読不可・数値項目のみ保持"
+        },
+        {
+          "when": {
+            "actor_type": 12
+          },
+          "template": "@NPC(歩行型) 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y});"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "0283"
+      ],
+      "name": "Own account",
+      "decoder": "player",
+      "min_length": 6,
+      "template": "@player ID={actor_id};"
+    },
+    {
+      "ids": [
+        "02EB",
+        "0A18"
+      ],
+      "name": "Player map authentication",
+      "decoder": "player",
+      "min_length": 13,
+      "template": "@player_position ({x},{y}); // マップ入場時の観測位置"
+    },
+    {
+      "ids": [
+        "0087"
+      ],
+      "name": "Player walking",
+      "decoder": "player",
+      "min_length": 12,
+      "template": "@player_walk ({x},{y}) -> ({destination_x},{destination_y}); // 到着未確認"
+    },
+    {
+      "ids": [
+        "0088"
+      ],
+      "name": "Position correction",
+      "min_length": 10,
+      "template": "@unit_position ID={actor_id}, XY=({x},{y});",
+      "fields": {
+        "actor_id": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "x": {
+          "offset": 6,
+          "type": "u16"
+        },
+        "y": {
+          "offset": 8,
+          "type": "u16"
+        }
+      }
+    },
+    {
+      "ids": [
+        "00B0"
+      ],
+      "name": "Basic status",
+      "decoder": "player",
+      "min_length": 8,
+      "template": "@update_status(type: {status_type}, value: {value});"
+    },
+    {
+      "ids": [
+        "0A37"
+      ],
+      "name": "Inventory pickup",
+      "decoder": "player",
+      "min_length": 69,
+      "template": "@getitem_result index={index}, result={result};",
+      "variants": [
+        {
+          "when": {
+            "result": 0,
+            "plain_item": true
+          },
+          "template": "getitem {item_id},{amount}; // index={index}"
+        },
+        {
+          "when": {
+            "result": 0
+          },
+          "template": "@item_gain ID={item_id}, amount={amount}, index={index}, identified={identified}, refine={refine}, grade={grade}, cards={cards_summary:q}, options={options_summary:q}, expires={expires}, bound={bound};"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "0B41"
+      ],
+      "name": "Inventory pickup",
+      "decoder": "player",
+      "min_length": 70,
+      "template": "@getitem_result index={index}, result={result};",
+      "variants": [
+        {
+          "when": {
+            "result": 0,
+            "plain_item": true
+          },
+          "template": "getitem {item_id},{amount}; // index={index}"
+        },
+        {
+          "when": {
+            "result": 0
+          },
+          "template": "@item_gain ID={item_id}, amount={amount}, index={index}, identified={identified}, refine={refine}, grade={grade}, cards={cards_summary:q}, options={options_summary:q}, expires={expires}, bound={bound};"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "00AF",
+        "07FA"
+      ],
+      "name": "Inventory removal",
+      "decoder": "player",
+      "min_length": 6,
+      "template": "delitem {item_id},{amount}; // index={index}"
+    },
+    {
+      "ids": [
+        "0B08"
+      ],
+      "name": "Inventory snapshot start",
+      "decoder": "player",
+      "min_length": 5,
+      "template": "@inventory 受信開始;",
+      "variants": [
+        {
+          "when": {
+            "event_kind": "other_inventory"
+          },
+          "template": "@inventory_other type={inventory_type}; // 所持品の集計対象外"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "0B09",
+        "0B0A",
+        "0B38",
+        "0B39"
+      ],
+      "name": "Inventory snapshot list",
+      "decoder": "player",
+      "min_length": 5,
+      "template": "@inventory 分割受信 {entries}枠; // 全体件数は終了通知で確定",
+      "variants": [
+        {
+          "when": {
+            "event_kind": "other_inventory"
+          },
+          "template": "@inventory_other type={inventory_type}; // 所持品の集計対象外"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "0B0B"
+      ],
+      "name": "Inventory snapshot end",
+      "decoder": "player",
+      "min_length": 4,
+      "template": "@inventory 受信完了 {slots}枠, 合計{total_amount}個;",
+      "variants": [
+        {
+          "when": {
+            "event_kind": "other_inventory"
+          },
+          "template": "@inventory_other type={inventory_type}; // 所持品の集計対象外"
+        }
+      ]
+    },
+    {
+      "ids": [
+        "0071"
+      ],
+      "name": "Selected character map hint",
+      "decoder": "player",
+      "min_length": 28,
+      "template": "@map_selected {map_name:q}; // キャラクター選択の移動先・位置未取得"
+    },
+    {
+      "ids": [
+        "099D",
+        "0B72"
+      ],
+      "name": "Character list",
+      "decoder": "player",
+      "template": "@character_list {character_count}; // キャラクター詳細は基本データJSONを参照",
+      "fields": {}
+    },
+    {
+      "ids": [
+        "02B5",
+        "09FA",
+        "0AFE",
+        "08FE"
+      ],
+      "name": "Quest objective counts",
+      "decoder": "quest_counter",
+      "min_length": 4,
+      "template": "// クエスト目標更新 layout={quest_layout}, ID種別={quest_objective_kind}, {quest_entry_count}件: {quest_entries}"
+    },
+    {
+      "ids": [
+        "00F2"
+      ],
+      "name": "Storage open transition",
+      "decoder": "script_command",
+      "fields": {},
+      "template": "{command_text}",
+      "min_length": 6
+    }
+  ],
+  "actor_change_template": "@{actor_kind} ID={actor_id} 変更: {changes_text}",
+  "actor_change_labels": {
+    "class_id": "class",
+    "name": "名前",
+    "x": "X",
+    "y": "Y",
+    "direction": "向き",
+    "destination_x": "移動先X",
+    "destination_y": "移動先Y",
+    "speed": "速度",
+    "options": "状態",
+    "sex": "性別",
+    "hair_style": "髪型",
+    "hair_color": "髪色",
+    "cloth_color": "服色",
+    "head_top": "頭上段",
+    "head_mid": "頭中段",
+    "head_bottom": "頭下段",
+    "robe": "肩",
+    "style": "スタイル"
+  }
+}

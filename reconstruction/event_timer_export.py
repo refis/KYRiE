@@ -1,0 +1,205 @@
+"""Manually adopted NPC timer labels; observed delays and trigger conditions are never inferred."""
+from collections import Counter
+from copy import deepcopy
+import json
+import math
+import re
+from pathlib import Path
+from string import Formatter
+from reconstruction.announcements import template_values as announcement_values
+from reconstruction.event_trials import announcement_in_scope
+
+TIMER_PRESENTATION_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'announcement', 'unittalk'))
+
+DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'event_timers.json'
+MAX_CONFIGURED_BYTES = 32 * 1024 * 1024
+FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_end': set(),
+          'label': {'time_ms'}, 'evidence': {'packet', 'observed_ms', 'manual_ms'},
+          'emotion': {'value'}, 'effect': {'value'}, 'effect_remove': {'value'},
+          'unittalk': {'text'}, 'label_end': set()}
+ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
+    'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
+FIELDS.update(ANNOUNCEMENT_FIELDS)
+
+
+def load_timer_candidate(path, report, trial_index):
+    """Restore manual times only when the full evidence and generated code match."""
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('タイマー設定JSONに重複キーがあります。')
+            result[key] = value
+        return result
+    def invalid_constant(value):
+        raise ValueError('タイマー設定JSONに非有限数があります。')
+    with Path(path).open('rb') as stream:
+        raw = stream.read(MAX_CONFIGURED_BYTES + 1)
+    if len(raw) > MAX_CONFIGURED_BYTES:
+        raise ValueError('タイマー設定JSONは32MiB以内にしてください。')
+    try:
+        saved = json.loads(raw.decode('utf-8'), object_pairs_hook=unique, parse_constant=invalid_constant)
+        if not isinstance(saved, dict):
+            raise ValueError('対応するタイマー設定JSONではありません。')
+        expected = validate_timer_candidate(saved, report, trial_index)
+    except (UnicodeError, RecursionError) as exc:
+        raise ValueError('タイマー設定JSONの文字コードまたは構造が不正です。') from exc
+    return expected
+
+
+def validate_timer_candidate(saved, report, trial_index):
+    if not isinstance(saved, dict):
+        raise ValueError('対応するタイマー設定JSONではありません。')
+    expected = build_timer_candidate(report, trial_index, saved.get('manual_times_ms'), confirmed=True)
+    def canonical(value):
+        normalized = json.loads(json.dumps(value, allow_nan=False))
+        return json.dumps(normalized, sort_keys=True, ensure_ascii=True, allow_nan=False)
+    try:
+        if canonical(saved) != canonical(expected):
+            raise ValueError('対象NPC・試行・比較根拠・確認フラグ・生成コードが現在の候補と一致しません。')
+    except (TypeError, RecursionError) as exc:
+        raise ValueError('タイマー設定の構造が不正です。') from exc
+    return expected
+
+
+def render_timer_text(document, report, trial_index):
+    checked = validate_timer_candidate(document, report, trial_index)
+    # JSON escapes paths, names and newlines; only regenerated Auriga is executable.
+    evidence = json.dumps(checked, ensure_ascii=True, separators=(',', ':'), allow_nan=False)
+    text = '// ' + evidence + '\n' + checked['auriga']
+    if len(text.encode('utf-8')) > MAX_CONFIGURED_BYTES:
+        raise ValueError('根拠付きタイマーテキストは32MiB以内にしてください。')
+    return text
+
+
+def validate_timer_trial(report, trial_index):
+    """Shared entry guard for the editor and generator, including legacy reports."""
+    if report.get('anchor_type', 'presentation') != 'presentation' or report.get('include_dialogue_actions'):
+        raise ValueError('会話開始・マップ到着・会話アクションの比較は、NPCタイマーへの直接変換対象外です。演出基準点を選択してください。')
+    if type(trial_index) is not int or not 0 <= trial_index < len(report['trials']):
+        raise ValueError('採用する試行を選択してください。')
+    trial = report['trials'][trial_index]
+    if trial['quality_flags']:
+        raise ValueError('品質除外された試行は採用できません。基準点・観測窓を見直してください。')
+    if not 2 <= len(trial['events']) <= 200:
+        raise ValueError('採用試行は基準点を含む2〜200演出に限定します。')
+    for row in [trial['anchor'], *(event['observation'] for event in trial['events'])]:
+        if row.get('anchor_type', 'presentation') != 'presentation' or row.get('comparison_scope'):
+            raise ValueError('会話・MAP基準点や会話元を基準にした観測は、NPCタイマーへ直接採用できません。')
+    unsupported = Counter(event['observation']['kind'] for event in trial['events']
+                          if event['observation']['kind'] not in TIMER_PRESENTATION_KINDS)
+    if unsupported:
+        kinds = ' / '.join(f'{kind}: {count}件' for kind, count in sorted(unsupported.items()))
+        raise ValueError('未対応演出: '+kinds+'。この試行は比較のみです。対象NPC自身のエモーション・エフェクト・解除・announce・unittalkに対応しています。')
+    identity = report['npc_identity']
+    if not identity.get('name') or not identity.get('map_name'):
+        raise ValueError('対象NPCの名前とマップが必要です。')
+    anchor = trial['anchor']
+    def scope(row):
+        npc = row.get('npc', {})
+        return (row['capture_session'], row['flow_id'], row['actor_id'], npc.get('map_generation'), npc.get('appearance'))
+    previous = -1
+    if anchor.get('entity_kind') != 'NPC' or anchor.get('target_observed') is not True or anchor.get('context') != 'outside_dialogue':
+        raise ValueError('対象NPCを観測した会話外の演出基準点が必要です。')
+    for event in trial['events']:
+        row, offset = event['observation'], event['offset_ms']
+        related_announcement = (row.get('context') == 'outside_dialogue' and announcement_in_scope(row, anchor)
+            and event.get('association_basis') == 'selected_timer_window_same_flow')
+        if not related_announcement and (row.get('entity_kind') != 'NPC' or row.get('target_observed') is not True
+                or row.get('context') != 'outside_dialogue' or scope(row) != scope(anchor)
+                or any(row.get('npc', {}).get(key) != value for key, value in identity.items())):
+            raise ValueError('演出の対象・配置・取得範囲が一致しません。')
+        if type(row.get('packet_index')) is not int or row['packet_index'] < 0:
+            raise ValueError('演出の根拠Packet番号がありません。')
+        value = row['fields'].get('value')
+        if row['kind'] == 'announcement':
+            announcement_values(row['fields'])
+        elif row['kind'] == 'unittalk':
+            if (set(row['fields']) != {'text'} or not isinstance(row['fields']['text'], str)
+                    or len(row['fields']['text']) > 65535):
+                raise ValueError('ユニット発言の本文が不正です。')
+        elif type(value) is not int or not 0 <= value <= (255 if row['kind'] == 'emotion' else 2147483647):
+            raise ValueError('演出IDが範囲外です。')
+        try:
+            valid_offset = type(offset) in (int, float) and math.isfinite(offset) and offset >= previous
+        except OverflowError:
+            valid_offset = False
+        if not valid_offset:
+            raise ValueError('観測時間が不正です。')
+        previous = offset
+    return trial
+
+
+def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, profile=DEFAULT_PROFILE):
+    trial = validate_timer_trial(report, trial_index)
+    if confirmed is not True:
+        raise ValueError('対象NPC・採用試行・全手入力時刻の確認が必要です。')
+    events = trial['events']
+    if not isinstance(times_ms, list) or len(times_ms) != len(events):
+        raise ValueError('全演出の時刻を明示してください。')
+    if any(type(value) is not int or not 1 <= value <= 2147483647 for value in times_ms):
+        raise ValueError('時刻は1〜2147483647msの整数で指定してください。')
+    if times_ms != sorted(times_ms):
+        raise ValueError('時刻は観測順で同じか増える値にしてください。')
+    identity = report['npc_identity']
+    templates = json.loads(Path(profile).read_text(encoding='utf-8'))
+    if isinstance(templates, dict):
+        defaults = json.loads(DEFAULT_PROFILE.read_text(encoding='utf-8'))
+        for key in (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk'):
+            templates.setdefault(key, defaults[key])
+    if not isinstance(templates, dict) or set(templates) != set(FIELDS):
+        raise ValueError('タイマー候補書式の項目が不正です。')
+    for key, template in templates.items():
+        if not isinstance(template, str) or len(template) > 16384:
+            raise ValueError('タイマー候補書式が不正です。')
+        for _, name, spec, conversion in Formatter().parse(template):
+            if name is not None and (name not in FIELDS[key] or spec or conversion):
+                raise ValueError('タイマー候補の書式引数が不正です。')
+    if not 1 <= len(templates['indent']) <= 16 or any(c not in ' \t' for c in templates['indent']):
+        raise ValueError('タイマー候補のインデントが不正です。')
+    lines, size = [], 0
+    def emit(key, indent=False, **values):
+        nonlocal size
+        text = templates[key].format_map(values)
+        if key in ('header', 'evidence') and any(not line.startswith('//') or '\r' in line for line in text.split('\n')):
+            raise ValueError('注意文と根拠の書式は全行コメントにしてください。')
+        if key == 'label' and text != f'OnTimer{values["time_ms"]}:':
+            raise ValueError('タイマーラベル書式が手入力時刻と一致しません。')
+        if key in ('entry_end', 'label_end') and not re.fullmatch(r'end[ \t]*;', text):
+            raise ValueError('タイマー候補の終端はend命令にしてください。')
+        if key in ('emotion', 'effect', 'effect_remove'):
+            command = {'emotion': 'emotion', 'effect': 'misceffect', 'effect_remove': 'delmisceffect'}[key]
+            if not re.fullmatch(command + r'[ \t]+' + str(values['value']) + r'[ \t]*;', text):
+                raise ValueError('演出書式の命令・IDが観測内容と一致しません。')
+        if key == 'unittalk' and text != 'unittalk '+values['text']+';':
+            raise ValueError('ユニット発言書式の命令・本文が観測内容と一致しません。')
+        for line in text.split('\n'):
+            line = (templates['indent'] if indent else '') + line
+            size += len(line) + 1
+            if size > 4 * 1024 * 1024:
+                raise ValueError('タイマー候補が出力上限を超えています。')
+            lines.append(line)
+    emit('header', npc_name=json.dumps(identity['name'], ensure_ascii=False),
+         map_name=json.dumps(identity['map_name'], ensure_ascii=False), trial=trial_index + 1)
+    emit('entry_end')
+    previous_time = None
+    for time, event in zip(times_ms, events):
+        if time != previous_time:
+            if previous_time is not None:
+                emit('label_end', True)
+            emit('label', time_ms=time)
+        row = event['observation']
+        emit('evidence', True, packet=row['packet_index'], observed_ms=event['offset_ms'], manual_ms=time)
+        if row['kind'] == 'announcement':
+            template, values = announcement_values(row['fields'])
+            emit(template, True, **values)
+        elif row['kind'] == 'unittalk':
+            emit('unittalk', True, text=json.dumps(row['fields']['text'], ensure_ascii=False))
+        else:
+            emit(row['kind'], True, value=row['fields']['value'])
+        previous_time = time
+    emit('label_end', True)
+    return dict(schema_version=1, kind='event_timer_candidate', trial_index=trial_index,
+        target_npc=deepcopy(identity), manual_times_ms=list(times_ms), setting_origin='manual_review',
+        adoption_confirmed=True, cause_confirmed=False, server_timer_confirmed=False,
+        automatic_start_generated=False, auriga='\n'.join(lines) + '\n', source_report=deepcopy(report))

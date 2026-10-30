@@ -1,0 +1,1898 @@
+{
+  "version": 1,
+  "namespace": "skill_unit_type",
+  "sources": [
+    {
+      "path": "C:\\project\\KYRiE\\.reference\\MARiA\\const.py",
+      "sha256": "83286584b4ac0112bfea4b25f536bee518418ee87832308efbddfe6fd9e35d8f"
+    },
+    {
+      "path": "C:\\project\\Auriga\\src\\map\\skill.h",
+      "sha256": "e381155c6cc068326fb70788062f6e7728abd8cfc4b9da12e2f94ea6a81617eb"
+    },
+    {
+      "path": "C:\\project\\Auriga\\db\\skill_unit_db.txt",
+      "sha256": "1dcea54bab91e9caf31e27027d3ae9d030b1c702ba56fe06513912097f65f268"
+    },
+    {
+      "path": "C:\\project\\KYRiE\\.reference\\data\\luafiles514\\lua files\\skillinfoz\\skillid.lua",
+      "sha256": "c2cebbbdb9d11fd6e536faf63ae8f9bcb1c804869039e7e52fc77c8e8e8deea5"
+    },
+    {
+      "path": "C:\\project\\KYRiE\\config\\skill_names.json",
+      "sha256": "51cced23d431efe54001a50316fee81c119508228f903f5d77a0b07682f2a1e5"
+    }
+  ],
+  "units": {
+    "126": {
+      "symbol": "UNT_SAFETYWALL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 12,
+          "name": "セイフティウォール"
+        },
+        {
+          "id": 8033,
+          "name": "シュタインワンド"
+        }
+      ]
+    },
+    "127": {
+      "symbol": "UNT_FIREWALL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 18,
+          "name": "ファイアーウォール"
+        }
+      ]
+    },
+    "128": {
+      "symbol": "UNT_WARP_ACTIVE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 27,
+          "name": "ワープポータル"
+        }
+      ]
+    },
+    "129": {
+      "symbol": "UNT_WARP_WAITING",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 27,
+          "name": "ワープポータル"
+        }
+      ]
+    },
+    "130": {
+      "symbol": "UNT_BENEDICTIO",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "131": {
+      "symbol": "UNT_SANCTUARY",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 70,
+          "name": "サンクチュアリ"
+        }
+      ]
+    },
+    "132": {
+      "symbol": "UNT_MAGNUS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 79,
+          "name": "マグヌスエクソシズム"
+        }
+      ]
+    },
+    "133": {
+      "symbol": "UNT_PNEUMA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 25,
+          "name": "ニューマ"
+        }
+      ]
+    },
+    "134": {
+      "symbol": "UNT_ATTACK_SKILLS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 21,
+          "name": "サンダーストーム"
+        },
+        {
+          "id": 83,
+          "name": "メテオストーム"
+        },
+        {
+          "id": 85,
+          "name": "ロードオブヴァーミリオン"
+        },
+        {
+          "id": 88,
+          "name": "フロストノヴァ"
+        },
+        {
+          "id": 89,
+          "name": "ストームガスト"
+        },
+        {
+          "id": 91,
+          "name": "ヘヴンズドライブ"
+        },
+        {
+          "id": 254,
+          "name": "グランドクロス"
+        },
+        {
+          "id": 339,
+          "name": "グランドダークネス"
+        },
+        {
+          "id": 428,
+          "name": "太陽の温もり"
+        },
+        {
+          "id": 429,
+          "name": "月の温もり"
+        },
+        {
+          "id": 430,
+          "name": "星の温もり"
+        },
+        {
+          "id": 516,
+          "name": "デスペラード"
+        },
+        {
+          "id": 536,
+          "name": "龍炎陣"
+        },
+        {
+          "id": 539,
+          "name": "氷柱落し"
+        },
+        {
+          "id": 541,
+          "name": "雷撃砕"
+        },
+        {
+          "id": 708,
+          "name": "Mコメット"
+        },
+        {
+          "id": 2213,
+          "name": "コメット"
+        },
+        {
+          "id": 2446,
+          "name": "アースグレイヴ"
+        },
+        {
+          "id": 2447,
+          "name": "ダイヤモンドダスト"
+        },
+        {
+          "id": 2484,
+          "name": "クレイジーウィード"
+        },
+        {
+          "id": 5028,
+          "name": "イヌハッカメテオ"
+        },
+        {
+          "id": 5042,
+          "name": "イヌハッカメテオ"
+        },
+        {
+          "id": 5319,
+          "name": "オメガアビスストライク"
+        },
+        {
+          "id": 5369,
+          "name": "ダイヤモンドストーム"
+        },
+        {
+          "id": 5373,
+          "name": "テラドライブ"
+        },
+        {
+          "id": 5380,
+          "name": "エレメンタルバスター"
+        },
+        {
+          "id": 5389,
+          "name": "エレメンタルバスター"
+        },
+        {
+          "id": 5390,
+          "name": "エレメンタルバスター"
+        },
+        {
+          "id": 5391,
+          "name": "エレメンタルバスター"
+        },
+        {
+          "id": 5392,
+          "name": "エレメンタルバスター"
+        },
+        {
+          "id": 5393,
+          "name": "エレメンタルバスター"
+        },
+        {
+          "id": 5455,
+          "name": "メテオストームバスター"
+        },
+        {
+          "id": 5472,
+          "name": "天命落星"
+        },
+        {
+          "id": 5486,
+          "name": "苦無 -回転-"
+        },
+        {
+          "id": 5487,
+          "name": "苦無 -屈折-"
+        },
+        {
+          "id": 8445,
+          "name": "フレイムロック"
+        },
+        {
+          "id": 8448,
+          "name": "エイジオブアイス"
+        },
+        {
+          "id": 8451,
+          "name": "ストームウィンド"
+        },
+        {
+          "id": 8454,
+          "name": "アバランチェ"
+        }
+      ]
+    },
+    "135": {
+      "symbol": "UNT_FIREPILLAR_WAITING",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 80,
+          "name": "ファイアーピラー"
+        }
+      ]
+    },
+    "136": {
+      "symbol": "UNT_FIREPILLAR_ACTIVE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 80,
+          "name": "ファイアーピラー"
+        }
+      ]
+    },
+    "137": {
+      "symbol": "UNT_HIDDEN_TRAP",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "138": {
+      "symbol": "UNT_TRAP",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "139": {
+      "symbol": "UNT_HIDDEN_WARP_NPC",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "140": {
+      "symbol": "UNT_USED_TRAPS",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "141": {
+      "symbol": "UNT_ICEWALL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 87,
+          "name": "アイスウォール"
+        }
+      ]
+    },
+    "142": {
+      "symbol": "UNT_QUAGMIRE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 92,
+          "name": "クァグマイア"
+        }
+      ]
+    },
+    "143": {
+      "symbol": "UNT_BLASTMINE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 122,
+          "name": "ブラストマイン"
+        }
+      ]
+    },
+    "144": {
+      "symbol": "UNT_SKIDTRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 115,
+          "name": "スキッドトラップ"
+        },
+        {
+          "id": 8209,
+          "name": "スキッドトラップ(傭兵)"
+        }
+      ]
+    },
+    "145": {
+      "symbol": "UNT_ANKLESNARE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 117,
+          "name": "アンクルスネア"
+        },
+        {
+          "id": 5010,
+          "name": "エスケープ"
+        }
+      ]
+    },
+    "146": {
+      "symbol": "UNT_VENOMDUST",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 140,
+          "name": "ベナムダスト"
+        }
+      ]
+    },
+    "147": {
+      "symbol": "UNT_LANDMINE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 116,
+          "name": "ランドマイン"
+        },
+        {
+          "id": 8210,
+          "name": "ランドマイン(傭兵)"
+        }
+      ]
+    },
+    "148": {
+      "symbol": "UNT_SHOCKWAVE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 118,
+          "name": "ショックウェーブトラップ"
+        }
+      ]
+    },
+    "149": {
+      "symbol": "UNT_SANDMAN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 119,
+          "name": "サンドマン"
+        },
+        {
+          "id": 8211,
+          "name": "サンドマン(傭兵)"
+        }
+      ]
+    },
+    "150": {
+      "symbol": "UNT_FLASHER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 120,
+          "name": "フラッシャー"
+        }
+      ]
+    },
+    "151": {
+      "symbol": "UNT_FREEZINGTRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 121,
+          "name": "フリージングトラップ"
+        },
+        {
+          "id": 8212,
+          "name": "フリージングトラップ(傭兵)"
+        }
+      ]
+    },
+    "152": {
+      "symbol": "UNT_CLAYMORETRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 123,
+          "name": "クレイモアトラップ"
+        }
+      ]
+    },
+    "153": {
+      "symbol": "UNT_TALKIEBOX",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 125,
+          "name": "トーキーボックス"
+        }
+      ]
+    },
+    "154": {
+      "symbol": "UNT_VOLCANO",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 285,
+          "name": "ボルケーノ"
+        }
+      ]
+    },
+    "155": {
+      "symbol": "UNT_DELUGE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 286,
+          "name": "デリュージ"
+        }
+      ]
+    },
+    "156": {
+      "symbol": "UNT_VIOLENTGALE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 287,
+          "name": "バイオレントゲイル"
+        }
+      ]
+    },
+    "157": {
+      "symbol": "UNT_LANDPROTECTOR",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 288,
+          "name": "ランドプロテクター"
+        }
+      ]
+    },
+    "158": {
+      "symbol": "UNT_LULLABY",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 306,
+          "name": "子守歌"
+        }
+      ]
+    },
+    "159": {
+      "symbol": "UNT_RICHMANKIM",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 307,
+          "name": "ニヨルドの宴"
+        }
+      ]
+    },
+    "160": {
+      "symbol": "UNT_ETERNALCHAOS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 308,
+          "name": "永遠の混沌"
+        }
+      ]
+    },
+    "161": {
+      "symbol": "UNT_DRUMBATTLEFIELD",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 309,
+          "name": "戦太鼓の響き"
+        }
+      ]
+    },
+    "162": {
+      "symbol": "UNT_RINGNIBELUNGEN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 310,
+          "name": "ニーベルングの指輪"
+        }
+      ]
+    },
+    "163": {
+      "symbol": "UNT_ROKISWEIL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 311,
+          "name": "ロキの叫び"
+        }
+      ]
+    },
+    "164": {
+      "symbol": "UNT_INTOABYSS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 312,
+          "name": "深淵の中に"
+        }
+      ]
+    },
+    "165": {
+      "symbol": "UNT_SIEGFRIED",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 313,
+          "name": "不死身のジークフリード"
+        }
+      ]
+    },
+    "166": {
+      "symbol": "UNT_DISSONANCE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 317,
+          "name": "不協和音"
+        },
+        {
+          "id": 2540,
+          "name": "M不協和音"
+        }
+      ]
+    },
+    "167": {
+      "symbol": "UNT_WHISTLE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 319,
+          "name": "口笛"
+        }
+      ]
+    },
+    "168": {
+      "symbol": "UNT_ASSASSINCROSS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 320,
+          "name": "夕陽のアサシンクロス"
+        }
+      ]
+    },
+    "169": {
+      "symbol": "UNT_POEMBRAGI",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 321,
+          "name": "ブラギの詩"
+        }
+      ]
+    },
+    "170": {
+      "symbol": "UNT_APPLEIDUN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 322,
+          "name": "イドゥンの林檎"
+        }
+      ]
+    },
+    "171": {
+      "symbol": "UNT_UGLYDANCE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 325,
+          "name": "自分勝手なダンス"
+        },
+        {
+          "id": 2541,
+          "name": "M自分勝手なダンス"
+        }
+      ]
+    },
+    "172": {
+      "symbol": "UNT_HUMMING",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 327,
+          "name": "ハミング"
+        }
+      ]
+    },
+    "173": {
+      "symbol": "UNT_DONTFORGETME",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 328,
+          "name": "私を忘れないで…"
+        }
+      ]
+    },
+    "174": {
+      "symbol": "UNT_FORTUNEKISS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 329,
+          "name": "幸運のキス"
+        }
+      ]
+    },
+    "175": {
+      "symbol": "UNT_SERVICEFORYOU",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 330,
+          "name": "サービスフォーユー"
+        }
+      ]
+    },
+    "176": {
+      "symbol": "UNT_GRAFFITI",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 220,
+          "name": "グラフィティ"
+        }
+      ]
+    },
+    "177": {
+      "symbol": "UNT_DEMONSTRATION",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 229,
+          "name": "デモンストレーション"
+        }
+      ]
+    },
+    "178": {
+      "symbol": "UNT_CALLFAMILY",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 336,
+          "name": "あなたに逢いたい"
+        },
+        {
+          "id": 409,
+          "name": "ママ、パパ、来て"
+        },
+        {
+          "id": 410,
+          "name": "坊や、いらっしゃい"
+        }
+      ]
+    },
+    "179": {
+      "symbol": "UNT_GOSPEL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 369,
+          "name": "ゴスペル"
+        }
+      ]
+    },
+    "180": {
+      "symbol": "UNT_BASILICA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 362,
+          "name": "バジリカ"
+        }
+      ]
+    },
+    "181": {
+      "symbol": "UNT_MOONLIT",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 395,
+          "name": "月明かりの下で"
+        }
+      ]
+    },
+    "182": {
+      "symbol": "UNT_FOGWALL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 404,
+          "name": "ウォールオブフォグ"
+        }
+      ]
+    },
+    "183": {
+      "symbol": "UNT_SPIDERWEB",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 405,
+          "name": "スパイダーウェブ"
+        }
+      ]
+    },
+    "184": {
+      "symbol": "UNT_GRAVITATION",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 484,
+          "name": "グラビテーションフィールド"
+        }
+      ]
+    },
+    "185": {
+      "symbol": "UNT_HERMODE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 488,
+          "name": "ヘルモードの杖"
+        }
+      ]
+    },
+    "186": {
+      "symbol": "UNT_KAENSIN",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "187": {
+      "symbol": "UNT_SUITON",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 538,
+          "name": "水遁"
+        }
+      ]
+    },
+    "188": {
+      "symbol": "UNT_TATAMIGAESHI",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 527,
+          "name": "畳返し"
+        }
+      ]
+    },
+    "189": {
+      "symbol": "UNT_KAEN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 535,
+          "name": "火炎陣"
+        }
+      ]
+    },
+    "190": {
+      "symbol": "UNT_GROUNDDRIFT_WIND",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 521,
+          "name": "グラウンドドリフト"
+        }
+      ]
+    },
+    "191": {
+      "symbol": "UNT_GROUNDDRIFT_DARK",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "192": {
+      "symbol": "UNT_GROUNDDRIFT_POISON",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "193": {
+      "symbol": "UNT_GROUNDDRIFT_WATER",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "194": {
+      "symbol": "UNT_GROUNDDRIFT_FIRE",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "195": {
+      "symbol": "UNT_DEATHWAVE",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "196": {
+      "symbol": "UNT_WATERATTACK",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "197": {
+      "symbol": "UNT_WINDATTACK",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "198": {
+      "symbol": "UNT_EARTHQUAKE",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "199": {
+      "symbol": "UNT_EVILLAND",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 670,
+          "name": "イービルランド"
+        }
+      ]
+    },
+    "200": {
+      "symbol": "UNT_DARK_RUNNER",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "201": {
+      "symbol": "UNT_DARK_TRANSFER",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "202": {
+      "symbol": "UNT_EPICLESIS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2044,
+          "name": "エピクレシス"
+        }
+      ]
+    },
+    "203": {
+      "symbol": "UNT_EARTHSTRAIN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2216,
+          "name": "アースストレイン"
+        }
+      ]
+    },
+    "204": {
+      "symbol": "UNT_MANHOLE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2299,
+          "name": "マンホール"
+        }
+      ]
+    },
+    "205": {
+      "symbol": "UNT_DIMENSIONDOOR",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2300,
+          "name": "ディメンションドア"
+        }
+      ]
+    },
+    "206": {
+      "symbol": "UNT_CHAOSPANIC",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2301,
+          "name": "カオスパニック"
+        }
+      ]
+    },
+    "207": {
+      "symbol": "UNT_MAELSTROM",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2302,
+          "name": "メイルストーム"
+        }
+      ]
+    },
+    "208": {
+      "symbol": "UNT_BLOODYLUST",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2303,
+          "name": "ブラッディラスト"
+        }
+      ]
+    },
+    "209": {
+      "symbol": "UNT_FEINTBOMB",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2304,
+          "name": "フェイントボム"
+        }
+      ]
+    },
+    "210": {
+      "symbol": "UNT_MAGENTATRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2249,
+          "name": "マゼンタトラップ"
+        }
+      ]
+    },
+    "211": {
+      "symbol": "UNT_COBALTTRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2250,
+          "name": "コバルトトラップ"
+        }
+      ]
+    },
+    "212": {
+      "symbol": "UNT_MAIZETRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2251,
+          "name": "メイズトラップ"
+        }
+      ]
+    },
+    "213": {
+      "symbol": "UNT_VERDURETRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2252,
+          "name": "ヴェルデュールトラップ"
+        }
+      ]
+    },
+    "214": {
+      "symbol": "UNT_FIRINGTRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2253,
+          "name": "ファイアリングトラップ"
+        }
+      ]
+    },
+    "215": {
+      "symbol": "UNT_ICEBOUNDTRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2254,
+          "name": "アイスバウンドトラップ"
+        }
+      ]
+    },
+    "216": {
+      "symbol": "UNT_ELECTRICSHOCKER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2238,
+          "name": "エレクトリックショッカー"
+        }
+      ]
+    },
+    "217": {
+      "symbol": "UNT_CLUSTERBOMB",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2239,
+          "name": "クラスターボム"
+        }
+      ]
+    },
+    "218": {
+      "symbol": "UNT_REVERBERATION",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 725,
+          "name": "M振動残響"
+        },
+        {
+          "id": 2414,
+          "name": "振動残響"
+        }
+      ]
+    },
+    "219": {
+      "symbol": "UNT_SEVERE_RAINSTORM",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2418,
+          "name": "シビアレインストーム"
+        }
+      ]
+    },
+    "220": {
+      "symbol": "UNT_FIREWALK",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 745,
+          "name": "Mファイアーウォーク"
+        },
+        {
+          "id": 2443,
+          "name": "ファイアーウォーク"
+        }
+      ]
+    },
+    "221": {
+      "symbol": "UNT_ELECTRICWALK",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 744,
+          "name": "Mエレクトリックウォーク"
+        },
+        {
+          "id": 2444,
+          "name": "エレクトリックウォーク"
+        }
+      ]
+    },
+    "222": {
+      "symbol": "UNT_POEMOFNETHERWORLD",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2419,
+          "name": "地獄の歌"
+        }
+      ]
+    },
+    "223": {
+      "symbol": "UNT_PSYCHIC_WAVE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 736,
+          "name": "Mサイキックウェーブ"
+        },
+        {
+          "id": 2449,
+          "name": "サイキックウェーブ"
+        }
+      ]
+    },
+    "224": {
+      "symbol": "UNT_CLOUD_KILL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 739,
+          "name": "Mクラウドキル"
+        },
+        {
+          "id": 2450,
+          "name": "クラウドキル"
+        }
+      ]
+    },
+    "225": {
+      "symbol": "UNT_POISONSMOKE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2032,
+          "name": "ポイズンスモーク"
+        }
+      ]
+    },
+    "226": {
+      "symbol": "UNT_NEUTRALBARRIER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2273,
+          "name": "ニュートラルバリアー"
+        }
+      ]
+    },
+    "227": {
+      "symbol": "UNT_STEALTHFIELD",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2274,
+          "name": "ステルスフィールド"
+        }
+      ]
+    },
+    "228": {
+      "symbol": "UNT_WARMER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2452,
+          "name": "ウォーマー"
+        }
+      ]
+    },
+    "229": {
+      "symbol": "UNT_THORNS_TRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2479,
+          "name": "ソーントラップ"
+        }
+      ]
+    },
+    "230": {
+      "symbol": "UNT_WALLOFTHORN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2482,
+          "name": "ソーンウォール"
+        }
+      ]
+    },
+    "231": {
+      "symbol": "UNT_DEMONIC_FIRE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2485,
+          "name": "デモニックファイアー"
+        }
+      ]
+    },
+    "232": {
+      "symbol": "UNT_FIRE_EXPANSION_SMOKE_POWDER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2487,
+          "name": "ファイアーエクスパンション"
+        }
+      ]
+    },
+    "233": {
+      "symbol": "UNT_FIRE_EXPANSION_TEAR_GAS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2488,
+          "name": "ファイアーエクスパンション"
+        }
+      ]
+    },
+    "234": {
+      "symbol": "UNT_HELLS_PLANT",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2490,
+          "name": "ヘルズプラント"
+        }
+      ]
+    },
+    "235": {
+      "symbol": "UNT_VACUUM_EXTREME",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2453,
+          "name": "バキュームエクストリーム"
+        }
+      ]
+    },
+    "236": {
+      "symbol": "UNT_BANDING",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2319,
+          "name": "バンディング"
+        }
+      ]
+    },
+    "237": {
+      "symbol": "UNT_FIRE_MANTLE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 8403,
+          "name": "ファイアーマントル"
+        }
+      ]
+    },
+    "238": {
+      "symbol": "UNT_WATER_BARRIER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 8406,
+          "name": "ウォーターバリア"
+        }
+      ]
+    },
+    "239": {
+      "symbol": "UNT_ZEPHYR",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 8409,
+          "name": "ゼファー"
+        }
+      ]
+    },
+    "240": {
+      "symbol": "UNT_POWER_OF_GAIA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 8412,
+          "name": "パワーオブガイア"
+        }
+      ]
+    },
+    "241": {
+      "symbol": "UNT_FIRE_INSIGNIA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2465,
+          "name": "ファイアーインシグニア"
+        }
+      ]
+    },
+    "242": {
+      "symbol": "UNT_WATER_INSIGNIA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2466,
+          "name": "ウォーターインシグニア"
+        }
+      ]
+    },
+    "243": {
+      "symbol": "UNT_WIND_INSIGNIA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2467,
+          "name": "ウィンドインシグニア"
+        }
+      ]
+    },
+    "244": {
+      "symbol": "UNT_EARTH_INSIGNIA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2468,
+          "name": "アースインシグニア"
+        }
+      ]
+    },
+    "245": {
+      "symbol": "UNT_POISON_MIST",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 8020,
+          "name": "ポイズンミスト"
+        }
+      ]
+    },
+    "246": {
+      "symbol": "UNT_LAVA_SLIDE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 8041,
+          "name": "ラーヴァスライド"
+        }
+      ]
+    },
+    "247": {
+      "symbol": "UNT_VOLCANIC_ASH",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 8043,
+          "name": "ボルカニックアッシュ"
+        }
+      ]
+    },
+    "248": {
+      "symbol": "UNT_ZENKAI_WATER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 3020,
+          "name": "術式 -展開-"
+        }
+      ]
+    },
+    "249": {
+      "symbol": "UNT_ZENKAI_GROUND",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "250": {
+      "symbol": "UNT_ZENKAI_FIRE",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "251": {
+      "symbol": "UNT_ZENKAI_WIND",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "252": {
+      "symbol": "UNT_MAKIBISHI",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 3010,
+          "name": "撒菱"
+        }
+      ]
+    },
+    "253": {
+      "symbol": "UNT_VENOMFOG",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 706,
+          "name": "ベナムフォグ"
+        }
+      ]
+    },
+    "254": {
+      "symbol": "UNT_ICEMINE",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "255": {
+      "symbol": "UNT_FLAMECROSS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 711,
+          "name": "フレイムクロス"
+        }
+      ]
+    },
+    "256": {
+      "symbol": "UNT_HELLBURNING",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "257": {
+      "symbol": "UNT_MAGMA_ERUPTION",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 733,
+          "name": "Mマグマイラプション"
+        },
+        {
+          "id": 5006,
+          "name": "マグマイラプション"
+        }
+      ]
+    },
+    "258": {
+      "symbol": "UNT_KINGS_GRACE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5013,
+          "name": "キングスグレイス"
+        }
+      ]
+    },
+    "259": {
+      "symbol": "UNT_GLITTERING_GREED",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "260": {
+      "symbol": "UNT_B_TRAP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2555,
+          "name": "バインドトラップ"
+        }
+      ]
+    },
+    "261": {
+      "symbol": "UNT_FIRE_RAIN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 2567,
+          "name": "ファイアーレイン"
+        }
+      ]
+    },
+    "262": {
+      "symbol": "UNT_CATNIPPOWDER",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "263": {
+      "symbol": "UNT_NYANGGRASS",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5048,
+          "name": "ニャングラス"
+        }
+      ]
+    },
+    "266": {
+      "symbol": "UNT_RAIN_OF_CRYSTAL",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5216,
+          "name": "レインオブクリスタル"
+        }
+      ]
+    },
+    "267": {
+      "symbol": "UNT_MYSTERY_ILLUSION",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5217,
+          "name": "ミステリーイリュージョン"
+        }
+      ]
+    },
+    "268": {
+      "symbol": "UNT_BLANK2",
+      "basis": "maria_auriga_agree",
+      "skills": []
+    },
+    "269": {
+      "symbol": "UNT_STRANTUM_TREMOR",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5221,
+          "name": "ストラタムトレマー"
+        }
+      ]
+    },
+    "270": {
+      "symbol": "UNT_VIOLENT_QUAKE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5218,
+          "name": "バイオレントクエイク"
+        }
+      ]
+    },
+    "271": {
+      "symbol": "UNT_ALL_BLOOM",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5222,
+          "name": "オールブルーム"
+        }
+      ]
+    },
+    "272": {
+      "symbol": "UNT_TORNADO_STORM",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5227,
+          "name": "トルネードストーム"
+        }
+      ]
+    },
+    "273": {
+      "symbol": "UNT_FLORAL_FLARE_ROAD",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5229,
+          "name": "フローラルフレアロード"
+        }
+      ]
+    },
+    "274": {
+      "symbol": "UNT_ASTRAL_STRIKE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5230,
+          "name": "アストラルストライク"
+        }
+      ]
+    },
+    "275": {
+      "symbol": "UNT_CROSS_RAIN",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5267,
+          "name": "クロスレイン"
+        }
+      ]
+    },
+    "276": {
+      "symbol": "UNT_PNEUMATICUS_PROCELLA",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5279,
+          "name": "ニューマティックプロセラ"
+        }
+      ]
+    },
+    "277": {
+      "symbol": "UNT_ABYSS_SQUARE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5321,
+          "name": "アビススクエア"
+        }
+      ]
+    },
+    "278": {
+      "symbol": "UNT_ACIDIFIED_ZONE_WATER",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5307,
+          "name": "アシディファイドゾーン(水)"
+        }
+      ]
+    },
+    "279": {
+      "symbol": "UNT_ACIDIFIED_ZONE_GROUND",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5308,
+          "name": "アシディファイドゾーン(地)"
+        }
+      ]
+    },
+    "280": {
+      "symbol": "UNT_ACIDIFIED_ZONE_WIND",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5309,
+          "name": "アシディファイドゾーン(風)"
+        }
+      ]
+    },
+    "281": {
+      "symbol": "UNT_ACIDIFIED_ZONE_FIRE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5310,
+          "name": "アシディファイドゾーン(火)"
+        }
+      ]
+    },
+    "282": {
+      "symbol": "UNT_LIGHTNING_LAND",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5370,
+          "name": "ライトニングランド"
+        }
+      ]
+    },
+    "283": {
+      "symbol": "UNT_VENOM_SWAMP",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5371,
+          "name": "ベナムスワンプ"
+        }
+      ]
+    },
+    "284": {
+      "symbol": "UNT_CONFLAGRATION",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5372,
+          "name": "コンフラグレーション"
+        }
+      ]
+    },
+    "285": {
+      "symbol": "UNT_CANE_OF_EVIL_EYE",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 780,
+          "name": "ケーンオブイビルアイ"
+        }
+      ]
+    },
+    "286": {
+      "symbol": "UNT_TWINKLING_GALAXY",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5471,
+          "name": "天地万星"
+        }
+      ]
+    },
+    "287": {
+      "symbol": "UNT_STAR_CANNON",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5473,
+          "name": "天星"
+        }
+      ]
+    },
+    "288": {
+      "symbol": "UNT_GRENADES_DROPPING",
+      "basis": "maria_auriga_agree",
+      "skills": [
+        {
+          "id": 5412,
+          "name": "グレネーズドロッピング"
+        }
+      ]
+    },
+    "290": {
+      "symbol": "UNT_FUUMASHOUAKU",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5483,
+          "name": "風魔手裏剣 -掌握-"
+        }
+      ]
+    },
+    "291": {
+      "symbol": "UNT_MISSION_BOMBARD",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5415,
+          "name": "ミッションボンバード"
+        }
+      ]
+    },
+    "292": {
+      "symbol": "UNT_TOTEM_OF_TUTELARY",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5422,
+          "name": "城隍堂"
+        }
+      ]
+    },
+    "293": {
+      "symbol": "UNT_HYUN_ROKS_BREEZE",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5445,
+          "name": "ディアーブリーズ"
+        }
+      ]
+    },
+    "294": {
+      "symbol": "UNT_SHINKIROU",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5479,
+          "name": "蜃気楼分身"
+        }
+      ]
+    },
+    "295": {
+      "symbol": "UNT_JACK_FROST_NOVA",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5457,
+          "name": "ジャックフロストノヴァ"
+        }
+      ]
+    },
+    "296": {
+      "symbol": "UNT_GROUND_GRAVITATION",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5459,
+          "name": "グラウンドグラビテーション"
+        }
+      ]
+    },
+    "298": {
+      "symbol": "UNT_KUNAIWAIKYOKU",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5485,
+          "name": "苦無 -歪曲-"
+        }
+      ]
+    },
+    "20852": {
+      "symbol": "UNT_DEEPBLIND_TRAP",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5331,
+          "name": "ディープブラインドトラップ"
+        }
+      ]
+    },
+    "20853": {
+      "symbol": "UNT_SOLID_TRAP",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5332,
+          "name": "ソリッドトラップ"
+        }
+      ]
+    },
+    "20854": {
+      "symbol": "UNT_SWIFT_TRAP",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5333,
+          "name": "スイフトトラップ"
+        }
+      ]
+    },
+    "20855": {
+      "symbol": "UNT_FLAME_TRAP",
+      "basis": "auriga_only",
+      "skills": [
+        {
+          "id": 5335,
+          "name": "フレイムトラップ"
+        }
+      ]
+    }
+  },
+  "definition_conflicts": [
+    {
+      "id": 264,
+      "maria": "UNT_CREATINGSTAR",
+      "auriga": "UNT_GROUNDDRIFT_NEUTRAL"
+    },
+    {
+      "id": 265,
+      "maria": "UNT_CREATINGSTAR2",
+      "auriga": "UNT_CREATINGSTAR"
+    }
+  ],
+  "unresolved_skill_links": [
+    {
+      "line": 137,
+      "unit_id": 265,
+      "reason": "unresolved_unit_definition"
+    },
+    {
+      "line": 143,
+      "reason": "unsupported_db_layout"
+    },
+    {
+      "line": 150,
+      "skill_id": 5219,
+      "symbol": "AG_VIOLENT_QUAKE_ATK"
+    },
+    {
+      "line": 153,
+      "skill_id": 5223,
+      "symbol": "AG_ALL_BLOOM_ATK"
+    },
+    {
+      "line": 154,
+      "skill_id": 5224,
+      "symbol": "AG_ALL_BLOOM_ATK2"
+    },
+    {
+      "line": 212,
+      "skill_id": 8454,
+      "symbol": "EM_EL_DEADLY_POISON"
+    }
+  ],
+  "used_skill_inferred": false
+}
