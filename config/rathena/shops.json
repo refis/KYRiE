@@ -1,0 +1,8 @@
+{
+  "review_unconfirmed": "// shop/callshopの編集用候補。商品IDはクライアント観測値で出力先DBとの対応は未照合。価格は基本価格。配置元: {map_origin}",
+  "initial_state_review": "// 初回NPC状態: {state} / options={options}。通常shop宣言では状態を指定できないため確認用コメントとして保持します。",
+  "review": "// 通常ショップの編集用候補。元のNPC種・callshop名・起因条件を確定するものではありません。\n// 商品IDは出力先DBで利用者が確認。価格は基本価格を使用。マップ値の出典: {map_origin}",
+  "placed_shop": "{map_name},{x},{y},{direction}\tshop\t{npc_name}\t{class_id},{items}",
+  "hidden_shop": "-\tshop\t{shop_name}\t-1,{items}",
+  "initial_display_review": "// 職業外見の通常shop候補。shopにはOnInitを置けないため、外見初期化を含め手動確認。"
+}

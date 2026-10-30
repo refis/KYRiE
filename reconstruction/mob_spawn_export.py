@@ -16,6 +16,12 @@ TEMPLATE_FIELDS = {'header': set(), 'quality': {'count', 'issues', 'saturated', 
 MAX_CONFIGURED_BYTES = 8 * 1024 * 1024
 
 
+def _mob_spawn_profile(path=None, configured=False):
+    from reconstruction.emulator_profiles import profile
+    name = 'mob_spawn_configured.json' if configured else 'mob_spawns.json'
+    return Path(path) if path is not None else profile(name)
+
+
 def validate_configured(saved, candidate, source_sessions=None):
     if (not isinstance(saved, dict) or type(saved.get('schema_version')) is not int
             or saved.get('schema_version') != 1 or saved.get('configured_values_confirmed') is not True
@@ -68,11 +74,12 @@ def render_configured(document, candidate, source_sessions=None):
 
 
 def configure_candidate(candidate, fields, *, confirmed=False, source_sessions=None,
-                        profile=CONFIGURED_PROFILE):
+                        profile=None):
     if confirmed is not True:
         raise ValueError('対象DBと配置設定の確認が必要です。')
     if not isinstance(fields, dict) or set(fields) != set(PLACEMENT_FIELDS):
         raise ValueError('全配置項目を明示してください。')
+    profile = _mob_spawn_profile(profile, configured=True)
     values = {}
     for key in PLACEMENT_FIELDS:
         value = fields[key]
@@ -155,8 +162,8 @@ def build_candidates(snapshot, source_sessions=None):
                 transport_quality=snapshot['transport_quality'], active_placements_generated=False)
 
 
-def render_candidates(report, profile=DEFAULT_PROFILE):
-    templates = json.loads(Path(profile).read_text(encoding='utf-8'))
+def render_candidates(report, profile=None):
+    templates = json.loads(_mob_spawn_profile(profile).read_text(encoding='utf-8'))
     if not isinstance(templates, dict) or set(templates) != set(TEMPLATE_FIELDS):
         raise ValueError('MOB配置候補の書式項目が不正です。')
     for key, template in templates.items():

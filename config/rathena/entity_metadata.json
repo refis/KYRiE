@@ -1,0 +1,20 @@
+{
+  "npc_context": "// NPC {actor_id} {actor_name}: 0x0ADFで観測したグループ・タイトル",
+  "mob_context": "// MOB {actor_id} {actor_name}: 0x0ADFで観測。個体IDは取得時の値",
+  "oninit": "OnInit:",
+  "npc_group": "// setnpcgroup相当はrAthena未確認: group_id={group_id}",
+  "npc_title": "// setnpctitle相当はrAthena未確認: title={title}",
+  "mob_group": "// setunitgroup相当はrAthena未確認: group_id={group_id}, actor_id={actor_id}",
+  "mob_title": "setunittitle {actor_id},{title};",
+  "end": "end;",
+  "indent": "    ",
+  "conflict": "// 要確認: 初期化情報の観測が不一致。無条件の確認用ブロックで併記。",
+  "block_open": "{{",
+  "block_close": "}}",
+  "waitingroom": "waitingroom {title},{limit};",
+  "npc_display_class": "setnpcdisplay({target},{class_id});",
+  "npc_display_full": "// setnpcdisplay相当の外見一括指定はrAthena未確認。target={target}, class={class_id}, sex={sex}, hair={hair_style}/{hair_color}, cloth={cloth_color}, head={head_top}/{head_mid}/{head_bottom}, robe={robe}, style={style}",
+  "npc_display_unknown": "// setnpcdisplay: NPC名・外見の必要値が未観測または範囲外。元観測を確認。",
+  "npc_display_outside": "// {code} // 視界外／再出現時に判明した変更。変更時点は未観測。",
+  "instance_npc_reference": "instance_npcname({name})"
+}

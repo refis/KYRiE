@@ -1,0 +1,4 @@
+{
+  "header": "// rAthena monster配置の手動確認済み編集用出力。元サーバーの配置を復元したものではありません。\n// ID・マップ・位置・湧き数・時間・イベントを検証環境で確認してください。観測から未確定設定を補完していません。",
+  "placement": "{map_name},{x},{y},{xs},{ys}\tmonster\t{mob_name}\t{class_id},{amount},{delay1},{delay2},{event}"
+}

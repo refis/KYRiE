@@ -38,13 +38,10 @@ class NpcRenderInputs:
 
 
 def freeze_npc_render_inputs():
-    from reconstruction.auriga import DEFAULT_DIALOGUE_PROFILE
-    from reconstruction.shop_export import DEFAULT_SHOP_PROFILE
-    from reconstruction.entity_metadata import DEFAULT_PROFILE
-    from reconstruction.conversation_actions import STATUS_MAP
+    from reconstruction.emulator_profiles import profile
     files={}
-    for source in (DEFAULT_DIALOGUE_PROFILE,DEFAULT_SHOP_PROFILE,DEFAULT_PROFILE,STATUS_MAP):
-        path=Path(source).absolute()
+    for name in ('dialogue.json', 'shops.json', 'entity_metadata.json', 'status_ids.json'):
+        path=profile(name).absolute()
         try:
             with path.open('rb') as stream:data=stream.read(MAX_PROFILE_BYTES+1)
             files[path]=data if len(data)<=MAX_PROFILE_BYTES else ValueError('生成書式は1ファイル2MiB以内にしてください。')

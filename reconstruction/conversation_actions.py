@@ -10,8 +10,14 @@ STATUS_MAP = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'status
 STATUS_IDS = (0x43f, 0x983, 0x196)
 
 
-def load_status_ids(path=STATUS_MAP, target='auriga'):
-    path = Path(path)
+def load_status_ids(path=None, target=None):
+    from reconstruction.emulator_profiles import profile, target as active_target, target_for_path
+    if path is None:
+        target = target or active_target()
+        path = profile('status_ids.json', target)
+    else:
+        path = Path(path)
+        target = target or target_for_path(path) or active_target()
     if render_profile_size(path) > 2 * 1024 * 1024:
         raise ValueError('Status ID table exceeds 2MiB')
     data = read_render_json(path)

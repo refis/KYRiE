@@ -1,5 +1,31 @@
 # Development baseline and plan
 
+## rAthena input scope prefix .@ (2026-10-30)
+
+rAthena dialogue/display input templates now use `.@gpa_*` / `.@num` / `.@str$`
+instead of Auriga's `'@` temporary-variable prefix. Auriga profiles unchanged.
+
+## rAthena generation profiles and emulator switch (2026-10-30)
+
+Filled config/rathena/status_ids.json from a one-shot check of rAthena master
+d4b8e7b8 (status.hpp SC/EFST enums + db/re/status.yml Icon/SendVal1). No ongoing
+upstream tracking. Added rAthena dialogue/entity_metadata/shops/mob_*/event_timers/
+script_commands JSON with dialect adaptations (npctalk, instance_mapname/npcname,
+specialeffect, progressbar quoted color, setnpcdisplay function form, makeitem).
+send_display stays shared. Wired reconstruction.emulator_profiles.set_target into
+GUI emulator selection and generation loaders. Targeted presentation/display/
+dialogue-related checks; no full discovery.
+
+## rAthena receive-display JSON parity (2026-10-30)
+
+Expanded config/rathena/display.json from the four-dialogue seed to the same
+packet-ID set as config/auriga/display.json for emulator log viewing. Omitted
+Auriga instance_* getmdmapname/mdenter keys; left entity_metadata false for the
+receive-display profile; rewrote unverified messize/mespos/mesalign/mdcreate/
+self-unittalk lines as review comments. Generation profiles were added in a
+follow-up (see section above). Targeted display and related GUI emulator checks
+only; no full discovery.
+
 ## GitHub management bootstrap (2026-10-30)
 
 Added CONTRIBUTING.md, SECURITY.md, NOTICE, Issue/PR templates, CODEOWNERS,

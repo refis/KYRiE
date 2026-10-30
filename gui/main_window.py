@@ -383,23 +383,35 @@ class MainWindow(QMainWindow):
         self.show_selected()
 
     def select_emulator_profile(self, index):
-        path = CONFIG_ROOT / self.emulator.currentData() / 'display.json'
+        from reconstruction.emulator_profiles import set_target
+        target = self.emulator.currentData()
+        path = CONFIG_ROOT / target / 'display.json'
+        previous = getattr(self, 'last_emulator_index', 0)
         try:
             profile = DisplayProfile.load(path)
         except (OSError, ValueError) as exc:
             self.show_capture_status(f'表示形式を変更できません（前の設定を維持）: {exc}')
             self.emulator.blockSignals(True)
-            self.emulator.setCurrentIndex(getattr(self, 'last_emulator_index', 0))
+            self.emulator.setCurrentIndex(previous)
             self.emulator.blockSignals(False)
             return
         def committed():
+            try:
+                set_target(target)
+            except ValueError as exc:
+                self.show_capture_status(f'表示形式を変更できません（前の設定を維持）: {exc}')
+                self.emulator.blockSignals(True)
+                self.emulator.setCurrentIndex(previous)
+                self.emulator.blockSignals(False)
+                return
             self.emulator.blockSignals(True)
             self.emulator.setCurrentIndex(index)
             self.emulator.blockSignals(False)
             self.last_emulator_index=index
             self.display_profile_paths['RECV']=str(path)
             self.display_input_paths['RECV']=str(path)
-            if self.selected_display_direction=='RECV':self.display_path.setText(str(path))
+            if self.selected_display_direction.upper()=='RECV':
+                self.display_path.setText(str(path))
             self.update_capture_summary()
         self._reformat_with(ReceiveDisplay(profile),on_complete=committed)
 
@@ -487,8 +499,10 @@ class MainWindow(QMainWindow):
             for key, ref in project_references(project):
                 if key != 'log' and fingerprint(ref['path'], config_limit(key)) != ref['sha256']:
                     raise ValueError('参照ファイルが変更されています。')
-            from reconstruction.auriga import DEFAULT_DIALOGUE_PROFILE
-            if Path(files['dialogue']['path']).resolve() != DEFAULT_DIALOGUE_PROFILE.resolve():
+            from reconstruction.emulator_profiles import profile as generation_profile, TARGETS
+            dialogue_path = Path(files['dialogue']['path']).resolve()
+            allowed = {generation_profile('dialogue.json', name).resolve() for name in TARGETS}
+            if dialogue_path not in allowed:
                 raise ValueError('別の会話生成書式のパスは未対応です。')
             inputs = [(row['log']['path'], load_lengths(row['definitions']['path']), row['definitions']['path'])
                       for row in project.get('sources', [])]

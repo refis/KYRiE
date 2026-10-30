@@ -136,3 +136,47 @@ class DisplayTests(unittest.TestCase):
         packet = event(0x8C, struct.pack('<H', 4 + len(text)) + text, direction='SEND')
         self.assertEqual(display.decode(packet).text, 'SEND public_chat "こんにちは"')
 
+    def test_rathena_display_covers_auriga_packet_ids_without_auriga_instance_commands(self):
+        from tests.support.world import map_packet
+        root = Path(__file__).resolve().parents[2]
+        auriga = json.loads((root / 'config' / 'auriga' / 'display.json').read_text(encoding='utf-8'))
+        rathena_path = root / 'config' / 'rathena' / 'display.json'
+        document = json.loads(rathena_path.read_text(encoding='utf-8'))
+        auriga_ids = {packet_id for packet in auriga['packets'] for packet_id in packet['ids']}
+        rathena_ids = {packet_id for packet in document['packets'] for packet_id in packet['ids']}
+        self.assertEqual(rathena_ids, auriga_ids)
+        self.assertFalse(document.get('entity_metadata'))
+        for key in ('instance_warp', 'instance_entry_warp', 'instance_map_reference'):
+            self.assertNotIn(key, document)
+        text = rathena_path.read_text(encoding='utf-8')
+        self.assertNotIn('getmdmapname', text)
+        self.assertNotIn('mdenter', text)
+        display = ReceiveDisplay(DisplayProfile.load(rathena_path))
+        self.assertEqual(display.decode(variable(0xB4, struct.pack('<I', 42) + 'hi'.encode('cp932') + b'\0')).text,
+                         'mes "hi";')
+        self.assertEqual(display.decode(map_packet('1@toy.gat')).text, 'warp "1@toy.gat", 100, 120;')
+        self.assertTrue(display.decode(event(0xBA2, struct.pack('<II', 10, 20))).text.startswith('// messize'))
+        self.assertEqual(display.decode(event(0x142, struct.pack('<I', 42))).text, 'input .@num;')
+        self.assertEqual(display.decode(event(0x1D4, struct.pack('<I', 42))).text, 'input .@str$;')
+        self.assertNotIn("'@", text)
+
+    def test_rathena_generation_profiles_exist_with_matched_status_ids(self):
+        root = Path(__file__).resolve().parents[2]
+        for name in ('dialogue.json', 'entity_metadata.json', 'shops.json', 'mob_skills.json',
+                     'mob_skill_configured.json', 'mob_spawns.json', 'mob_spawn_configured.json',
+                     'event_timers.json', 'script_commands.json', 'status_ids.json'):
+            path = root / 'config' / 'rathena' / name
+            self.assertTrue(path.is_file(), name)
+            json.loads(path.read_text(encoding='utf-8'))
+        status = json.loads((root / 'config' / 'rathena' / 'status_ids.json').read_text(encoding='utf-8'))
+        self.assertEqual(status['target'], 'rathena')
+        self.assertEqual(status['source']['commit'], 'd4b8e7b8f16061cc2496d377ac8f777ce72a4f39')
+        self.assertGreater(len(status['entries']), 800)
+        self.assertIn('ambiguous', status)
+        dialogue = json.loads((root / 'config' / 'rathena' / 'dialogue.json').read_text(encoding='utf-8'))
+        self.assertNotIn('getmdmapname', json.dumps(dialogue))
+        self.assertIn('instance_mapname', dialogue['instance_map_reference'])
+        self.assertEqual(dialogue['number'], 'input .@gpa_number;')
+        self.assertEqual(dialogue['text'], 'input .@gpa_text$;')
+        self.assertNotIn("'@", json.dumps(dialogue))
+

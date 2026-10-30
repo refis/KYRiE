@@ -18,6 +18,12 @@ from reconstruction.announcements import template_values as announcement_values
 from reconstruction.npc_initial_state import visibility_state
 
 DEFAULT_DIALOGUE_PROFILE = Path(__file__).resolve().parent.parent / 'config' / 'auriga' / 'dialogue.json'
+
+
+def _dialogue_profile(path=None):
+    from reconstruction.emulator_profiles import profile, target_for_path, target as active_target
+    path = Path(path) if path is not None else profile('dialogue.json')
+    return path, target_for_path(path) or active_target()
 STYLE_FIELDS = {'indent': set(), 'block_open': set(), 'block_close': set(), 'switch_open': set(),
                 'while_open': set(), 'continue': set(), 'loop_review': set(),
                 'case': {'value'}, 'break': set(), 'alternatives': set(), 'alternative': {'number'},
@@ -100,16 +106,18 @@ def _quote(value):
 
 
 class AurigaRenderer:
-    def __init__(self, path=DEFAULT_DIALOGUE_PROFILE):
-        self.status_ids = load_status_ids()
+    def __init__(self, path=None):
+        from reconstruction.emulator_profiles import profile
+        path, self._target = _dialogue_profile(path)
+        self.status_ids = load_status_ids(profile('status_ids.json', self._target), target=self._target)
         self.templates = read_render_json(path)
         if not isinstance(self.templates, dict):
             raise ValueError('Dialogue profile must be an object')
         missing = (set(STYLE_FIELDS) | set(PRESENTATION_FIELDS) | set(FILE_FIELDS) | set(RESOURCE_FIELDS)) - self.templates.keys()
         if missing:
-            defaults = read_render_json(DEFAULT_DIALOGUE_PROFILE)
+            defaults = read_render_json(profile('dialogue.json', self._target))
             for key in missing:
-                self.templates[key] = defaults[key]
+                self.templates[key] = defaults.get(key, read_render_json(DEFAULT_DIALOGUE_PROFILE)[key])
         for key in KEYS | (set(OPTIONAL_FIELDS) & self.templates.keys()):
             value = self.templates.get(key)
             if not isinstance(value, str):
@@ -156,7 +164,10 @@ class AurigaRenderer:
             nodes.append(node)
         body = self._render_nodes(nodes, preamble, shop_call_name=shop_call_name,
                                   map_name=conversation.npc.get('map_name'), npc_name=conversation.npc.get('name'))
-        return append_initialization(body, [conversation.npc]) if include_initialization else body
+        if not include_initialization:
+            return body
+        from reconstruction.emulator_profiles import profile
+        return append_initialization(body, [conversation.npc], profile('entity_metadata.json', self._target))
 
     def _external_preamble(self, conversation):
         result = []
@@ -250,7 +261,8 @@ class AurigaRenderer:
     def render_npc_metadata_file(self, npc):
         if npc.get('kind') != 'NPC':
             raise ValueError('NPCの出現記録を選択してください。')
-        initialization = render_npc_initialization([npc])
+        from reconstruction.emulator_profiles import profile
+        initialization = render_npc_initialization([npc], profile('entity_metadata.json', self._target))
         if not initialization and not metadata_values(npc):
             raise ValueError('0x0ADFのグループ・タイトルが未観測か、命令化できません。')
         body = self.templates['npc_metadata_only'] + '\n' + self.templates['end'] + '\n\n' + initialization
@@ -607,8 +619,13 @@ class AurigaRenderer:
         body = self._render_nodes(group['nodes'], preamble, max_output_chars, max_pending_actions,
                                   allow_identical_menu=len(resource_variants) <= 1,
                                   map_name=group['npc'].get('map_name'), npc_name=group['npc'].get('name'))
-        result = (append_initialization(body, [row['conversation'].get('npc', {}) for row in group['contributions']])
-                  if include_initialization else body)
+        if include_initialization:
+            from reconstruction.emulator_profiles import profile
+            result = append_initialization(
+                body, [row['conversation'].get('npc', {}) for row in group['contributions']],
+                profile('entity_metadata.json', self._target))
+        else:
+            result = body
         if len(result) > max_output_chars:
             raise ValueError('Merged code exceeds output size limit; no partial code was returned')
         return result

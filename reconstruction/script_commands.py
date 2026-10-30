@@ -17,8 +17,9 @@ COMMAND_ARGS = {
     'sit': (), 'stand': (), 'dropitem': ('map_name', 'x', 'y', 'item_id', 'amount', 'extra_lifetime_ms')}
 
 
-def load_policy(path=POLICY_PATH):
-    path = Path(path)
+def load_policy(path=None):
+    from reconstruction.emulator_profiles import profile
+    path = Path(path) if path is not None else profile('script_commands.json')
     if path.stat().st_size > 65536:
         raise ValueError('Script command policy exceeds 64KiB')
     result = json.loads(path.read_text(encoding='utf-8'))
