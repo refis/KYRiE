@@ -1028,6 +1028,7 @@ class RestorationGuiTests(WindowTestCase):
                     return str(destination), ''
                 with patch(module + '.QFileDialog.getSaveFileName', side_effect=choose):
                     (panel.save_candidates if candidates else panel.save)()
+                    self.wait_display_export()
                 text = destination.read_text(encoding='utf-8')
                 if extension == 'json':
                     self.assertEqual(json.loads(text), json.loads(json.dumps(expected)))
@@ -1060,6 +1061,7 @@ class RestorationGuiTests(WindowTestCase):
                             patch(module + '.QMessageBox.critical') as critical, \
                             patch('storage.observation_export.os.replace', side_effect=OSError('replace failed')) as replace:
                         action()
+                        self.wait_display_export()
                         self.assertEqual(warning.call_count + critical.call_count, 1)
                         self.assertEqual(replace.call_count, int(protection == 'replacement'))
                     self.assertEqual(target.read_bytes(), before)
