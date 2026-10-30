@@ -197,12 +197,12 @@
     {
       "path": "config/rathena/dialogue.json",
       "size": 13226,
-      "sha256": "50ba470dbdcfd547331ae9a4cd27b93b2254f1ea19d094d6e0c2852a451f5a6a"
+      "sha256": "ec8e415d72bfa564610ab754889735492207ca2a1420f1135fc35a601479e7c5"
     },
     {
       "path": "config/rathena/display.json",
       "size": 51795,
-      "sha256": "fbd98470fb1212496bcf815d39b13495155eb36af54de97be0931595a5682565"
+      "sha256": "8314adb52874538600f22f61116f0a6416ce3af7560b03805c5b829081846029"
     },
     {
       "path": "config/rathena/entity_metadata.json",
@@ -1121,8 +1121,8 @@
     },
     {
       "path": "tests/unit/test_conversation_actions.py",
-      "size": 23553,
-      "sha256": "50b3797e0b23f92eb66a13a2fc09de22bec1f23feac76c8925dd6d23499720af"
+      "size": 24333,
+      "sha256": "25de541f3b840d3355d4c090a450ae8bd35d774858b3bee3ba02cf56cf7fa9bd"
     },
     {
       "path": "tests/unit/test_database.py",
@@ -1146,8 +1146,8 @@
     },
     {
       "path": "tests/unit/test_display.py",
-      "size": 10070,
-      "sha256": "3750c68ea535b6f254fbfc33490f77f65310cee4a6109f262b7e24b687cc0f7f"
+      "size": 10492,
+      "sha256": "ff7a179b72287aa025dfd4a38e9bb1abc315bbc541d986a988ce39b3ac0a85c5"
     },
     {
       "path": "tests/unit/test_effect_removal.py",

@@ -1,5 +1,10 @@
 # Development baseline and plan
 
+## rAthena input scope prefix .@ (2026-10-30)
+
+rAthena dialogue/display input templates now use `.@gpa_*` / `.@num` / `.@str$`
+instead of Auriga's `'@` temporary-variable prefix. Auriga profiles unchanged.
+
 ## rAthena generation profiles and emulator switch (2026-10-30)
 
 Filled config/rathena/status_ids.json from a one-shot check of rAthena master

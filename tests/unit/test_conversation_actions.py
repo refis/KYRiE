@@ -136,6 +136,18 @@ class ConversationActionTests(unittest.TestCase):
             dialogue = json.loads(profile('dialogue.json').read_text(encoding='utf-8'))
             self.assertEqual(dialogue['instance_map_reference'], 'instance_mapname({name})')
             self.assertEqual(dialogue['instance_npc_reference'], 'instance_npcname({name})')
+            self.assertEqual(dialogue['number'], 'input .@gpa_number;')
+            self.assertEqual(dialogue['text'], 'input .@gpa_text$;')
+            self.assertNotIn("'@", json.dumps({'number': dialogue['number'], 'text': dialogue['text']}))
+            store, consume = self.opened()
+            consume(packet(0xb5, struct.pack('<I', 42)))
+            consume(packet(0xb9, struct.pack('<I', 42), direction='SEND'))
+            consume(packet(0x142, struct.pack('<I', 42)))
+            consume(packet(0x143, struct.pack('<Ii', 42, 7), direction='SEND'))
+            consume(packet(0xb6, struct.pack('<I', 42)))
+            code = AurigaRenderer().render(store.sessions[0])
+            self.assertIn('input .@gpa_number;', code)
+            self.assertNotIn("input '@", code)
         finally:
             set_target(previous)
 

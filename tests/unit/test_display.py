@@ -156,6 +156,9 @@ class DisplayTests(unittest.TestCase):
                          'mes "hi";')
         self.assertEqual(display.decode(map_packet('1@toy.gat')).text, 'warp "1@toy.gat", 100, 120;')
         self.assertTrue(display.decode(event(0xBA2, struct.pack('<II', 10, 20))).text.startswith('// messize'))
+        self.assertEqual(display.decode(event(0x142, struct.pack('<I', 42))).text, 'input .@num;')
+        self.assertEqual(display.decode(event(0x1D4, struct.pack('<I', 42))).text, 'input .@str$;')
+        self.assertNotIn("'@", text)
 
     def test_rathena_generation_profiles_exist_with_matched_status_ids(self):
         root = Path(__file__).resolve().parents[2]
@@ -173,4 +176,7 @@ class DisplayTests(unittest.TestCase):
         dialogue = json.loads((root / 'config' / 'rathena' / 'dialogue.json').read_text(encoding='utf-8'))
         self.assertNotIn('getmdmapname', json.dumps(dialogue))
         self.assertIn('instance_mapname', dialogue['instance_map_reference'])
+        self.assertEqual(dialogue['number'], 'input .@gpa_number;')
+        self.assertEqual(dialogue['text'], 'input .@gpa_text$;')
+        self.assertNotIn("'@", json.dumps(dialogue))
 
