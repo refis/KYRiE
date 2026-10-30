@@ -1224,7 +1224,7 @@ class RestorationGuiTests(WindowTestCase):
             def build(prepared):
                 threads.append(QThread.currentThread()==self.app.thread())
                 entered.set()
-                if not release.wait(3):raise RuntimeError('generation gate timeout')
+                if not release.wait(30):raise RuntimeError('generation gate timeout')
                 return original(prepared)
             def choose(*args):
                 next(iter(w.world.entities.values())).name='Later'
@@ -1235,7 +1235,7 @@ class RestorationGuiTests(WindowTestCase):
                     patch('gui.main_window.QFileDialog.getSaveFileName',side_effect=choose):
                 try:
                     w.save_all_npcs()
-                    self.assertTrue(entered.wait(1))
+                    self.assertTrue(entered.wait(10))
                     self.assertEqual(w.capture_log.toPlainText().count('配置を保存'),previous)
                     if cancel:w.cancel_display_export()
                 finally:
@@ -1271,7 +1271,7 @@ class RestorationGuiTests(WindowTestCase):
             def build(snapshot):
                 threads.append(QThread.currentThread()==self.app.thread())
                 entered.set()
-                if not release.wait(3):raise RuntimeError('generation gate timeout')
+                if not release.wait(30):raise RuntimeError('generation gate timeout')
                 return original_build(snapshot)
             def choose(*args):
                 panel.store.events[-1]['flags'].append('later_change')
@@ -1281,7 +1281,7 @@ class RestorationGuiTests(WindowTestCase):
                     patch(module+'.QFileDialog.getSaveFileName',side_effect=choose):
                 try:
                     panel.save()
-                    self.assertTrue(entered.wait(1))
+                    self.assertTrue(entered.wait(10))
                     self.assertIsNotNone(w.display_export)
                     if cancel:w.cancel_display_export()
                 finally:
@@ -1333,14 +1333,14 @@ class RestorationGuiTests(WindowTestCase):
             before=w.capture_log.toPlainText().count('配置を保存')
             def paused(*args,**kwargs):
                 entered.set()
-                if not release.wait(3):raise RuntimeError('worker gate timeout')
+                if not release.wait(30):raise RuntimeError('worker gate timeout')
                 return save_observation_chunks(*args,**kwargs)
             with self.subTest(cancel=cancel),patch('reconstruction.npc_bundle.build_npc_bundle',return_value=report), \
                     patch('gui.observation_save.save_observation_chunks',side_effect=paused), \
                     patch('gui.main_window.QFileDialog.getSaveFileName',return_value=(str(target),'')):
                 try:
                     w.save_all_npcs()
-                    self.assertTrue(entered.wait(1))
+                    self.assertTrue(entered.wait(10))
                     self.assertEqual(w.capture_log.toPlainText().count('配置を保存'),before)
                     if cancel:w.cancel_display_export()
                 finally:

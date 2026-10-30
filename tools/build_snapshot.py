@@ -9,11 +9,11 @@ import tempfile
 import zipfile
 from version import __version__, SNAPSHOT_DATE
 
-DIRECTORIES = ('capture','config','docs','gui','hook','ipc','parser','reconstruction','storage','tests','tools')
-ROOT_FILES = ('main.py','events.py','version.py','README.md','DEVELOPMENT.md','requirements.txt',
-              'requirements-lock.txt','PacketLength.txt','.gitignore','LICENSE','NOTICE',
-              '.cursor/rules/project.mdc','client/README.md')
-SUFFIXES = {'.py','.md','.json','.txt'}
+DIRECTORIES = ('capture','config','docs','gui','hook','ipc','parser','reconstruction','storage','tests','tools','.github')
+ROOT_FILES = ('main.py','events.py','version.py','README.md','DEVELOPMENT.md','CONTRIBUTING.md','SECURITY.md',
+              'requirements.txt','requirements-lock.txt','PacketLength.txt','.gitignore','LICENSE','NOTICE',
+              '.cursor/rules/project.mdc','client/README.md','.github/CODEOWNERS')
+SUFFIXES = {'.py','.md','.json','.txt','.yml','.yaml'}
 DEFAULT_IGNORE = dict(version=1,packet_ids=[],mob_combat=False,npc_actor_ids=[],npc_names=[])
 
 

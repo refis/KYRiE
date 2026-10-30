@@ -1,0 +1,14 @@
+KYRiE
+=====
+
+This tree is a private development snapshot for packet observation and
+Auriga-oriented reconstruction tooling.
+
+- Source ZIP artifacts produced by tools.build_snapshot are not a public
+  release and must not be treated as redistributable game data.
+- Capture logs, packet databases, client executables, and .reference
+  materials are excluded from Git and from source snapshots.
+- Third-party Python dependencies retain their own licenses
+  (see requirements.txt / requirements-lock.txt).
+- A public distribution license for KYRiE itself is not fixed yet.
+  Do not assume an open-source license from the presence of this NOTICE.

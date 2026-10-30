@@ -10,6 +10,7 @@ MARiAを参考に、受信・観測可能な非暗号化送信パケットから
 - [保存済みv0.0.4の記録](docs/releases/v0.0.4.md)
 - [目的別ドキュメント一覧](docs/README.md)
 - [GUI操作](docs/guide/gui-workspace.md) / [開発計画](docs/development/development-roadmap.md)
+- [貢献・GitHub作業合意](CONTRIBUTING.md) / [取り扱い](SECURITY.md) / [スナップショット手順](docs/releases/README.md)
 
 ## 導入
 

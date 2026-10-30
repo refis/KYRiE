@@ -8,8 +8,8 @@
 
 ## スナップショット
 
+- [手順・タグ前チェック](releases/README.md)
 - [v0.0.5: 参照資料対応・検証・保存物・残作業](releases/v0.0.5.md)
-
 - [v0.0.4: 対応範囲・検証・保存物・残作業](releases/v0.0.4.md)
 
 ## はじめに読む資料
@@ -70,12 +70,20 @@
 
 ## 開発方針
 
+- [作業合意（GitHub運用）](development/working-agreement.md)
+- [GitHubラベル作成](development/github-labels.md)
 - [復元の基本方針・根拠の扱い](development/restoration-plan.md)
 - [MARiAとの差分・今後の計画](development/development-roadmap.md)
 
+## スナップショット手順
+
+- [リリース / ソーススナップショット](releases/README.md)
+
 ## 開発者向け補足
 
+- [貢献・作業の進め方](../CONTRIBUTING.md)
+- [セキュリティと取り扱い](../SECURITY.md)
 - [テストの実行・整理方針](../tests/README.md)
 - [ネイティブ取得・IPC設計](../hook/DESIGN.md)
 
-資料追加時は該当分類へ配置し、この目次へリンクを追加します。詳細仕様は各資料、全体方針は開発方針、作業履歴はDEVELOPMENT.mdへ記録します。
+資料追加時は該当分類へ配置し、この目次へリンクを追加します。詳細仕様は各資料、全体方針は開発方針、作業履歴はDEVELOPMENT.mdへ記録します。Issue/PRはGitHub、確定仕様はdocsを正本とします。

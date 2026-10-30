@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ドキュメント案内
+    url: https://github.com/refis/KYRiE/blob/main/docs/README.md
+    about: 操作・復元・MOB・採取の資料は docs/ を先に確認してください。
+  - name: 作業合意
+    url: https://github.com/refis/KYRiE/blob/main/docs/development/working-agreement.md
+    about: 観測と推定の境界、テスト選択、資料の正本ルールです。
+  - name: ラベル作成手順
+    url: https://github.com/refis/KYRiE/blob/main/docs/development/github-labels.md
+    about: 追加ラベルはメンテナが gh label create で一度作成します。

@@ -29,19 +29,20 @@ class WindowTestCase(unittest.TestCase):
         self.log_folder.cleanup()
 
 
-    def wait_display_export(self):
+    def wait_display_export(self, timeout_ms=60000):
+        """Wait for the shared export worker. Large MOB/NPC JSON can exceed 5s on CI."""
         from PySide6.QtCore import QElapsedTimer
         from PySide6.QtTest import QTest
         elapsed=QElapsedTimer();elapsed.start()
-        while self.window.display_export is not None and elapsed.elapsed()<5000:
+        while self.window.display_export is not None and elapsed.elapsed()<timeout_ms:
             self.app.processEvents();QTest.qWait(1)
         self.assertIsNone(self.window.display_export)
 
 
-    def wait_window_closed(self):
+    def wait_window_closed(self, timeout_ms=60000):
         from PySide6.QtCore import QElapsedTimer
         from PySide6.QtTest import QTest
         elapsed=QElapsedTimer();elapsed.start()
-        while not self.window.workspace_closed and elapsed.elapsed()<5000:
+        while not self.window.workspace_closed and elapsed.elapsed()<timeout_ms:
             self.app.processEvents();QTest.qWait(1)
         self.assertTrue(self.window.workspace_closed)

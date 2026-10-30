@@ -1,0 +1,41 @@
+name: Capture / raw log task
+description: 生パケット採取、再観測、実機確認の依頼
+title: "[capture] "
+labels: ["capture"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        採取手順の詳細は [生パケット採取リスト](https://github.com/refis/KYRiE/blob/main/docs/capture/raw-packet-collection-checklist.md) を参照。
+        取得したログ自体はリポジトリやIssueに上げず、件数・ハッシュ・保管場所だけ共有してください。
+  - type: textarea
+    id: scene
+    attributes:
+      label: 採取したい場面
+      description: マップ、NPC/MOB、操作、成功／失敗の分岐など。
+    validations:
+      required: true
+  - type: checkboxes
+    id: needs
+    attributes:
+      label: 必要な記録
+      options:
+        - label: 受信のみ
+        - label: 非暗号化SENDも必要
+        - label: 生バイト記録（再解析用）を有効にする
+        - label: 複数回／複数接続での比較が必要
+  - type: textarea
+    id: checklist_ref
+    attributes:
+      label: チェックリスト参照
+      description: docs/capture 内の該当節や既存Issueへのリンク。
+  - type: textarea
+    id: delivery
+    attributes:
+      label: 成果物の扱い
+      description: 保管場所の方針、報告に含める識別情報（件数・SHA-256・クライアント版）。
+      placeholder: |
+        - 保管: （ローカル／共有ドライブ等。パスは必要最小限）
+        - 報告: パケット件数、定義ハッシュ、品質警告の有無
+    validations:
+      required: true
