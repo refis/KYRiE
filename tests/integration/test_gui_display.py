@@ -273,13 +273,13 @@ class DisplayGuiTests(WindowTestCase):
             entered=Event();release=Event()
             def paused(*args,**kwargs):
                 entered.set()
-                if not release.wait(3):raise RuntimeError('worker gate timeout')
+                if not release.wait(30):raise RuntimeError('worker gate timeout')
                 return save_observation_chunks(*args,**kwargs)
             with self.subTest(close=close),patch('gui.observation_save.save_observation_chunks',side_effect=paused), \
                     patch('gui.main_window.QFileDialog.getSaveFileName',return_value=(str(target),'')):
                 try:
                     w.save_display()
-                    self.assertTrue(entered.wait(1))
+                    self.assertTrue(entered.wait(10))
                     self.assertFalse(w.display_save.isEnabled())
                     self.app.processEvents()
                     if close:

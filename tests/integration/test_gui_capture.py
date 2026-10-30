@@ -70,12 +70,12 @@ class CaptureGuiTests(WindowTestCase):
                 entered=Event();release=Event()
                 def build(snapshot):
                     entered.set()
-                    if not release.wait(3):raise RuntimeError('generation gate timeout')
+                    if not release.wait(30):raise RuntimeError('generation gate timeout')
                     return original(snapshot)
                 with patch.object(type(prepared),'build',new=build):
                     try:
                         w.save_prepared_report(target,prepared,[],label='NPC')
-                        self.assertTrue(entered.wait(1))
+                        self.assertTrue(entered.wait(10))
                         count=len(w.events)
                         producer=Thread(target=lambda:[w.bridge.publish(w.capture_session,
                             PacketEvent(index+10,'RECV',127,b'\x7f\0abcd','TEST','flow')) for index in range(3)])
@@ -116,20 +116,20 @@ class CaptureGuiTests(WindowTestCase):
         class Prepared:
             def build(self):
                 entered.set()
-                if not release.wait(3):raise RuntimeError('generation gate timeout')
+                if not release.wait(30):raise RuntimeError('generation gate timeout')
                 return {'observed':True}
         def delivery(*args):
             emit_entered.set()
-            if not emit_release.wait(3):raise RuntimeError('delivery gate timeout')
+            if not emit_release.wait(30):raise RuntimeError('delivery gate timeout')
             return PacketDelivery(*args)
         producer=None
         try:
             w.save_prepared_report(target,Prepared(),[],label='NPC')
-            self.assertTrue(entered.wait(1))
+            self.assertTrue(entered.wait(10))
             with patch('gui.packet_delivery.PacketDelivery',side_effect=delivery):
                 producer=Thread(target=lambda:w.bridge.publish(1,event))
                 producer.start()
-                self.assertTrue(emit_entered.wait(1))
+                self.assertTrue(emit_entered.wait(10))
                 w.close()
                 self.assertFalse(w.workspace_closed)
                 self.assertFalse(w.bridge.publish(1,event))

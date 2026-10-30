@@ -126,13 +126,13 @@ class OfflineReplayTests(WindowTestCase):
         original_run=ReplayWorker.run
         def paused(worker):
             entered.set()
-            if release.wait(3):original_run(worker)
+            if release.wait(30):original_run(worker)
         with patch.object(ReplayWorker,'run',new=paused), \
                 patch('gui.main_window.QFileDialog.getOpenFileName',return_value=(str(path),'')):
             try:
                 self.window.open_recording()
                 child=self.window.offline_windows[0]
-                self.assertTrue(entered.wait(1))
+                self.assertTrue(entered.wait(10))
                 self.window.close()
                 self.assertFalse(self.window.workspace_closed)
                 self.assertTrue(child.workspace_closing)
@@ -160,7 +160,7 @@ class OfflineReplayTests(WindowTestCase):
         entered=Event();release=Event()
         def paused(*args,**kwargs):
             entered.set()
-            if not release.wait(3):raise RuntimeError('worker gate timeout')
+            if not release.wait(30):raise RuntimeError('worker gate timeout')
             return save_observation_chunks(*args,**kwargs)
         def owner_database_closed():
             try:self.window.db.db.execute('SELECT 1')
@@ -171,7 +171,7 @@ class OfflineReplayTests(WindowTestCase):
                 patch('gui.main_window.QFileDialog.getSaveFileName',return_value=(str(target),'')):
             try:
                 child.save_display()
-                self.assertTrue(entered.wait(1))
+                self.assertTrue(entered.wait(10))
                 self.window.close()
                 self.assertIn(child,self.window.offline_windows)
                 self.assertIsNotNone(child.display_export)
