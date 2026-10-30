@@ -4320,6 +4320,27 @@
       ],
       "2173": [
         "EFST_PRIMED_TRAP"
+      ],
+      "821": [
+        "EFST_SHOW_NPCHPBAR"
+      ],
+      "822": [
+        "EFST_FLOWERSMOKE"
+      ],
+      "823": [
+        "EFST_FSTONE"
+      ],
+      "824": [
+        "EFST_DAILYSENDMAILCNT"
+      ],
+      "982": [
+        "EFST_SOULATTACK"
+      ],
+      "993": [
+        "EFST_GET_CNT_UNREAD_RODEX_CHARDB"
+      ],
+      "994": [
+        "EFST_GET_CNT_UNREAD_RODEX_GLOBALDB"
       ]
     }
   },
@@ -4333,6 +4354,12 @@
       "namespace": "status_icon",
       "path": "C:\\project\\KYRiE\\.reference\\data\\luafiles514\\lua files\\stateicon\\efstids.lua",
       "sha256": "af1375c873e4266fa8ff0440ba68992f69423773b1902004824ac8c309a946d9"
+    },
+    {
+      "namespace": "status_icon",
+      "path": "C:\\project\\KYRiE\\.reference\\MARiA\\const.py",
+      "sha256": "83286584b4ac0112bfea4b25f536bee518418ee87832308efbddfe6fd9e35d8f",
+      "basis": "maria_fallback"
     }
   ],
   "identical_duplicates": [
@@ -4352,6 +4379,44 @@
       "id": 410
     }
   ],
+  "supplemental_statuses": [
+    {
+      "id": 821,
+      "symbol": "EFST_SHOW_NPCHPBAR",
+      "basis": "maria_only"
+    },
+    {
+      "id": 822,
+      "symbol": "EFST_FLOWERSMOKE",
+      "basis": "maria_only"
+    },
+    {
+      "id": 823,
+      "symbol": "EFST_FSTONE",
+      "basis": "maria_only"
+    },
+    {
+      "id": 824,
+      "symbol": "EFST_DAILYSENDMAILCNT",
+      "basis": "maria_only"
+    },
+    {
+      "id": 982,
+      "symbol": "EFST_SOULATTACK",
+      "basis": "maria_only"
+    },
+    {
+      "id": 993,
+      "symbol": "EFST_GET_CNT_UNREAD_RODEX_CHARDB",
+      "basis": "maria_only"
+    },
+    {
+      "id": 994,
+      "symbol": "EFST_GET_CNT_UNREAD_RODEX_GLOBALDB",
+      "basis": "maria_only"
+    }
+  ],
+  "lua_maria_agreements": 1034,
   "ignored_known_guard_tables": [
     "EFST_IDs"
   ],

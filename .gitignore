@@ -1,10 +1,31 @@
 __pycache__/
 *.pyc
+.pytest_cache/
 .reference/
 packets.sqlite3
 packets.sqlite3-*
+*.sqlite3
+*.sqlite3-*
 logs/
-client/*.exe
-
 /dist/
 /.venv/
+
+# Local capture / session artifacts (may contain game data)
+capture.jsonl
+**/capture.jsonl
+PacketLength.used.txt
+**/PacketLength.used.txt
+
+# Local client investigation materials (not source; see client/README.md)
+client/*.exe
+client/PacketLength.extracted*
+client/client_packet.txt
+client/*.dll
+client/*.bin
+
+# Root generated NPC / export artifacts (never commit working exports)
+/all-placed-npcs*.txt
+/*-merged.txt
+/*-reviewed.txt
+/baseline-replay.json
+/extracted-replay.json

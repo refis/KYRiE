@@ -29,7 +29,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
          'tests.unit.test_entity_metadata',
          'tests.unit.test_actor_identity'],
  'shop': ['tests.unit.test_shops', 'tests.unit.test_shop_export', 'tests.unit.test_npc_bundle'],
- 'player': ['tests.unit.test_player',
+ 'player': ['tests.unit.test_inventory_audit', 'tests.unit.test_player',
             'tests.unit.test_quest_observations',
             'tests.unit.test_world'],
  'mob': ['tests.unit.test_report_snapshot', 'tests.unit.test_skill_hp_context', 'tests.unit.test_combat',

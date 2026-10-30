@@ -121,3 +121,23 @@ quality=review_required、capture_completeness=not_verifiedを維持する。生
 OnTouch候補の画面説明を追加したが、start_unobservedと反復集計除外は維持する。
 touch-warp-review.jsonとtouch-warp-reviewed.txtを当該フォルダへ保存。対象16項目を選択して確認。
 これで名前警告・未応答終了・クリック開始なしの各注意の意味を点検できたが、通信完全性やAuriga実行は未確認。
+
+
+## 所持品一覧の構造診断
+
+`python -m tools.audit_inventory LOG --output REPORT` で0B09/0B0A/0B38/0B39の受信一覧だけを集計する。
+標準はLOGと同じフォルダのPacketLength.used.txt。--definitionsでのみ変更できる。
+生ログ・定義のSHA-256を開始時と終了時に照合し、書換えがあれば停止する。
+元ログ・定義・configへの出力を拒否する。レポート保存は既存の一時ファイル置換を用いる。
+Index/ID/数量、鑑定状態の確認状況、元レコードhex、パケット番号・接続・時刻を記録する。
+所持品以外のinventory typeと不正レコードは別集計。PlayerStoreや生成コードは更新しない。
+未確認0B38のフラグ位置を推定しない。件数・抽出上限・省略数を必ず確認する。
+
+
+### 会話解析CLIの入力保護（2026-10-30）
+
+`tools.analyze_dialogues`も共通の原子保存へ統一。出力先が元ログ・長さ定義・configなら解析前に拒否する。
+生ログは128MiB、行は2Mi文字までとし、解析前後のSHA-256が異なる場合は結果を返さない。
+CLIでは長さ定義も前後照合し、保存失敗時は既存レポートを保持する。
+source_sha256は元ログ、definitions_file_sha256は元定義ファイル、definitions_sha256は既存の正規化定義ハッシュ。
+元の会話・統合・タイムラインと数値命令の生成方式は変更しない。

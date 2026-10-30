@@ -8,11 +8,37 @@ import unittest
 from unittest.mock import patch
 from parser.display import DisplayProfile,ReceiveDisplay
 from reconstruction.reference_names import load_reference_names,reference_labels
-from tools.build_reference_names import constants
+from tools.build_reference_names import constants,maria_statuses,supplement_statuses
 from tests.support.display import event
 
 
 class ReferenceNameTests(unittest.TestCase):
+    def test_maria_fallback_is_literal_only_and_conflicts_never_replace_lua(self):
+        rows=maria_statuses(b'EFST={7:"EFST_A",8:"EFST_B"}\nraise RuntimeError("never executed")')
+        original={'7':['EFST_A']}
+        merged,added,agreed=supplement_statuses(original,rows)
+        self.assertEqual(original,{'7':['EFST_A']})
+        self.assertEqual(merged,{'7':['EFST_A'],'8':['EFST_B']})
+        self.assertEqual((len(added),agreed),(1,1))
+        for extra in ({7:'EFST_OTHER'},{9:'EFST_A'}):
+            with self.assertRaises(ValueError):supplement_statuses(original,extra)
+        for raw in (b'EFST={1:"EFST_A",1:"EFST_B"}',b'EFST={1:func()}',
+                    b'EFST={True:"EFST_A"}',b'EFST={1:"SC_A"}',b'EFST={**other}',
+                    b'EFST={}\nEFST={}'):
+            with self.subTest(raw=raw),self.assertRaises(ValueError):maria_statuses(raw)
+
+    def test_supplemented_status_ids_remain_raw_and_do_not_change_sc_conversion(self):
+        catalog=load_reference_names()
+        self.assertEqual(len(catalog['supplemental_statuses']),7)
+        self.assertEqual(catalog['lua_maria_agreements'],1034)
+        self.assertEqual(reference_labels(catalog,'status_icon',982)['reference_symbols'],'EFST_SOULATTACK')
+        self.assertEqual(reference_labels(catalog,'status_icon',993)['reference_symbols'],'EFST_GET_CNT_UNREAD_RODEX_CHARDB')
+        self.assertFalse(catalog['script_id_conversion'])
+        result=ReceiveDisplay(DisplayProfile.load()).decode(event(0x196,struct.pack('<HIB',982,42,1)))
+        self.assertEqual(result.fields['effect_id'],982)
+        self.assertEqual(result.fields['actor_id'],42)
+        self.assertTrue(result.fields['reference_known'])
+
     def test_namespaces_do_not_convert_numeric_ids_or_claim_skill_use(self):
         catalog=load_reference_names()
         visual=reference_labels(catalog,'visual_effect',12)

@@ -2179,3 +2179,34 @@ Client-name and navigation catalogs reproduce from source. Overlapping map names
 Navigation catalog alone allows 4MiB; other configs remain capped at 2MiB. Project save/open/repair pins five catalog hashes.
 Focused navigation/name/GUI/project tests: 15 passed. No full suite. Existing v0.0.4 remains frozen.
 Version advanced to v0.0.5 for the authorized source snapshot; runtime/Auriga/clean-environment checks remain deferred.
+
+### 2026-10-30: post-v0.0.5 inventory-layout evidence audit
+
+Added tools.audit_inventory to extract bounded, source-linked receive inventory records.
+Unknown 0B38 identification offsets remain unknown. Other inventory types and invalid rows are counted separately.
+Limits: 32 packet samples per layout, 8 raw records per sample; omitted counts are explicit.
+Source and definition hashes are checked before/after replay; protected input/config output is rejected.
+Three targeted unit/registration tests passed. Two real logs contain zero 0B38 packets:
+0B09 has 251 records; 0B39 has 342 records; invalid inventory packets zero.
+Collection checklist I01 documents controlled identification and independent favorite-flag trials.
+Saved v0.0.4/v0.0.5 archives remain unchanged; this is subsequent working-tree development.
+
+### 2026-10-30: MARiA-only status-name supplementation
+
+Static AST import of MARiA const.EFST supplements seven missing Lua status-icon IDs.
+1034 overlaps agree, zero conflicts. Lua and numeric IDs remain authoritative within their namespace;
+conflicting IDs/symbols reject the build rather than silently overwrite. Supplemental provenance is explicit.
+Status names: 1325; visual effects: unchanged at 121. No SC conversion or new command generation.
+Eleven focused reference/SC/GUI tests passed. Two real logs gain 105 named status notifications;
+2360/2566 statuses known, 206 unknown; all 3213 reference notifications decode without errors.
+Report: logs/reference-name-maria-supplement-review.json. Frozen v0.0.4/v0.0.5 ZIPs unchanged.
+
+### 2026-10-30: pending capture evidence and dialogue CLI preservation
+
+Rechecked 100/20 conversations in the two current reference logs: zero dialogue issues.
+No numeric/text input packets, dialogue position/alignment, progress abort or targeted progress examples.
+Menu/next timeout-suspected closes in conversations 6/18 and three 0BA2 packets remain confirmed.
+Updated collection priorities; evidence absence is not a parser failure or capture-completeness claim.
+Fixed legacy analyze_dialogues export: protected destinations checked before analysis, bounded replay,
+source and CLI definition before/after hashes, atomic observation export preserving existing reports on failure.
+Three focused tests passed, including equality with one-pass session analysis. Frozen snapshots unchanged.

@@ -16,6 +16,42 @@ from tools.analyze_dialogues import analyze
 
 
 class OfflineReplayTests(WindowTestCase):
+    def test_dialogue_cli_export_protects_sources_configs_and_existing_report_on_failure(self):
+        from tools.analyze_dialogues import analyze,save_report,main
+        from storage.project import fingerprint
+        from parser.display import DEFAULT_PROFILE
+        path,definitions=self.recording()
+        definition_path=path.with_name('PacketLength.used.txt')
+        report=analyze(path,definitions)
+        self.assertEqual(report['source_sha256'],fingerprint(path,128*1024*1024))
+        destination=Path(self.log_folder.name)/'dialogues.json'
+        save_report(destination,report,definition_path);original=destination.read_bytes()
+        with patch('storage.observation_export.os.replace',side_effect=OSError('locked')):
+            with self.assertRaises(OSError):save_report(destination,report,definition_path)
+        self.assertEqual(destination.read_bytes(),original)
+        for protected in (path,definition_path,DEFAULT_PROFILE):
+            before=protected.read_bytes()
+            with self.assertRaises(ValueError):save_report(protected,report,definition_path)
+            with patch('sys.argv',['analyze_dialogues',str(path),'--definitions',str(definition_path),'--output',str(protected)]), \
+                 patch('tools.analyze_dialogues.analyze') as analyze_mock:
+                with self.assertRaises(ValueError):main()
+                analyze_mock.assert_not_called()
+            self.assertEqual(protected.read_bytes(),before)
+
+    def test_dialogue_analysis_rejects_source_changes_and_bounds_replay(self):
+        from tools.analyze_dialogues import analyze
+        from storage.project import fingerprint
+        from tools.replay_capture import replay
+        path,definitions=self.recording()
+        source_hash=fingerprint(path,128*1024*1024)
+        with patch('tools.analyze_dialogues.fingerprint',side_effect=[source_hash,'0'*64]):
+            with self.assertRaisesRegex(ValueError,'生ログ'):analyze(path,definitions)
+        with patch('tools.analyze_dialogues.replay',wraps=replay) as wrapped:
+            report=analyze(path,definitions)
+        self.assertEqual(wrapped.call_args.kwargs['max_line_chars'],2*1024*1024)
+        self.assertEqual(wrapped.call_args.kwargs['max_input_chars'],128*1024*1024)
+        self.assertEqual(report['source_sha256'],source_hash)
+
     def test_project_records_loaded_catalogs_and_rejects_stale_save_or_runtime_change(self):
         from storage.project import CATALOG_PATHS,load_project,verify_project
         path,_=self.recording()
