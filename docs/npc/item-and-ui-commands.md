@@ -69,7 +69,7 @@ openstorageは既存のclose応答後2秒以内の帰属候補へ関連付ける
   操作IDは既知の形式のみ登録する。位置が異なる新形式をID追加だけで対応済みにしない。
 - config/auriga/dialogue.json: script_getitem等と確認用コメントの書式。
 - config/auriga/entity_metadata.json: waitingroomとOnInitの書式。
-- config/auriga/status_ids.json: 状態異常のSI→SC変換。
+- config/auriga/status_ids.json / config/rathena/status_ids.json: 状態異常のクライアントアイコン→SC変換（エミュレータ切替で選択）。
 
 設定変更後はログを再解析する。CLI解析は判定設定のSHA256も保存する。
 会話のactions、dialogues.script_command_observations、script_command_candidatesへ元Packetと生成文を保持する。

@@ -6,6 +6,14 @@ from string import Formatter
 import re
 
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'mob_skills.json'
+
+
+def _mob_skill_profile(path=None, configured=False):
+    from reconstruction.emulator_profiles import profile
+    name = 'mob_skill_configured.json' if configured else 'mob_skills.json'
+    return Path(path) if path is not None else profile(name)
+
+
 CONFIGURED_PROFILE = DEFAULT_PROFILE.with_name('mob_skill_configured.json')
 COLUMNS = ('MOB_ID', 'NAME', 'STATE', 'SKILL_ID', 'SKILL_LV', 'RATE', 'CASTTIME', 'DELAY',
            'CANCEL', 'TARGET', 'CONDITION', 'CONDITION_VALUE', 'VAL1', 'VAL2', 'VAL3', 'VAL4',
@@ -42,8 +50,8 @@ def valid_db_name(value):
             and all(char.isprintable() for char in value))
 
 
-def load_templates(profile=DEFAULT_PROFILE):
-    templates = json.loads(Path(profile).read_text(encoding='utf-8'))
+def load_templates(profile=None):
+    templates = json.loads(_mob_skill_profile(profile).read_text(encoding='utf-8'))
     defaults = {'name':'{monster_name}＠{skill_name}', 'unknown_monster':'MOB_ID_{mob_id}', 'unknown_skill':'SKILL_ID_{skill_id}'}
     if not isinstance(templates,dict):
         raise ValueError('MOBスキル候補の書式が不正です。')
@@ -173,7 +181,7 @@ def validate_configured(saved, candidate, source_sessions=None):
     return checked
 
 
-def render_configured(document, profile=CONFIGURED_PROFILE):
+def render_configured(document, profile=None):
     """One active DB row followed by bounded comment lines containing its evidence."""
     if not isinstance(document, dict):
         raise ValueError('設定JSONが不正です。')
@@ -181,7 +189,7 @@ def render_configured(document, profile=CONFIGURED_PROFILE):
     evidence = json.dumps(checked, ensure_ascii=True, separators=(',', ':'), allow_nan=False)
     if len(evidence.encode('ascii')) > MAX_CONFIGURED_BYTES:
         raise ValueError('設定・観測根拠が8MiBを超えています。')
-    templates = json.loads(Path(profile).read_text(encoding='utf-8'))
+    templates = json.loads(_mob_skill_profile(profile, configured=True).read_text(encoding='utf-8'))
     if not isinstance(templates, dict) or set(templates) != {'header', 'evidence_header'}:
         raise ValueError('確認済みDB行の書式が不正です。')
     def comment_lines(key):
@@ -201,7 +209,7 @@ def render_configured(document, profile=CONFIGURED_PROFILE):
     return '\n'.join(lines) + '\n'
 
 
-def build_candidates(snapshot, names=None, source_sessions=None, *, profile=DEFAULT_PROFILE):
+def build_candidates(snapshot, names=None, source_sessions=None, *, profile=None):
     names = names or {}
     templates = load_templates(profile)
     monster_names = {}
@@ -236,7 +244,7 @@ def build_candidates(snapshot, names=None, source_sessions=None, *, profile=DEFA
         transport_quality=snapshot['transport_quality'], active_db_rows_generated=False)
 
 
-def render_candidates(report, profile=DEFAULT_PROFILE):
+def render_candidates(report, profile=None):
     templates = load_templates(profile)
     lines, output_chars = [], 0
     def emit(key, **values):

@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTable
                                QTableWidgetItem, QAbstractItemView, QPushButton, QFileDialog, QMessageBox)
 
 from storage.project import project_references, relocate_project, save_relocated_project
-from reconstruction.auriga import DEFAULT_DIALOGUE_PROFILE
+from reconstruction.emulator_profiles import profile as generation_profile, TARGETS
 
 LABELS = {'log': '生ログ', 'definitions': '長さ定義', 'recv': 'RECV表示', 'send': 'SEND表示', 'dialogue': '会話書式', 'skill_names':'スキル名辞書',
           'skill_units':'ユニット辞書', 'reference_names':'状態・効果辞書', 'client_names':'品名・MAP・クエスト辞書', 'navigation':'ナビゲーション資料'}
@@ -53,8 +53,10 @@ class ProjectReferencesDialog(QDialog):
         if not path:
             return
         try:
-            if key == 'dialogue' and Path(path).resolve() != DEFAULT_DIALOGUE_PROFILE.resolve():
-                raise ValueError('会話書式は現在の同梱ファイルを選択してください。')
+            if key == 'dialogue':
+                allowed = {generation_profile('dialogue.json', name).resolve() for name in TARGETS}
+                if Path(path).resolve() not in allowed:
+                    raise ValueError('会話書式は現在の同梱ファイルを選択してください。')
             self.document = relocate_project(self.document, {index: path})
             self.refresh(verified=index)
             self.table.selectRow(index)

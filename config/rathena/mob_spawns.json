@@ -1,0 +1,8 @@
+{
+  "header": "// rAthena monster配置の編集用候補。全行コメント。不明値は ? 。\n// 初回座標は固定湧き地点とは限りません。位置・範囲・名称・湧き数・再出現時間・イベントは要確認。\n// 追跡数ピークや再観測間隔を設定値へ代入していません。観測クラスと対象mob_dbのID対応も確認してください。",
+  "quality": "// 候補 {count}件 / World解析問題 {issues}件 / 上限到達 {saturated} / 通信品質 {transport}",
+  "scope": "// 取得 {capture} / 接続 {connection} / マップ世代 {generation}",
+  "candidate": "// {map_name},{x},{y},{xs},{ys}\tmonster\t{mob_name}\t{class_id},{amount},{delay1},{delay2},{event}",
+  "evidence": "// 観測根拠JSON: {json}",
+  "incomplete": "// 要編集: {fields}"
+}

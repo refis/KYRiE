@@ -32,8 +32,9 @@ GUI基本データの仕様は[基本データガイド](../observations/player-
 `config/rathena/display.json` に分離した。受信ログ表示はAurigaと同数のPacketIDを持ち、
 フィールド定義は共有する。`getmdmapname` / `mdenter` などAuriga向けインスタンス書式は入れず、
 未照合の会話ウィンドウ命令（messize等）は実行形ではなく確認用コメントにする。
-`entity_metadata` はfalse（rAthenaのgroup/title OnInit書式JSONは未整備）。
-コード生成用の `dialogue.json` 等はAuriga既定のまま。復元の主目的と実装順は
+`entity_metadata` は受信ログ表示ではfalseのまま。コード生成用の `dialogue.json` /
+`entity_metadata.json` / `status_ids.json` 等は `config/rathena/` に分離し、エミュレータ切替で
+切り替える（send_displayは共有）。復元の主目的と実装順は
 [復元開発計画](../development/restoration-plan.md)を参照。
 
 「設定 → 表示」の「表示未定義のパケットも観測ログに表示する」は、長さ定義は既知だが

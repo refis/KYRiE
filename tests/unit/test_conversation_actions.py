@@ -109,7 +109,35 @@ class ConversationActionTests(unittest.TestCase):
             document['entries']['10']['symbol'] = 'SC_X;end'
             path.write_text(json.dumps(document), encoding='utf-8')
             with self.assertRaises(ValueError):
-                load_status_ids(path)
+                load_status_ids(path, target='auriga')
+
+    def test_rathena_status_ids_and_dialogue_switch_without_auriga_instance_commands(self):
+        from reconstruction.emulator_profiles import set_target, profile, target
+        previous = target()
+        try:
+            set_target('rathena')
+            mapping = load_status_ids()
+            self.assertTrue(mapping)
+            self.assertTrue(any(int(icon) != row['script_id'] for icon, row in mapping.items()))
+            self.assertEqual(mapping['0']['symbol'], 'SC_PROVOKE')
+            self.assertEqual(mapping['0']['script_id'], 20)
+            self.assertEqual(mapping['0']['source_symbol'], 'EFST_PROVOKE')
+            self.assertEqual(mapping['621']['argument_policy'], 'val1_only')
+            self.assertEqual(mapping['665']['argument_policy'], 'val1_only')
+            store, consume = self.opened()
+            consume(packet(0x2f0, struct.pack('<II', 0xaabbcc, 7)))
+            consume(variable(0x8d, struct.pack('<I', 42) + b'own words\0', 'flow-a'))
+            consume(packet(0xb6, struct.pack('<I', 42)))
+            code = AurigaRenderer().render(store.sessions[0])
+            self.assertIn('progressbar "0xAABBCC",7;', code)
+            self.assertIn('npctalk "own words";', code)
+            self.assertNotIn('getmdmapname', code)
+            self.assertNotIn('getmdnpcname', code)
+            dialogue = json.loads(profile('dialogue.json').read_text(encoding='utf-8'))
+            self.assertEqual(dialogue['instance_map_reference'], 'instance_mapname({name})')
+            self.assertEqual(dialogue['instance_npc_reference'], 'instance_npcname({name})')
+        finally:
+            set_target(previous)
 
     def test_same_path_action_variations_are_not_silently_merged(self):
         trials = []

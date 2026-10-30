@@ -15,6 +15,8 @@ class WindowTestCase(unittest.TestCase):
         cls.app = QApplication.instance() or QApplication([])
 
     def setUp(self):
+        from reconstruction.emulator_profiles import set_target
+        set_target('auriga')
         self.db = PacketDatabase(':memory:')
         self.log_folder = tempfile.TemporaryDirectory()
         with patch('gui.main_window.PacketDatabase', return_value=self.db), \
@@ -24,6 +26,8 @@ class WindowTestCase(unittest.TestCase):
         self.window.ip.setText('127.0.0.1')
 
     def tearDown(self):
+        from reconstruction.emulator_profiles import set_target
+        set_target('auriga')
         self.window.close()
         self.wait_window_closed()
         self.log_folder.cleanup()

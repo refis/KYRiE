@@ -3,7 +3,5441 @@
   "target": "rathena",
   "id_namespace": "client_status_icon",
   "source": {
-    "note": "未照合。Aurigaの数値を流用せず、対象rAthena版の検証後に追加する。"
+    "repository": "https://github.com/rathena/rathena",
+    "commit": "d4b8e7b8f16061cc2496d377ac8f777ce72a4f39",
+    "note": "One-shot verification against rAthena master; no ongoing tracking.",
+    "file": "src/map/status.hpp",
+    "sha256": "ba5bc4c34581995ba3a9e597e4995c8641497d8d6c0e226c209163716bbc187c",
+    "icon_table": "db/re/status.yml:Icon",
+    "icon_table_sha256": "e7079dcdeb8582153c43ce978cc79c1303bdab51f62a6dcfa6df86749647e58e",
+    "argument_source": "db/re/status.yml:Flags.SendVal1 (SC_MONSTER_TRANSFORM/SC_ACTIVE_MONSTER_TRANSFORM only)",
+    "argument_source_sha256": "e7079dcdeb8582153c43ce978cc79c1303bdab51f62a6dcfa6df86749647e58e",
+    "status_cpp_sha256": "4f940555e088eeed58933cd8bcb9b62822a5affa99465d1d48a496fdee600be1"
   },
-  "entries": {}
+  "entries": {
+    "0": {
+      "symbol": "SC_PROVOKE",
+      "script_id": 20,
+      "source_symbol": "EFST_PROVOKE",
+      "argument_policy": "review"
+    },
+    "1": {
+      "symbol": "SC_ENDURE",
+      "script_id": 21,
+      "source_symbol": "EFST_ENDURE",
+      "argument_policy": "review"
+    },
+    "2": {
+      "symbol": "SC_TWOHANDQUICKEN",
+      "script_id": 22,
+      "source_symbol": "EFST_TWOHANDQUICKEN",
+      "argument_policy": "review"
+    },
+    "3": {
+      "symbol": "SC_CONCENTRATE",
+      "script_id": 23,
+      "source_symbol": "EFST_CONCENTRATION",
+      "argument_policy": "review"
+    },
+    "4": {
+      "symbol": "SC_HIDING",
+      "script_id": 24,
+      "source_symbol": "EFST_HIDING",
+      "argument_policy": "review"
+    },
+    "5": {
+      "symbol": "SC_CLOAKING",
+      "script_id": 25,
+      "source_symbol": "EFST_CLOAKING",
+      "argument_policy": "review"
+    },
+    "6": {
+      "symbol": "SC_ENCPOISON",
+      "script_id": 26,
+      "source_symbol": "EFST_ENCHANTPOISON",
+      "argument_policy": "review"
+    },
+    "7": {
+      "symbol": "SC_POISONREACT",
+      "script_id": 27,
+      "source_symbol": "EFST_POISONREACT",
+      "argument_policy": "review"
+    },
+    "8": {
+      "symbol": "SC_QUAGMIRE",
+      "script_id": 28,
+      "source_symbol": "EFST_QUAGMIRE",
+      "argument_policy": "review"
+    },
+    "9": {
+      "symbol": "SC_ANGELUS",
+      "script_id": 29,
+      "source_symbol": "EFST_ANGELUS",
+      "argument_policy": "review"
+    },
+    "10": {
+      "symbol": "SC_BLESSING",
+      "script_id": 30,
+      "source_symbol": "EFST_BLESSING",
+      "argument_policy": "review"
+    },
+    "11": {
+      "symbol": "SC_SIGNUMCRUCIS",
+      "script_id": 31,
+      "source_symbol": "EFST_CRUCIS",
+      "argument_policy": "review"
+    },
+    "13": {
+      "symbol": "SC_DECREASEAGI",
+      "script_id": 33,
+      "source_symbol": "EFST_DEC_AGI",
+      "argument_policy": "review"
+    },
+    "14": {
+      "symbol": "SC_SLOWPOISON",
+      "script_id": 34,
+      "source_symbol": "EFST_SLOWPOISON",
+      "argument_policy": "review"
+    },
+    "15": {
+      "symbol": "SC_IMPOSITIO",
+      "script_id": 35,
+      "source_symbol": "EFST_IMPOSITIO",
+      "argument_policy": "review"
+    },
+    "16": {
+      "symbol": "SC_SUFFRAGIUM",
+      "script_id": 36,
+      "source_symbol": "EFST_SUFFRAGIUM",
+      "argument_policy": "review"
+    },
+    "17": {
+      "symbol": "SC_ASPERSIO",
+      "script_id": 37,
+      "source_symbol": "EFST_ASPERSIO",
+      "argument_policy": "review"
+    },
+    "18": {
+      "symbol": "SC_BENEDICTIO",
+      "script_id": 38,
+      "source_symbol": "EFST_BENEDICTIO",
+      "argument_policy": "review"
+    },
+    "19": {
+      "symbol": "SC_KYRIE",
+      "script_id": 39,
+      "source_symbol": "EFST_KYRIE",
+      "argument_policy": "review"
+    },
+    "20": {
+      "symbol": "SC_MAGNIFICAT",
+      "script_id": 40,
+      "source_symbol": "EFST_MAGNIFICAT",
+      "argument_policy": "review"
+    },
+    "21": {
+      "symbol": "SC_GLORIA",
+      "script_id": 41,
+      "source_symbol": "EFST_GLORIA",
+      "argument_policy": "review"
+    },
+    "22": {
+      "symbol": "SC_AETERNA",
+      "script_id": 42,
+      "source_symbol": "EFST_LEXAETERNA",
+      "argument_policy": "review"
+    },
+    "23": {
+      "symbol": "SC_ADRENALINE",
+      "script_id": 43,
+      "source_symbol": "EFST_ADRENALINE",
+      "argument_policy": "review"
+    },
+    "24": {
+      "symbol": "SC_WEAPONPERFECTION",
+      "script_id": 44,
+      "source_symbol": "EFST_WEAPONPERFECT",
+      "argument_policy": "review"
+    },
+    "25": {
+      "symbol": "SC_OVERTHRUST",
+      "script_id": 45,
+      "source_symbol": "EFST_OVERTHRUST",
+      "argument_policy": "review"
+    },
+    "26": {
+      "symbol": "SC_MAXIMIZEPOWER",
+      "script_id": 46,
+      "source_symbol": "EFST_MAXIMIZE",
+      "argument_policy": "review"
+    },
+    "29": {
+      "symbol": "SC_TRICKDEAD",
+      "script_id": 47,
+      "source_symbol": "EFST_TRICKDEAD",
+      "argument_policy": "review"
+    },
+    "30": {
+      "symbol": "SC_LOUD",
+      "script_id": 48,
+      "source_symbol": "EFST_SHOUT",
+      "argument_policy": "review"
+    },
+    "31": {
+      "symbol": "SC_ENERGYCOAT",
+      "script_id": 49,
+      "source_symbol": "EFST_ENERGYCOAT",
+      "argument_policy": "review"
+    },
+    "32": {
+      "symbol": "SC_BROKENARMOR",
+      "script_id": 50,
+      "source_symbol": "EFST_BROKENARMOR",
+      "argument_policy": "review"
+    },
+    "33": {
+      "symbol": "SC_BROKENWEAPON",
+      "script_id": 51,
+      "source_symbol": "EFST_BROKENWEAPON",
+      "argument_policy": "review"
+    },
+    "34": {
+      "symbol": "SC_HALLUCINATION",
+      "script_id": 52,
+      "source_symbol": "EFST_ILLUSION",
+      "argument_policy": "review"
+    },
+    "35": {
+      "symbol": "SC_WEIGHT50",
+      "script_id": 53,
+      "source_symbol": "EFST_WEIGHTOVER50",
+      "argument_policy": "review"
+    },
+    "36": {
+      "symbol": "SC_WEIGHT90",
+      "script_id": 54,
+      "source_symbol": "EFST_WEIGHTOVER90",
+      "argument_policy": "review"
+    },
+    "37": {
+      "symbol": "SC_ASPDPOTION0",
+      "script_id": 55,
+      "source_symbol": "EFST_ATTHASTE_POTION1",
+      "argument_policy": "review"
+    },
+    "38": {
+      "symbol": "SC_ASPDPOTION1",
+      "script_id": 56,
+      "source_symbol": "EFST_ATTHASTE_POTION2",
+      "argument_policy": "review"
+    },
+    "39": {
+      "symbol": "SC_ASPDPOTION2",
+      "script_id": 57,
+      "source_symbol": "EFST_ATTHASTE_POTION3",
+      "argument_policy": "review"
+    },
+    "40": {
+      "symbol": "SC_ASPDPOTION3",
+      "script_id": 58,
+      "source_symbol": "EFST_ATTHASTE_INFINITY",
+      "argument_policy": "review"
+    },
+    "41": {
+      "symbol": "SC_SPEEDUP1",
+      "script_id": 60,
+      "source_symbol": "EFST_MOVHASTE_POTION",
+      "argument_policy": "review"
+    },
+    "43": {
+      "symbol": "SC_AUTOCOUNTER",
+      "script_id": 87,
+      "source_symbol": "EFST_AUTOCOUNTER",
+      "argument_policy": "review"
+    },
+    "44": {
+      "symbol": "SC_SPLASHER",
+      "script_id": 78,
+      "source_symbol": "EFST_SPLASHER",
+      "argument_policy": "review"
+    },
+    "45": {
+      "symbol": "SC_ANKLE",
+      "script_id": 65,
+      "source_symbol": "EFST_ANKLESNARE",
+      "argument_policy": "review"
+    },
+    "47": {
+      "symbol": "SC_NOACTION",
+      "script_id": 1027,
+      "source_symbol": "EFST_NOACTION",
+      "argument_policy": "review"
+    },
+    "49": {
+      "symbol": "SC_BARRIER",
+      "script_id": 67,
+      "source_symbol": "EFST_BARRIER",
+      "argument_policy": "review"
+    },
+    "51": {
+      "symbol": "SC_STRIPSHIELD",
+      "script_id": 69,
+      "source_symbol": "EFST_NOEQUIPSHIELD",
+      "argument_policy": "review"
+    },
+    "52": {
+      "symbol": "SC_STRIPARMOR",
+      "script_id": 70,
+      "source_symbol": "EFST_NOEQUIPARMOR",
+      "argument_policy": "review"
+    },
+    "53": {
+      "symbol": "SC_STRIPHELM",
+      "script_id": 71,
+      "source_symbol": "EFST_NOEQUIPHELM",
+      "argument_policy": "review"
+    },
+    "54": {
+      "symbol": "SC_CP_WEAPON",
+      "script_id": 72,
+      "source_symbol": "EFST_PROTECTWEAPON",
+      "argument_policy": "review"
+    },
+    "55": {
+      "symbol": "SC_CP_SHIELD",
+      "script_id": 73,
+      "source_symbol": "EFST_PROTECTSHIELD",
+      "argument_policy": "review"
+    },
+    "56": {
+      "symbol": "SC_CP_ARMOR",
+      "script_id": 74,
+      "source_symbol": "EFST_PROTECTARMOR",
+      "argument_policy": "review"
+    },
+    "57": {
+      "symbol": "SC_CP_HELM",
+      "script_id": 75,
+      "source_symbol": "EFST_PROTECTHELM",
+      "argument_policy": "review"
+    },
+    "58": {
+      "symbol": "SC_AUTOGUARD",
+      "script_id": 76,
+      "source_symbol": "EFST_AUTOGUARD",
+      "argument_policy": "review"
+    },
+    "59": {
+      "symbol": "SC_REFLECTSHIELD",
+      "script_id": 77,
+      "source_symbol": "EFST_REFLECTSHIELD",
+      "argument_policy": "review"
+    },
+    "60": {
+      "symbol": "SC_DEVOTION",
+      "script_id": 134,
+      "source_symbol": "EFST_DEVOTION",
+      "argument_policy": "review"
+    },
+    "61": {
+      "symbol": "SC_PROVIDENCE",
+      "script_id": 79,
+      "source_symbol": "EFST_PROVIDENCE",
+      "argument_policy": "review"
+    },
+    "62": {
+      "symbol": "SC_DEFENDER",
+      "script_id": 80,
+      "source_symbol": "EFST_DEFENDER",
+      "argument_policy": "review"
+    },
+    "63": {
+      "symbol": "SC_MAGICROD",
+      "script_id": 81,
+      "source_symbol": "EFST_MAGICROD",
+      "argument_policy": "review"
+    },
+    "64": {
+      "symbol": "SC_ENCHANTARMS",
+      "script_id": 250,
+      "source_symbol": "EFST_WEAPONPROPERTY",
+      "argument_policy": "review"
+    },
+    "65": {
+      "symbol": "SC_AUTOSPELL",
+      "script_id": 83,
+      "source_symbol": "EFST_AUTOSPELL",
+      "argument_policy": "review"
+    },
+    "68": {
+      "symbol": "SC_SPEARQUICKEN",
+      "script_id": 86,
+      "source_symbol": "EFST_SPEARQUICKEN",
+      "argument_policy": "review"
+    },
+    "69": {
+      "symbol": "SC_DANCING",
+      "script_id": 164,
+      "source_symbol": "EFST_BDPLAYING",
+      "argument_policy": "review"
+    },
+    "70": {
+      "symbol": "SC_WHISTLE",
+      "script_id": 173,
+      "source_symbol": "EFST_WHISTLE",
+      "argument_policy": "review"
+    },
+    "71": {
+      "symbol": "SC_ASSNCROS",
+      "script_id": 174,
+      "source_symbol": "EFST_ASSASSINCROSS",
+      "argument_policy": "review"
+    },
+    "72": {
+      "symbol": "SC_POEMBRAGI",
+      "script_id": 175,
+      "source_symbol": "EFST_POEMBRAGI",
+      "argument_policy": "review"
+    },
+    "73": {
+      "symbol": "SC_APPLEIDUN",
+      "script_id": 176,
+      "source_symbol": "EFST_APPLEIDUN",
+      "argument_policy": "review"
+    },
+    "74": {
+      "symbol": "SC_HUMMING",
+      "script_id": 178,
+      "source_symbol": "EFST_HUMMING",
+      "argument_policy": "review"
+    },
+    "75": {
+      "symbol": "SC_DONTFORGETME",
+      "script_id": 179,
+      "source_symbol": "EFST_DONTFORGETME",
+      "argument_policy": "review"
+    },
+    "76": {
+      "symbol": "SC_FORTUNE",
+      "script_id": 180,
+      "source_symbol": "EFST_FORTUNEKISS",
+      "argument_policy": "review"
+    },
+    "77": {
+      "symbol": "SC_SERVICE4U",
+      "script_id": 181,
+      "source_symbol": "EFST_SERVICEFORYOU",
+      "argument_policy": "review"
+    },
+    "78": {
+      "symbol": "SC_RICHMANKIM",
+      "script_id": 166,
+      "source_symbol": "EFST_RICHMANKIM",
+      "argument_policy": "review"
+    },
+    "79": {
+      "symbol": "SC_ETERNALCHAOS",
+      "script_id": 167,
+      "source_symbol": "EFST_ETERNALCHAOS",
+      "argument_policy": "review"
+    },
+    "80": {
+      "symbol": "SC_DRUMBATTLE",
+      "script_id": 168,
+      "source_symbol": "EFST_DRUMBATTLEFIELD",
+      "argument_policy": "review"
+    },
+    "81": {
+      "symbol": "SC_NIBELUNGEN",
+      "script_id": 169,
+      "source_symbol": "EFST_RINGNIBELUNGEN",
+      "argument_policy": "review"
+    },
+    "82": {
+      "symbol": "SC_ROKISWEIL",
+      "script_id": 170,
+      "source_symbol": "EFST_ROKISWEIL",
+      "argument_policy": "review"
+    },
+    "83": {
+      "symbol": "SC_INTOABYSS",
+      "script_id": 171,
+      "source_symbol": "EFST_INTOABYSS",
+      "argument_policy": "review"
+    },
+    "84": {
+      "symbol": "SC_SIEGFRIED",
+      "script_id": 172,
+      "source_symbol": "EFST_SIEGFRIED",
+      "argument_policy": "review"
+    },
+    "85": {
+      "symbol": "SC_BLADESTOP",
+      "script_id": 95,
+      "source_symbol": "EFST_BLADESTOP",
+      "argument_policy": "review"
+    },
+    "86": {
+      "symbol": "SC_EXPLOSIONSPIRITS",
+      "script_id": 92,
+      "source_symbol": "EFST_EXPLOSIONSPIRITS",
+      "argument_policy": "review"
+    },
+    "87": {
+      "symbol": "SC_STEELBODY",
+      "script_id": 136,
+      "source_symbol": "EFST_STEELBODY",
+      "argument_policy": "review"
+    },
+    "88": {
+      "symbol": "SC_EXTREMITYFIST",
+      "script_id": 91,
+      "source_symbol": "EFST_EXTREMITYFIST",
+      "argument_policy": "review"
+    },
+    "90": {
+      "symbol": "SC_FIREWEAPON",
+      "script_id": 96,
+      "source_symbol": "EFST_PROPERTYFIRE",
+      "argument_policy": "review"
+    },
+    "91": {
+      "symbol": "SC_WATERWEAPON",
+      "script_id": 97,
+      "source_symbol": "EFST_PROPERTYWATER",
+      "argument_policy": "review"
+    },
+    "92": {
+      "symbol": "SC_WINDWEAPON",
+      "script_id": 98,
+      "source_symbol": "EFST_PROPERTYWIND",
+      "argument_policy": "review"
+    },
+    "93": {
+      "symbol": "SC_EARTHWEAPON",
+      "script_id": 99,
+      "source_symbol": "EFST_PROPERTYGROUND",
+      "argument_policy": "review"
+    },
+    "95": {
+      "symbol": "SC_STOP",
+      "script_id": 182,
+      "source_symbol": "EFST_STOP",
+      "argument_policy": "review"
+    },
+    "97": {
+      "symbol": "SC_CHANGEUNDEAD",
+      "script_id": 128,
+      "source_symbol": "EFST_PROPERTYUNDEAD",
+      "argument_policy": "review"
+    },
+    "98": {
+      "symbol": "SC_POWERUP",
+      "script_id": 951,
+      "source_symbol": "EFST_POWERUP",
+      "argument_policy": "review"
+    },
+    "99": {
+      "symbol": "SC_AGIUP",
+      "script_id": 952,
+      "source_symbol": "EFST_AGIUP",
+      "argument_policy": "review"
+    },
+    "103": {
+      "symbol": "SC_AURABLADE",
+      "script_id": 108,
+      "source_symbol": "EFST_AURABLADE",
+      "argument_policy": "review"
+    },
+    "104": {
+      "symbol": "SC_PARRYING",
+      "script_id": 109,
+      "source_symbol": "EFST_PARRYING",
+      "argument_policy": "review"
+    },
+    "105": {
+      "symbol": "SC_CONCENTRATION",
+      "script_id": 110,
+      "source_symbol": "EFST_LKCONCENTRATION",
+      "argument_policy": "review"
+    },
+    "106": {
+      "symbol": "SC_TENSIONRELAX",
+      "script_id": 111,
+      "source_symbol": "EFST_TENSIONRELAX",
+      "argument_policy": "review"
+    },
+    "107": {
+      "symbol": "SC_BERSERK",
+      "script_id": 112,
+      "source_symbol": "EFST_BERSERK",
+      "argument_policy": "review"
+    },
+    "109": {
+      "symbol": "SC_GOSPEL",
+      "script_id": 114,
+      "source_symbol": "EFST_GOSPEL",
+      "argument_policy": "review"
+    },
+    "113": {
+      "symbol": "SC_MAGICPOWER",
+      "script_id": 118,
+      "source_symbol": "EFST_MAGICPOWER",
+      "argument_policy": "review"
+    },
+    "114": {
+      "symbol": "SC_EDP",
+      "script_id": 119,
+      "source_symbol": "EFST_EDP",
+      "argument_policy": "review"
+    },
+    "115": {
+      "symbol": "SC_TRUESIGHT",
+      "script_id": 120,
+      "source_symbol": "EFST_TRUESIGHT",
+      "argument_policy": "review"
+    },
+    "116": {
+      "symbol": "SC_WINDWALK",
+      "script_id": 121,
+      "source_symbol": "EFST_WINDWALK",
+      "argument_policy": "review"
+    },
+    "117": {
+      "symbol": "SC_MELTDOWN",
+      "script_id": 122,
+      "source_symbol": "EFST_MELTDOWN",
+      "argument_policy": "review"
+    },
+    "118": {
+      "symbol": "SC_CARTBOOST",
+      "script_id": 123,
+      "source_symbol": "EFST_CARTBOOST",
+      "argument_policy": "review"
+    },
+    "119": {
+      "symbol": "SC_CHASEWALK",
+      "script_id": 124,
+      "source_symbol": "EFST_CHASEWALK",
+      "argument_policy": "review"
+    },
+    "120": {
+      "symbol": "SC_REJECTSWORD",
+      "script_id": 125,
+      "source_symbol": "EFST_SWORDREJECT",
+      "argument_policy": "review"
+    },
+    "121": {
+      "symbol": "SC_MARIONETTE",
+      "script_id": 126,
+      "source_symbol": "EFST_MARIONETTE_MASTER",
+      "argument_policy": "review"
+    },
+    "122": {
+      "symbol": "SC_MARIONETTE2",
+      "script_id": 127,
+      "source_symbol": "EFST_MARIONETTE",
+      "argument_policy": "review"
+    },
+    "124": {
+      "symbol": "SC_BLEEDING",
+      "script_id": 9,
+      "source_symbol": "EFST_BLOODING",
+      "argument_policy": "review"
+    },
+    "125": {
+      "symbol": "SC_JOINTBEAT",
+      "script_id": 129,
+      "source_symbol": "EFST_JOINTBEAT",
+      "argument_policy": "review"
+    },
+    "126": {
+      "symbol": "SC_MINDBREAKER",
+      "script_id": 130,
+      "source_symbol": "EFST_MINDBREAKER",
+      "argument_policy": "review"
+    },
+    "127": {
+      "symbol": "SC_MEMORIZE",
+      "script_id": 131,
+      "source_symbol": "EFST_MEMORIZE",
+      "argument_policy": "review"
+    },
+    "128": {
+      "symbol": "SC_FOGWALL",
+      "script_id": 132,
+      "source_symbol": "EFST_FOGWALL",
+      "argument_policy": "review"
+    },
+    "129": {
+      "symbol": "SC_SPIDERWEB",
+      "script_id": 133,
+      "source_symbol": "EFST_SPIDERWEB",
+      "argument_policy": "review"
+    },
+    "130": {
+      "symbol": "SC_PROTECTEXP",
+      "script_id": 107,
+      "source_symbol": "EFST_PROTECTEXP",
+      "argument_policy": "review"
+    },
+    "132": {
+      "symbol": "SC_AUTOBERSERK",
+      "script_id": 85,
+      "source_symbol": "EFST_AUTOBERSERK",
+      "argument_policy": "review"
+    },
+    "133": {
+      "symbol": "SC_RUN",
+      "script_id": 143,
+      "source_symbol": "EFST_RUN",
+      "argument_policy": "review"
+    },
+    "135": {
+      "symbol": "SC_READYSTORM",
+      "script_id": 138,
+      "source_symbol": "EFST_STORMKICK_ON",
+      "argument_policy": "review"
+    },
+    "137": {
+      "symbol": "SC_READYDOWN",
+      "script_id": 139,
+      "source_symbol": "EFST_DOWNKICK_ON",
+      "argument_policy": "review"
+    },
+    "139": {
+      "symbol": "SC_READYTURN",
+      "script_id": 140,
+      "source_symbol": "EFST_TURNKICK_ON",
+      "argument_policy": "review"
+    },
+    "141": {
+      "symbol": "SC_READYCOUNTER",
+      "script_id": 141,
+      "source_symbol": "EFST_COUNTER_ON",
+      "argument_policy": "review"
+    },
+    "143": {
+      "symbol": "SC_DODGE",
+      "script_id": 142,
+      "source_symbol": "EFST_DODGE_ON",
+      "argument_policy": "review"
+    },
+    "145": {
+      "symbol": "SC_SPURT",
+      "script_id": 183,
+      "source_symbol": "EFST_STRUP",
+      "argument_policy": "review"
+    },
+    "146": {
+      "symbol": "SC_SHADOWWEAPON",
+      "script_id": 144,
+      "source_symbol": "EFST_PROPERTYDARK",
+      "argument_policy": "review"
+    },
+    "147": {
+      "symbol": "SC_ADRENALINE2",
+      "script_id": 145,
+      "source_symbol": "EFST_ADRENALINE2",
+      "argument_policy": "review"
+    },
+    "148": {
+      "symbol": "SC_GHOSTWEAPON",
+      "script_id": 146,
+      "source_symbol": "EFST_PROPERTYTELEKINESIS",
+      "argument_policy": "review"
+    },
+    "150": {
+      "symbol": "SC_ATKPOTION",
+      "script_id": 61,
+      "source_symbol": "EFST_PLUSATTACKPOWER",
+      "argument_policy": "review"
+    },
+    "151": {
+      "symbol": "SC_MATKPOTION",
+      "script_id": 62,
+      "source_symbol": "EFST_PLUSMAGICPOWER",
+      "argument_policy": "review"
+    },
+    "153": {
+      "symbol": "SC_KAITE",
+      "script_id": 223,
+      "source_symbol": "EFST_KAITE",
+      "argument_policy": "review"
+    },
+    "154": {
+      "symbol": "SC_SWOO",
+      "script_id": 224,
+      "source_symbol": "EFST_SWOO",
+      "argument_policy": "review"
+    },
+    "156": {
+      "symbol": "SC_KAIZEL",
+      "script_id": 147,
+      "source_symbol": "EFST_KAIZEL",
+      "argument_policy": "review"
+    },
+    "157": {
+      "symbol": "SC_KAAHI",
+      "script_id": 148,
+      "source_symbol": "EFST_KAAHI",
+      "argument_policy": "review"
+    },
+    "158": {
+      "symbol": "SC_KAUPE",
+      "script_id": 149,
+      "source_symbol": "EFST_KAUPE",
+      "argument_policy": "review"
+    },
+    "159": {
+      "symbol": "SC_SMA",
+      "script_id": 239,
+      "source_symbol": "EFST_SMA_READY",
+      "argument_policy": "review"
+    },
+    "161": {
+      "symbol": "SC_ONEHAND",
+      "script_id": 150,
+      "source_symbol": "EFST_ONEHANDQUICKEN",
+      "argument_policy": "review"
+    },
+    "165": {
+      "symbol": "SC_WARM",
+      "script_id": 216,
+      "source_symbol": "EFST_SG_SUN_WARM",
+      "argument_policy": "review"
+    },
+    "169": {
+      "symbol": "SC_SUN_COMFORT",
+      "script_id": 217,
+      "source_symbol": "EFST_SUN_COMFORT",
+      "argument_policy": "review"
+    },
+    "170": {
+      "symbol": "SC_MOON_COMFORT",
+      "script_id": 218,
+      "source_symbol": "EFST_MOON_COMFORT",
+      "argument_policy": "review"
+    },
+    "171": {
+      "symbol": "SC_STAR_COMFORT",
+      "script_id": 219,
+      "source_symbol": "EFST_STAR_COMFORT",
+      "argument_policy": "review"
+    },
+    "173": {
+      "symbol": "SC_BATTLEORDERS",
+      "script_id": 152,
+      "source_symbol": "EFST_GDSKILL_BATTLEORDER",
+      "argument_policy": "review"
+    },
+    "174": {
+      "symbol": "SC_REGENERATION",
+      "script_id": 153,
+      "source_symbol": "EFST_GDSKILL_REGENERATION",
+      "argument_policy": "review"
+    },
+    "181": {
+      "symbol": "SC_PRESERVE",
+      "script_id": 151,
+      "source_symbol": "EFST_PRESERVE",
+      "argument_policy": "review"
+    },
+    "182": {
+      "symbol": "SC_CHASEWALK2",
+      "script_id": 650,
+      "source_symbol": "EFST_CHASEWALK2",
+      "argument_policy": "review"
+    },
+    "184": {
+      "symbol": "SC_INTRAVISION",
+      "script_id": 186,
+      "source_symbol": "EFST_CLAIRVOYANCE",
+      "argument_policy": "review"
+    },
+    "186": {
+      "symbol": "SC_DOUBLECAST",
+      "script_id": 154,
+      "source_symbol": "EFST_DOUBLECASTING",
+      "argument_policy": "review"
+    },
+    "188": {
+      "symbol": "SC_MAXOVERTHRUST",
+      "script_id": 156,
+      "source_symbol": "EFST_OVERTHRUSTMAX",
+      "argument_policy": "review"
+    },
+    "190": {
+      "symbol": "SC_HERMODE",
+      "script_id": 158,
+      "source_symbol": "EFST_HERMODE",
+      "argument_policy": "review"
+    },
+    "191": {
+      "symbol": "SC_TAROTCARD",
+      "script_id": 721,
+      "source_symbol": "EFST_TAROTCARD",
+      "argument_policy": "review"
+    },
+    "197": {
+      "symbol": "SC_SHRINK",
+      "script_id": 159,
+      "source_symbol": "EFST_CR_SHRINK",
+      "argument_policy": "review"
+    },
+    "198": {
+      "symbol": "SC_SIGHTBLASTER",
+      "script_id": 160,
+      "source_symbol": "EFST_WZ_SIGHTBLASTER",
+      "argument_policy": "review"
+    },
+    "199": {
+      "symbol": "SC_WINKCHARM",
+      "script_id": 161,
+      "source_symbol": "EFST_DC_WINKCHARM",
+      "argument_policy": "review"
+    },
+    "200": {
+      "symbol": "SC_CLOSECONFINE",
+      "script_id": 162,
+      "source_symbol": "EFST_RG_CCONFINE_M",
+      "argument_policy": "review"
+    },
+    "201": {
+      "symbol": "SC_CLOSECONFINE2",
+      "script_id": 163,
+      "source_symbol": "EFST_RG_CCONFINE_S",
+      "argument_policy": "review"
+    },
+    "203": {
+      "symbol": "SC_MADNESSCANCEL",
+      "script_id": 228,
+      "source_symbol": "EFST_GS_MADNESSCANCEL",
+      "argument_policy": "review"
+    },
+    "204": {
+      "symbol": "SC_GATLINGFEVER",
+      "script_id": 231,
+      "source_symbol": "EFST_GS_GATLINGFEVER",
+      "argument_policy": "review"
+    },
+    "205": {
+      "symbol": "SC_EARTHSCROLL",
+      "script_id": 226,
+      "source_symbol": "EFST_EARTHSCROLL",
+      "argument_policy": "review"
+    },
+    "206": {
+      "symbol": "SC_UTSUSEMI",
+      "script_id": 233,
+      "source_symbol": "EFST_NJ_UTSUSEMI",
+      "argument_policy": "review"
+    },
+    "207": {
+      "symbol": "SC_BUNSINJYUTSU",
+      "script_id": 234,
+      "source_symbol": "EFST_NJ_BUNSINJYUTSU",
+      "argument_policy": "review"
+    },
+    "208": {
+      "symbol": "SC_NEN",
+      "script_id": 237,
+      "source_symbol": "EFST_NJ_NEN",
+      "argument_policy": "review"
+    },
+    "209": {
+      "symbol": "SC_ADJUSTMENT",
+      "script_id": 229,
+      "source_symbol": "EFST_GS_ADJUSTMENT",
+      "argument_policy": "review"
+    },
+    "210": {
+      "symbol": "SC_INCREASING",
+      "script_id": 230,
+      "source_symbol": "EFST_GS_ACCURACY",
+      "argument_policy": "review"
+    },
+    "211": {
+      "symbol": "SC_SUITON",
+      "script_id": 236,
+      "source_symbol": "EFST_NJ_SUITON",
+      "argument_policy": "review"
+    },
+    "241": {
+      "symbol": "SC_STRFOOD",
+      "script_id": 203,
+      "source_symbol": "EFST_FOOD_STR",
+      "argument_policy": "review"
+    },
+    "242": {
+      "symbol": "SC_AGIFOOD",
+      "script_id": 204,
+      "source_symbol": "EFST_FOOD_AGI",
+      "argument_policy": "review"
+    },
+    "243": {
+      "symbol": "SC_VITFOOD",
+      "script_id": 205,
+      "source_symbol": "EFST_FOOD_VIT",
+      "argument_policy": "review"
+    },
+    "244": {
+      "symbol": "SC_DEXFOOD",
+      "script_id": 207,
+      "source_symbol": "EFST_FOOD_DEX",
+      "argument_policy": "review"
+    },
+    "245": {
+      "symbol": "SC_INTFOOD",
+      "script_id": 206,
+      "source_symbol": "EFST_FOOD_INT",
+      "argument_policy": "review"
+    },
+    "246": {
+      "symbol": "SC_LUKFOOD",
+      "script_id": 208,
+      "source_symbol": "EFST_FOOD_LUK",
+      "argument_policy": "review"
+    },
+    "247": {
+      "symbol": "SC_FLEEFOOD",
+      "script_id": 210,
+      "source_symbol": "EFST_FOOD_BASICAVOIDANCE",
+      "argument_policy": "review"
+    },
+    "248": {
+      "symbol": "SC_HITFOOD",
+      "script_id": 209,
+      "source_symbol": "EFST_FOOD_BASICHIT",
+      "argument_policy": "review"
+    },
+    "249": {
+      "symbol": "SC_CRIFOOD",
+      "script_id": 661,
+      "source_symbol": "EFST_FOOD_CRITICALSUCCESSVALUE",
+      "argument_policy": "review"
+    },
+    "250": {
+      "symbol": "SC_EXPBOOST",
+      "script_id": 257,
+      "source_symbol": "EFST_CASH_PLUSEXP",
+      "argument_policy": "review"
+    },
+    "251": {
+      "symbol": "SC_LIFEINSURANCE",
+      "script_id": 260,
+      "source_symbol": "EFST_CASH_DEATHPENALTY",
+      "argument_policy": "review"
+    },
+    "252": {
+      "symbol": "SC_ITEMBOOST",
+      "script_id": 258,
+      "source_symbol": "EFST_CASH_RECEIVEITEM",
+      "argument_policy": "review"
+    },
+    "253": {
+      "symbol": "SC_BOSSMAPINFO",
+      "script_id": 259,
+      "source_symbol": "EFST_CASH_BOSS_ALARM",
+      "argument_policy": "review"
+    },
+    "271": {
+      "symbol": "SC_FOOD_STR_CASH",
+      "script_id": 303,
+      "source_symbol": "EFST_FOOD_STR_CASH",
+      "argument_policy": "review"
+    },
+    "272": {
+      "symbol": "SC_FOOD_AGI_CASH",
+      "script_id": 304,
+      "source_symbol": "EFST_FOOD_AGI_CASH",
+      "argument_policy": "review"
+    },
+    "273": {
+      "symbol": "SC_FOOD_VIT_CASH",
+      "script_id": 305,
+      "source_symbol": "EFST_FOOD_VIT_CASH",
+      "argument_policy": "review"
+    },
+    "274": {
+      "symbol": "SC_FOOD_DEX_CASH",
+      "script_id": 306,
+      "source_symbol": "EFST_FOOD_DEX_CASH",
+      "argument_policy": "review"
+    },
+    "275": {
+      "symbol": "SC_FOOD_INT_CASH",
+      "script_id": 307,
+      "source_symbol": "EFST_FOOD_INT_CASH",
+      "argument_policy": "review"
+    },
+    "276": {
+      "symbol": "SC_FOOD_LUK_CASH",
+      "script_id": 308,
+      "source_symbol": "EFST_FOOD_LUK_CASH",
+      "argument_policy": "review"
+    },
+    "277": {
+      "symbol": "SC_MERC_FLEEUP",
+      "script_id": 278,
+      "source_symbol": "EFST_MER_FLEE",
+      "argument_policy": "review"
+    },
+    "278": {
+      "symbol": "SC_MERC_ATKUP",
+      "script_id": 279,
+      "source_symbol": "EFST_MER_ATK",
+      "argument_policy": "review"
+    },
+    "279": {
+      "symbol": "SC_MERC_HPUP",
+      "script_id": 280,
+      "source_symbol": "EFST_MER_HP",
+      "argument_policy": "review"
+    },
+    "280": {
+      "symbol": "SC_MERC_SPUP",
+      "script_id": 281,
+      "source_symbol": "EFST_MER_SP",
+      "argument_policy": "review"
+    },
+    "281": {
+      "symbol": "SC_MERC_HITUP",
+      "script_id": 282,
+      "source_symbol": "EFST_MER_HIT",
+      "argument_policy": "review"
+    },
+    "282": {
+      "symbol": "SC_SLOWCAST",
+      "script_id": 255,
+      "source_symbol": "EFST_SLOWCAST",
+      "argument_policy": "review"
+    },
+    "286": {
+      "symbol": "SC_CRITICALWOUND",
+      "script_id": 253,
+      "source_symbol": "EFST_CRITICALWOUND",
+      "argument_policy": "review"
+    },
+    "289": {
+      "symbol": "SC_SPEEDUP0",
+      "script_id": 59,
+      "source_symbol": "EFST_MOVHASTE_HORSE",
+      "argument_policy": "review"
+    },
+    "290": {
+      "symbol": "SC_DEF_RATE",
+      "script_id": 275,
+      "source_symbol": "EFST_PROTECT_DEF",
+      "argument_policy": "review"
+    },
+    "291": {
+      "symbol": "SC_MDEF_RATE",
+      "script_id": 265,
+      "source_symbol": "EFST_PROTECT_MDEF",
+      "argument_policy": "review"
+    },
+    "292": {
+      "symbol": "SC_INCHEALRATE",
+      "script_id": 267,
+      "source_symbol": "EFST_HEALPLUS",
+      "argument_policy": "review"
+    },
+    "293": {
+      "symbol": "SC_S_LIFEPOTION",
+      "script_id": 290,
+      "source_symbol": "EFST_S_LIFEPOTION",
+      "argument_policy": "review"
+    },
+    "294": {
+      "symbol": "SC_L_LIFEPOTION",
+      "script_id": 291,
+      "source_symbol": "EFST_L_LIFEPOTION",
+      "argument_policy": "review"
+    },
+    "295": {
+      "symbol": "SC_INCCRI",
+      "script_id": 261,
+      "source_symbol": "EFST_CRITICALPERCENT",
+      "argument_policy": "review"
+    },
+    "296": {
+      "symbol": "SC_INCFLEE2",
+      "script_id": 248,
+      "source_symbol": "EFST_PLUSAVOIDVALUE",
+      "argument_policy": "review"
+    },
+    "297": {
+      "symbol": "SC_INCREASE_MAXHP",
+      "script_id": 796,
+      "source_symbol": "EFST_ATKER_ASPD",
+      "argument_policy": "review"
+    },
+    "298": {
+      "symbol": "SC_MENTAL_POTION",
+      "script_id": 952,
+      "source_symbol": "EFST_TARGET_ASPD",
+      "argument_policy": "review"
+    },
+    "299": {
+      "symbol": "SC_INCREASE_MAXSP",
+      "script_id": 797,
+      "source_symbol": "EFST_ATKER_MOVESPEED",
+      "argument_policy": "review"
+    },
+    "300": {
+      "symbol": "SC_SPCOST_RATE",
+      "script_id": 272,
+      "source_symbol": "EFST_ATKER_BLOOD",
+      "argument_policy": "review"
+    },
+    "301": {
+      "symbol": "SC_COMMONSC_RESIST",
+      "script_id": 273,
+      "source_symbol": "EFST_TARGET_BLOOD",
+      "argument_policy": "review"
+    },
+    "302": {
+      "symbol": "SC_ELEMENTALCHANGE",
+      "script_id": 165,
+      "source_symbol": "EFST_ARMOR_PROPERTY",
+      "argument_policy": "review"
+    },
+    "303": {
+      "symbol": "SC_REUSE_LIMIT_A",
+      "script_id": 663,
+      "source_symbol": "EFST_REUSE_LIMIT_A",
+      "argument_policy": "review"
+    },
+    "304": {
+      "symbol": "SC_HELLPOWER",
+      "script_id": 294,
+      "source_symbol": "EFST_HELLPOWER",
+      "argument_policy": "review"
+    },
+    "305": {
+      "symbol": "SC_SPARKCANDY",
+      "script_id": 957,
+      "source_symbol": "EFST_STEAMPACK",
+      "argument_policy": "review"
+    },
+    "306": {
+      "symbol": "SC_REUSE_LIMIT_B",
+      "script_id": 664,
+      "source_symbol": "EFST_REUSE_LIMIT_B",
+      "argument_policy": "review"
+    },
+    "307": {
+      "symbol": "SC_REUSE_LIMIT_C",
+      "script_id": 665,
+      "source_symbol": "EFST_REUSE_LIMIT_C",
+      "argument_policy": "review"
+    },
+    "308": {
+      "symbol": "SC_REUSE_LIMIT_D",
+      "script_id": 666,
+      "source_symbol": "EFST_REUSE_LIMIT_D",
+      "argument_policy": "review"
+    },
+    "309": {
+      "symbol": "SC_REUSE_LIMIT_E",
+      "script_id": 667,
+      "source_symbol": "EFST_REUSE_LIMIT_E",
+      "argument_policy": "review"
+    },
+    "310": {
+      "symbol": "SC_REUSE_LIMIT_F",
+      "script_id": 668,
+      "source_symbol": "EFST_REUSE_LIMIT_F",
+      "argument_policy": "review"
+    },
+    "311": {
+      "symbol": "SC_INVINCIBLE",
+      "script_id": 295,
+      "source_symbol": "EFST_INVINCIBLE",
+      "argument_policy": "review"
+    },
+    "312": {
+      "symbol": "SC_JEXPBOOST",
+      "script_id": 292,
+      "source_symbol": "EFST_CASH_PLUSONLYJOBEXP",
+      "argument_policy": "review"
+    },
+    "313": {
+      "symbol": "SC_PARTYFLEE",
+      "script_id": 576,
+      "source_symbol": "EFST_PARTYFLEE",
+      "argument_policy": "review"
+    },
+    "314": {
+      "symbol": "SC_ANGEL_PROTECT",
+      "script_id": 618,
+      "source_symbol": "EFST_ANGEL_PROTECT",
+      "argument_policy": "review"
+    },
+    "316": {
+      "symbol": "SC_ENCHANTBLADE",
+      "script_id": 318,
+      "source_symbol": "EFST_ENCHANTBLADE",
+      "argument_policy": "review"
+    },
+    "317": {
+      "symbol": "SC_DEATHBOUND",
+      "script_id": 319,
+      "source_symbol": "EFST_DEATHBOUND",
+      "argument_policy": "review"
+    },
+    "318": {
+      "symbol": "SC_REFRESH",
+      "script_id": 322,
+      "source_symbol": "EFST_REFRESH",
+      "argument_policy": "review"
+    },
+    "319": {
+      "symbol": "SC_GIANTGROWTH",
+      "script_id": 324,
+      "source_symbol": "EFST_GIANTGROWTH",
+      "argument_policy": "review"
+    },
+    "320": {
+      "symbol": "SC_STONEHARDSKIN",
+      "script_id": 325,
+      "source_symbol": "EFST_STONEHARDSKIN",
+      "argument_policy": "review"
+    },
+    "321": {
+      "symbol": "SC_VITALITYACTIVATION",
+      "script_id": 326,
+      "source_symbol": "EFST_VITALITYACTIVATION",
+      "argument_policy": "review"
+    },
+    "322": {
+      "symbol": "SC_FIGHTINGSPIRIT",
+      "script_id": 328,
+      "source_symbol": "EFST_FIGHTINGSPIRIT",
+      "argument_policy": "review"
+    },
+    "323": {
+      "symbol": "SC_ABUNDANCE",
+      "script_id": 329,
+      "source_symbol": "EFST_ABUNDANCE",
+      "argument_policy": "review"
+    },
+    "325": {
+      "symbol": "SC_REUSE_CRUSHSTRIKE",
+      "script_id": 674,
+      "source_symbol": "EFST_REUSE_CRUSHSTRIKE",
+      "argument_policy": "review"
+    },
+    "326": {
+      "symbol": "SC_REUSE_REFRESH",
+      "script_id": 323,
+      "source_symbol": "EFST_REUSE_REFRESH",
+      "argument_policy": "review"
+    },
+    "327": {
+      "symbol": "SC_REUSE_STORMBLAST",
+      "script_id": 675,
+      "source_symbol": "EFST_REUSE_STORMBLAST",
+      "argument_policy": "review"
+    },
+    "328": {
+      "symbol": "SC_VENOMIMPRESS",
+      "script_id": 382,
+      "source_symbol": "EFST_VENOMIMPRESS",
+      "argument_policy": "review"
+    },
+    "329": {
+      "symbol": "SC_EPICLESIS",
+      "script_id": 334,
+      "source_symbol": "EFST_EPICLESIS",
+      "argument_policy": "review"
+    },
+    "330": {
+      "symbol": "SC_ORATIO",
+      "script_id": 335,
+      "source_symbol": "EFST_ORATIO",
+      "argument_policy": "review"
+    },
+    "331": {
+      "symbol": "SC_LAUDAAGNUS",
+      "script_id": 336,
+      "source_symbol": "EFST_LAUDAAGNUS",
+      "argument_policy": "review"
+    },
+    "332": {
+      "symbol": "SC_LAUDARAMUS",
+      "script_id": 337,
+      "source_symbol": "EFST_LAUDARAMUS",
+      "argument_policy": "review"
+    },
+    "333": {
+      "symbol": "SC_CLOAKINGEXCEED",
+      "script_id": 385,
+      "source_symbol": "EFST_CLOAKINGEXCEED",
+      "argument_policy": "review"
+    },
+    "334": {
+      "symbol": "SC_HALLUCINATIONWALK",
+      "script_id": 386,
+      "source_symbol": "EFST_HALLUCINATIONWALK",
+      "argument_policy": "review"
+    },
+    "335": {
+      "symbol": "SC_HALLUCINATIONWALK_POSTDELAY",
+      "script_id": 387,
+      "source_symbol": "EFST_HALLUCINATIONWALK_POSTDELAY",
+      "argument_policy": "review"
+    },
+    "336": {
+      "symbol": "SC_RENOVATIO",
+      "script_id": 338,
+      "source_symbol": "EFST_RENOVATIO",
+      "argument_policy": "review"
+    },
+    "337": {
+      "symbol": "SC_WEAPONBLOCKING",
+      "script_id": 384,
+      "source_symbol": "EFST_WEAPONBLOCKING",
+      "argument_policy": "review"
+    },
+    "339": {
+      "symbol": "SC_ROLLINGCUTTER",
+      "script_id": 388,
+      "source_symbol": "EFST_ROLLINGCUTTER",
+      "argument_policy": "review"
+    },
+    "340": {
+      "symbol": "SC_EXPIATIO",
+      "script_id": 339,
+      "source_symbol": "EFST_EXPIATIO",
+      "argument_policy": "review"
+    },
+    "341": {
+      "symbol": "SC_POISONINGWEAPON",
+      "script_id": 383,
+      "source_symbol": "EFST_POISONINGWEAPON",
+      "argument_policy": "review"
+    },
+    "342": {
+      "symbol": "SC_TOXIN",
+      "script_id": 389,
+      "source_symbol": "EFST_TOXIN",
+      "argument_policy": "review"
+    },
+    "343": {
+      "symbol": "SC_PARALYSE",
+      "script_id": 390,
+      "source_symbol": "EFST_PARALYSE",
+      "argument_policy": "review"
+    },
+    "344": {
+      "symbol": "SC_VENOMBLEED",
+      "script_id": 391,
+      "source_symbol": "EFST_VENOMBLEED",
+      "argument_policy": "review"
+    },
+    "345": {
+      "symbol": "SC_MAGICMUSHROOM",
+      "script_id": 392,
+      "source_symbol": "EFST_MAGICMUSHROOM",
+      "argument_policy": "review"
+    },
+    "346": {
+      "symbol": "SC_DEATHHURT",
+      "script_id": 393,
+      "source_symbol": "EFST_DEATHHURT",
+      "argument_policy": "review"
+    },
+    "347": {
+      "symbol": "SC_PYREXIA",
+      "script_id": 394,
+      "source_symbol": "EFST_PYREXIA",
+      "argument_policy": "review"
+    },
+    "348": {
+      "symbol": "SC_OBLIVIONCURSE",
+      "script_id": 395,
+      "source_symbol": "EFST_OBLIVIONCURSE",
+      "argument_policy": "review"
+    },
+    "349": {
+      "symbol": "SC_LEECHESEND",
+      "script_id": 396,
+      "source_symbol": "EFST_LEECHESEND",
+      "argument_policy": "review"
+    },
+    "350": {
+      "symbol": "SC_DUPLELIGHT",
+      "script_id": 340,
+      "source_symbol": "EFST_DUPLELIGHT",
+      "argument_policy": "review"
+    },
+    "351": {
+      "symbol": "SC_FREEZING",
+      "script_id": 314,
+      "source_symbol": "EFST_FROSTMISTY",
+      "argument_policy": "review"
+    },
+    "352": {
+      "symbol": "SC_FEARBREEZE",
+      "script_id": 359,
+      "source_symbol": "EFST_FEARBREEZE",
+      "argument_policy": "review"
+    },
+    "353": {
+      "symbol": "SC_ELECTRICSHOCKER",
+      "script_id": 360,
+      "source_symbol": "EFST_ELECTRICSHOCKER",
+      "argument_policy": "review"
+    },
+    "354": {
+      "symbol": "SC_MARSHOFABYSS",
+      "script_id": 346,
+      "source_symbol": "EFST_MARSHOFABYSS",
+      "argument_policy": "review"
+    },
+    "355": {
+      "symbol": "SC_RECOGNIZEDSPELL",
+      "script_id": 347,
+      "source_symbol": "EFST_RECOGNIZEDSPELL",
+      "argument_policy": "review"
+    },
+    "356": {
+      "symbol": "SC_STASIS",
+      "script_id": 348,
+      "source_symbol": "EFST_STASIS",
+      "argument_policy": "review"
+    },
+    "358": {
+      "symbol": "SC_WUGDASH",
+      "script_id": 361,
+      "source_symbol": "EFST_WUGDASH",
+      "argument_policy": "review"
+    },
+    "359": {
+      "symbol": "SC_BITE",
+      "script_id": 362,
+      "source_symbol": "EFST_WUGBITE",
+      "argument_policy": "review"
+    },
+    "360": {
+      "symbol": "SC_CAMOUFLAGE",
+      "script_id": 363,
+      "source_symbol": "EFST_CAMOUFLAGE",
+      "argument_policy": "review"
+    },
+    "361": {
+      "symbol": "SC_ACCELERATION",
+      "script_id": 367,
+      "source_symbol": "EFST_ACCELERATION",
+      "argument_policy": "review"
+    },
+    "362": {
+      "symbol": "SC_HOVERING",
+      "script_id": 368,
+      "source_symbol": "EFST_HOVERING",
+      "argument_policy": "review"
+    },
+    "363": {
+      "symbol": "SC_SPHERE_1",
+      "script_id": 349,
+      "source_symbol": "EFST_SUMMON1",
+      "argument_policy": "review"
+    },
+    "364": {
+      "symbol": "SC_SPHERE_2",
+      "script_id": 350,
+      "source_symbol": "EFST_SUMMON2",
+      "argument_policy": "review"
+    },
+    "365": {
+      "symbol": "SC_SPHERE_3",
+      "script_id": 351,
+      "source_symbol": "EFST_SUMMON3",
+      "argument_policy": "review"
+    },
+    "366": {
+      "symbol": "SC_SPHERE_4",
+      "script_id": 352,
+      "source_symbol": "EFST_SUMMON4",
+      "argument_policy": "review"
+    },
+    "367": {
+      "symbol": "SC_SPHERE_5",
+      "script_id": 353,
+      "source_symbol": "EFST_SUMMON5",
+      "argument_policy": "review"
+    },
+    "372": {
+      "symbol": "SC_OVERHEAT_LIMITPOINT",
+      "script_id": 378,
+      "source_symbol": "EFST_OVERHEAT_LIMITPOINT",
+      "argument_policy": "review"
+    },
+    "373": {
+      "symbol": "SC_OVERHEAT",
+      "script_id": 377,
+      "source_symbol": "EFST_OVERHEAT",
+      "argument_policy": "review"
+    },
+    "374": {
+      "symbol": "SC_SHAPESHIFT",
+      "script_id": 369,
+      "source_symbol": "EFST_SHAPESHIFT",
+      "argument_policy": "review"
+    },
+    "375": {
+      "symbol": "SC_INFRAREDSCAN",
+      "script_id": 370,
+      "source_symbol": "EFST_INFRAREDSCAN",
+      "argument_policy": "review"
+    },
+    "376": {
+      "symbol": "SC_MAGNETICFIELD",
+      "script_id": 372,
+      "source_symbol": "EFST_MAGNETICFIELD",
+      "argument_policy": "review"
+    },
+    "377": {
+      "symbol": "SC_NEUTRALBARRIER",
+      "script_id": 373,
+      "source_symbol": "EFST_NEUTRALBARRIER",
+      "argument_policy": "review"
+    },
+    "378": {
+      "symbol": "SC_NEUTRALBARRIER_MASTER",
+      "script_id": 374,
+      "source_symbol": "EFST_NEUTRALBARRIER_MASTER",
+      "argument_policy": "review"
+    },
+    "379": {
+      "symbol": "SC_STEALTHFIELD",
+      "script_id": 375,
+      "source_symbol": "EFST_STEALTHFIELD",
+      "argument_policy": "review"
+    },
+    "380": {
+      "symbol": "SC_STEALTHFIELD_MASTER",
+      "script_id": 376,
+      "source_symbol": "EFST_STEALTHFIELD_MASTER",
+      "argument_policy": "review"
+    },
+    "381": {
+      "symbol": "SC_MANU_ATK",
+      "script_id": 297,
+      "source_symbol": "EFST_MANU_ATK",
+      "argument_policy": "review"
+    },
+    "382": {
+      "symbol": "SC_MANU_DEF",
+      "script_id": 298,
+      "source_symbol": "EFST_MANU_DEF",
+      "argument_policy": "review"
+    },
+    "383": {
+      "symbol": "SC_SPL_ATK",
+      "script_id": 299,
+      "source_symbol": "EFST_SPL_ATK",
+      "argument_policy": "review"
+    },
+    "384": {
+      "symbol": "SC_SPL_DEF",
+      "script_id": 300,
+      "source_symbol": "EFST_SPL_DEF",
+      "argument_policy": "review"
+    },
+    "385": {
+      "symbol": "SC__REPRODUCE",
+      "script_id": 485,
+      "source_symbol": "EFST_REPRODUCE",
+      "argument_policy": "review"
+    },
+    "386": {
+      "symbol": "SC_MANU_MATK",
+      "script_id": 301,
+      "source_symbol": "EFST_MANU_MATK",
+      "argument_policy": "review"
+    },
+    "387": {
+      "symbol": "SC_SPL_MATK",
+      "script_id": 302,
+      "source_symbol": "EFST_SPL_MATK",
+      "argument_policy": "review"
+    },
+    "388": {
+      "symbol": "SC_STR_SCROLL",
+      "script_id": 959,
+      "source_symbol": "EFST_STR_SCROLL",
+      "argument_policy": "review"
+    },
+    "389": {
+      "symbol": "SC_INT_SCROLL",
+      "script_id": 960,
+      "source_symbol": "EFST_INT_SCROLL",
+      "argument_policy": "review"
+    },
+    "390": {
+      "symbol": "SC_REFLECTDAMAGE",
+      "script_id": 400,
+      "source_symbol": "EFST_LG_REFLECTDAMAGE",
+      "argument_policy": "review"
+    },
+    "391": {
+      "symbol": "SC_FORCEOFVANGUARD",
+      "script_id": 401,
+      "source_symbol": "EFST_FORCEOFVANGUARD",
+      "argument_policy": "review"
+    },
+    "392": {
+      "symbol": "SC_BUCHEDENOEL",
+      "script_id": 957,
+      "source_symbol": "EFST_BUCHEDENOEL",
+      "argument_policy": "review"
+    },
+    "393": {
+      "symbol": "SC__AUTOSHADOWSPELL",
+      "script_id": 486,
+      "source_symbol": "EFST_AUTOSHADOWSPELL",
+      "argument_policy": "review"
+    },
+    "394": {
+      "symbol": "SC__SHADOWFORM",
+      "script_id": 487,
+      "source_symbol": "EFST_SHADOWFORM",
+      "argument_policy": "review"
+    },
+    "395": {
+      "symbol": "SC_RAID",
+      "script_id": 557,
+      "source_symbol": "EFST_RAID",
+      "argument_policy": "review"
+    },
+    "399": {
+      "symbol": "SC__BODYPAINT",
+      "script_id": 488,
+      "source_symbol": "EFST_BODYPAINT",
+      "argument_policy": "review"
+    },
+    "400": {
+      "symbol": "SC_EXEEDBREAK",
+      "script_id": 405,
+      "source_symbol": "EFST_EXEEDBREAK",
+      "argument_policy": "review"
+    },
+    "401": {
+      "symbol": "SC_ADORAMUS",
+      "script_id": 333,
+      "source_symbol": "EFST_ADORAMUS",
+      "argument_policy": "review"
+    },
+    "402": {
+      "symbol": "SC_PRESTIGE",
+      "script_id": 406,
+      "source_symbol": "EFST_PRESTIGE",
+      "argument_policy": "review"
+    },
+    "403": {
+      "symbol": "SC__INVISIBILITY",
+      "script_id": 489,
+      "source_symbol": "EFST_INVISIBILITY",
+      "argument_policy": "review"
+    },
+    "404": {
+      "symbol": "SC__DEADLYINFECT",
+      "script_id": 490,
+      "source_symbol": "EFST_DEADLYINFECT",
+      "argument_policy": "review"
+    },
+    "405": {
+      "symbol": "SC_BANDING",
+      "script_id": 407,
+      "source_symbol": "EFST_BANDING",
+      "argument_policy": "review"
+    },
+    "406": {
+      "symbol": "SC_EARTHDRIVE",
+      "script_id": 409,
+      "source_symbol": "EFST_EARTHDRIVE",
+      "argument_policy": "review"
+    },
+    "407": {
+      "symbol": "SC_INSPIRATION",
+      "script_id": 410,
+      "source_symbol": "EFST_INSPIRATION",
+      "argument_policy": "review"
+    },
+    "408": {
+      "symbol": "SC__ENERVATION",
+      "script_id": 491,
+      "source_symbol": "EFST_ENERVATION",
+      "argument_policy": "review"
+    },
+    "409": {
+      "symbol": "SC__GROOMY",
+      "script_id": 492,
+      "source_symbol": "EFST_GROOMY",
+      "argument_policy": "review"
+    },
+    "410": {
+      "symbol": "SC_RAISINGDRAGON",
+      "script_id": 450,
+      "source_symbol": "EFST_RAISINGDRAGON",
+      "argument_policy": "review"
+    },
+    "411": {
+      "symbol": "SC__IGNORANCE",
+      "script_id": 493,
+      "source_symbol": "EFST_IGNORANCE",
+      "argument_policy": "review"
+    },
+    "412": {
+      "symbol": "SC__LAZINESS",
+      "script_id": 494,
+      "source_symbol": "EFST_LAZINESS",
+      "argument_policy": "review"
+    },
+    "413": {
+      "symbol": "SC_LIGHTNINGWALK",
+      "script_id": 449,
+      "source_symbol": "EFST_LIGHTNINGWALK",
+      "argument_policy": "review"
+    },
+    "414": {
+      "symbol": "SC_ACARAJE",
+      "script_id": 959,
+      "source_symbol": "EFST_ACARAJE",
+      "argument_policy": "review"
+    },
+    "415": {
+      "symbol": "SC__UNLUCKY",
+      "script_id": 495,
+      "source_symbol": "EFST_UNLUCKY",
+      "argument_policy": "review"
+    },
+    "416": {
+      "symbol": "SC_CURSEDCIRCLE_ATKER",
+      "script_id": 447,
+      "source_symbol": "EFST_CURSEDCIRCLE_ATKER",
+      "argument_policy": "review"
+    },
+    "417": {
+      "symbol": "SC_CURSEDCIRCLE_TARGET",
+      "script_id": 448,
+      "source_symbol": "EFST_CURSEDCIRCLE_TARGET",
+      "argument_policy": "review"
+    },
+    "418": {
+      "symbol": "SC__WEAKNESS",
+      "script_id": 496,
+      "source_symbol": "EFST_WEAKNESS",
+      "argument_policy": "review"
+    },
+    "419": {
+      "symbol": "SC_CRESCENTELBOW",
+      "script_id": 446,
+      "source_symbol": "EFST_CRESCENTELBOW",
+      "argument_policy": "review"
+    },
+    "421": {
+      "symbol": "SC__STRIPACCESSORY",
+      "script_id": 497,
+      "source_symbol": "EFST_STRIPACCESSARY",
+      "argument_policy": "review"
+    },
+    "422": {
+      "symbol": "SC__MANHOLE",
+      "script_id": 498,
+      "source_symbol": "EFST_MANHOLE",
+      "argument_policy": "review"
+    },
+    "423": {
+      "symbol": "SC_POPECOOKIE",
+      "script_id": 960,
+      "source_symbol": "EFST_POPECOOKIE",
+      "argument_policy": "review"
+    },
+    "425": {
+      "symbol": "SC_GT_ENERGYGAIN",
+      "script_id": 451,
+      "source_symbol": "EFST_GENTLETOUCH_ENERGYGAIN",
+      "argument_policy": "review"
+    },
+    "426": {
+      "symbol": "SC_GT_CHANGE",
+      "script_id": 452,
+      "source_symbol": "EFST_GENTLETOUCH_CHANGE",
+      "argument_policy": "review"
+    },
+    "427": {
+      "symbol": "SC_GT_REVITALIZE",
+      "script_id": 453,
+      "source_symbol": "EFST_GENTLETOUCH_REVITALIZE",
+      "argument_policy": "review"
+    },
+    "428": {
+      "symbol": "SC__BLOODYLUST",
+      "script_id": 499,
+      "source_symbol": "EFST_BLOODYLUST",
+      "argument_policy": "review"
+    },
+    "429": {
+      "symbol": "SC_SWINGDANCE",
+      "script_id": 423,
+      "source_symbol": "EFST_SWING",
+      "argument_policy": "review"
+    },
+    "430": {
+      "symbol": "SC_SYMPHONYOFLOVER",
+      "script_id": 424,
+      "source_symbol": "EFST_SYMPHONY_LOVE",
+      "argument_policy": "review"
+    },
+    "431": {
+      "symbol": "SC_PROPERTYWALK",
+      "script_id": 419,
+      "source_symbol": "EFST_PROPERTYWALK",
+      "argument_policy": "review"
+    },
+    "432": {
+      "symbol": "SC_SPELLFIST",
+      "script_id": 414,
+      "source_symbol": "EFST_SPELLFIST",
+      "argument_policy": "review"
+    },
+    "433": {
+      "symbol": "SC_NETHERWORLD",
+      "script_id": 442,
+      "source_symbol": "EFST_NETHERWORLD",
+      "argument_policy": "review"
+    },
+    "434": {
+      "symbol": "SC_VOICEOFSIREN",
+      "script_id": 429,
+      "source_symbol": "EFST_SIREN",
+      "argument_policy": "review"
+    },
+    "435": {
+      "symbol": "SC_DEEPSLEEP",
+      "script_id": 430,
+      "source_symbol": "EFST_DEEP_SLEEP",
+      "argument_policy": "review"
+    },
+    "436": {
+      "symbol": "SC_SIRCLEOFNATURE",
+      "script_id": 431,
+      "source_symbol": "EFST_SIRCLEOFNATURE",
+      "argument_policy": "review"
+    },
+    "437": {
+      "symbol": "SC_CRYSTALIZE",
+      "script_id": 415,
+      "source_symbol": "EFST_COLD",
+      "argument_policy": "review"
+    },
+    "439": {
+      "symbol": "SC_SONGOFMANA",
+      "script_id": 434,
+      "source_symbol": "EFST_SONG_OF_MANA",
+      "argument_policy": "review"
+    },
+    "441": {
+      "symbol": "SC_DANCEWITHWUG",
+      "script_id": 435,
+      "source_symbol": "EFST_DANCE_WITH_WUG",
+      "argument_policy": "review"
+    },
+    "442": {
+      "symbol": "SC_RUSHWINDMILL",
+      "script_id": 426,
+      "source_symbol": "EFST_RUSH_WINDMILL",
+      "argument_policy": "review"
+    },
+    "443": {
+      "symbol": "SC_ECHOSONG",
+      "script_id": 427,
+      "source_symbol": "EFST_ECHOSONG",
+      "argument_policy": "review"
+    },
+    "444": {
+      "symbol": "SC_HARMONIZE",
+      "script_id": 428,
+      "source_symbol": "EFST_HARMONIZE",
+      "argument_policy": "review"
+    },
+    "445": {
+      "symbol": "SC_STRIKING",
+      "script_id": 416,
+      "source_symbol": "EFST_STRIKING",
+      "argument_policy": "review"
+    },
+    "446": {
+      "symbol": "SC_WARMER",
+      "script_id": 417,
+      "source_symbol": "EFST_WARMER",
+      "argument_policy": "review"
+    },
+    "447": {
+      "symbol": "SC_MOONLITSERENADE",
+      "script_id": 425,
+      "source_symbol": "EFST_MOONLIT_SERENADE",
+      "argument_policy": "review"
+    },
+    "448": {
+      "symbol": "SC_SATURDAYNIGHTFEVER",
+      "script_id": 436,
+      "source_symbol": "EFST_SATURDAY_NIGHT_FEVER",
+      "argument_policy": "review"
+    },
+    "450": {
+      "symbol": "SC_ANALYZE",
+      "script_id": 371,
+      "source_symbol": "EFST_ANALYZE",
+      "argument_policy": "review"
+    },
+    "451": {
+      "symbol": "SC_LERADSDEW",
+      "script_id": 437,
+      "source_symbol": "EFST_LERADS_DEW",
+      "argument_policy": "review"
+    },
+    "452": {
+      "symbol": "SC_MELODYOFSINK",
+      "script_id": 438,
+      "source_symbol": "EFST_MELODYOFSINK",
+      "argument_policy": "review"
+    },
+    "453": {
+      "symbol": "SC_BEYONDOFWARCRY",
+      "script_id": 439,
+      "source_symbol": "EFST_BEYOND_OF_WARCRY",
+      "argument_policy": "review"
+    },
+    "454": {
+      "symbol": "SC_UNLIMITEDHUMMINGVOICE",
+      "script_id": 440,
+      "source_symbol": "EFST_UNLIMITED_HUMMING_VOICE",
+      "argument_policy": "review"
+    },
+    "455": {
+      "symbol": "SC_SPELLBOOK1",
+      "script_id": 566,
+      "source_symbol": "EFST_SPELLBOOK1",
+      "argument_policy": "review"
+    },
+    "456": {
+      "symbol": "SC_SPELLBOOK2",
+      "script_id": 567,
+      "source_symbol": "EFST_SPELLBOOK2",
+      "argument_policy": "review"
+    },
+    "457": {
+      "symbol": "SC_SPELLBOOK3",
+      "script_id": 568,
+      "source_symbol": "EFST_SPELLBOOK3",
+      "argument_policy": "review"
+    },
+    "458": {
+      "symbol": "SC_FREEZE_SP",
+      "script_id": 355,
+      "source_symbol": "EFST_FREEZE_SP",
+      "argument_policy": "review"
+    },
+    "461": {
+      "symbol": "SC_GN_CARTBOOST",
+      "script_id": 457,
+      "source_symbol": "EFST_GN_CARTBOOST",
+      "argument_policy": "review"
+    },
+    "463": {
+      "symbol": "SC_THORNSTRAP",
+      "script_id": 458,
+      "source_symbol": "EFST_THORNS_TRAP",
+      "argument_policy": "review"
+    },
+    "464": {
+      "symbol": "SC_BLOODSUCKER",
+      "script_id": 459,
+      "source_symbol": "EFST_BLOOD_SUCKER",
+      "argument_policy": "review"
+    },
+    "467": {
+      "symbol": "SC_SMOKEPOWDER",
+      "script_id": 460,
+      "source_symbol": "EFST_FIRE_EXPANSION_SMOKE_POWDER",
+      "argument_policy": "review"
+    },
+    "468": {
+      "symbol": "SC_TEARGAS",
+      "script_id": 461,
+      "source_symbol": "EFST_FIRE_EXPANSION_TEAR_GAS",
+      "argument_policy": "review"
+    },
+    "470": {
+      "symbol": "SC_MANDRAGORA",
+      "script_id": 462,
+      "source_symbol": "EFST_MANDRAGORA",
+      "argument_policy": "review"
+    },
+    "472": {
+      "symbol": "SC_SECRAMENT",
+      "script_id": 341,
+      "source_symbol": "EFST_AB_SECRAMENT",
+      "argument_policy": "review"
+    },
+    "473": {
+      "symbol": "SC_ASSUMPTIO",
+      "script_id": 115,
+      "source_symbol": "EFST_ASSUMPTIO2",
+      "argument_policy": "review"
+    },
+    "476": {
+      "symbol": "SC_STOMACHACHE",
+      "script_id": 463,
+      "source_symbol": "EFST_STOMACHACHE",
+      "argument_policy": "review"
+    },
+    "477": {
+      "symbol": "SC_MYSTERIOUS_POWDER",
+      "script_id": 464,
+      "source_symbol": "EFST_MYSTERIOUS_POWDER",
+      "argument_policy": "review"
+    },
+    "478": {
+      "symbol": "SC_MELON_BOMB",
+      "script_id": 465,
+      "source_symbol": "EFST_MELON_BOMB",
+      "argument_policy": "review"
+    },
+    "479": {
+      "symbol": "SC_BANANA_BOMB_SITDOWN",
+      "script_id": 467,
+      "source_symbol": "EFST_BANANA_BOMB_SITDOWN_POSTDELAY",
+      "argument_policy": "review"
+    },
+    "480": {
+      "symbol": "SC_PROMOTE_HEALTH_RESERCH",
+      "script_id": 679,
+      "source_symbol": "EFST_PROMOTE_HEALTH_RESERCH",
+      "argument_policy": "review"
+    },
+    "481": {
+      "symbol": "SC_ENERGY_DRINK_RESERCH",
+      "script_id": 680,
+      "source_symbol": "EFST_ENERGY_DRINK_RESERCH",
+      "argument_policy": "review"
+    },
+    "482": {
+      "symbol": "SC_EXTRACT_WHITE_POTION_Z",
+      "script_id": 479,
+      "source_symbol": "EFST_EXTRACT_WHITE_POTION_Z",
+      "argument_policy": "review"
+    },
+    "483": {
+      "symbol": "SC_VITATA_500",
+      "script_id": 480,
+      "source_symbol": "EFST_VITATA_500",
+      "argument_policy": "review"
+    },
+    "484": {
+      "symbol": "SC_EXTRACT_SALAMINE_JUICE",
+      "script_id": 481,
+      "source_symbol": "EFST_EXTRACT_SALAMINE_JUICE",
+      "argument_policy": "review"
+    },
+    "485": {
+      "symbol": "SC_BOOST500",
+      "script_id": 474,
+      "source_symbol": "EFST_BOOST500",
+      "argument_policy": "review"
+    },
+    "486": {
+      "symbol": "SC_FULL_SWING_K",
+      "script_id": 475,
+      "source_symbol": "EFST_FULL_SWING_K",
+      "argument_policy": "review"
+    },
+    "487": {
+      "symbol": "SC_MANA_PLUS",
+      "script_id": 476,
+      "source_symbol": "EFST_MANA_PLUS",
+      "argument_policy": "review"
+    },
+    "488": {
+      "symbol": "SC_MUSTLE_M",
+      "script_id": 477,
+      "source_symbol": "EFST_MUSTLE_M",
+      "argument_policy": "review"
+    },
+    "489": {
+      "symbol": "SC_LIFE_FORCE_F",
+      "script_id": 478,
+      "source_symbol": "EFST_LIFE_FORCE_F",
+      "argument_policy": "review"
+    },
+    "490": {
+      "symbol": "SC_VACUUM_EXTREME",
+      "script_id": 418,
+      "source_symbol": "EFST_VACUUM_EXTREME",
+      "argument_policy": "review"
+    },
+    "491": {
+      "symbol": "SC_SAVAGE_STEAK",
+      "script_id": 468,
+      "source_symbol": "EFST_SAVAGE_STEAK",
+      "argument_policy": "review"
+    },
+    "492": {
+      "symbol": "SC_COCKTAIL_WARG_BLOOD",
+      "script_id": 469,
+      "source_symbol": "EFST_COCKTAIL_WARG_BLOOD",
+      "argument_policy": "review"
+    },
+    "493": {
+      "symbol": "SC_MINOR_BBQ",
+      "script_id": 470,
+      "source_symbol": "EFST_MINOR_BBQ",
+      "argument_policy": "review"
+    },
+    "494": {
+      "symbol": "SC_SIROMA_ICE_TEA",
+      "script_id": 471,
+      "source_symbol": "EFST_SIROMA_ICE_TEA",
+      "argument_policy": "review"
+    },
+    "495": {
+      "symbol": "SC_DROCERA_HERB_STEAMED",
+      "script_id": 472,
+      "source_symbol": "EFST_DROCERA_HERB_STEAMED",
+      "argument_policy": "review"
+    },
+    "496": {
+      "symbol": "SC_PUTTI_TAILS_NOODLES",
+      "script_id": 473,
+      "source_symbol": "EFST_PUTTI_TAILS_NOODLES",
+      "argument_policy": "review"
+    },
+    "497": {
+      "symbol": "SC_BANANA_BOMB",
+      "script_id": 466,
+      "source_symbol": "EFST_BANANA_BOMB",
+      "argument_policy": "review"
+    },
+    "499": {
+      "symbol": "SC_SPELLBOOK4",
+      "script_id": 569,
+      "source_symbol": "EFST_SPELLBOOK4",
+      "argument_policy": "review"
+    },
+    "500": {
+      "symbol": "SC_SPELLBOOK5",
+      "script_id": 570,
+      "source_symbol": "EFST_SPELLBOOK5",
+      "argument_policy": "review"
+    },
+    "501": {
+      "symbol": "SC_SPELLBOOK6",
+      "script_id": 571,
+      "source_symbol": "EFST_SPELLBOOK6",
+      "argument_policy": "review"
+    },
+    "502": {
+      "symbol": "SC_MAXSPELLBOOK",
+      "script_id": 572,
+      "source_symbol": "EFST_SPELLBOOK7",
+      "argument_policy": "review"
+    },
+    "504": {
+      "symbol": "SC_RETURN_TO_ELDICASTES",
+      "script_id": 990,
+      "source_symbol": "EFST_RETURN_TO_ELDICASTES",
+      "argument_policy": "review"
+    },
+    "505": {
+      "symbol": "SC_BANDING_DEFENCE",
+      "script_id": 408,
+      "source_symbol": "EFST_BANDING_DEFENCE",
+      "argument_policy": "review"
+    },
+    "515": {
+      "symbol": "SC_CIRCLE_OF_FIRE",
+      "script_id": 503,
+      "source_symbol": "EFST_CIRCLE_OF_FIRE",
+      "argument_policy": "review"
+    },
+    "516": {
+      "symbol": "SC_CIRCLE_OF_FIRE_OPTION",
+      "script_id": 504,
+      "source_symbol": "EFST_CIRCLE_OF_FIRE_OPTION",
+      "argument_policy": "review"
+    },
+    "517": {
+      "symbol": "SC_FIRE_CLOAK",
+      "script_id": 505,
+      "source_symbol": "EFST_FIRE_CLOAK",
+      "argument_policy": "review"
+    },
+    "518": {
+      "symbol": "SC_FIRE_CLOAK_OPTION",
+      "script_id": 506,
+      "source_symbol": "EFST_FIRE_CLOAK_OPTION",
+      "argument_policy": "review"
+    },
+    "519": {
+      "symbol": "SC_WATER_SCREEN",
+      "script_id": 507,
+      "source_symbol": "EFST_WATER_SCREEN",
+      "argument_policy": "review"
+    },
+    "520": {
+      "symbol": "SC_WATER_SCREEN_OPTION",
+      "script_id": 508,
+      "source_symbol": "EFST_WATER_SCREEN_OPTION",
+      "argument_policy": "review"
+    },
+    "521": {
+      "symbol": "SC_WATER_DROP",
+      "script_id": 509,
+      "source_symbol": "EFST_WATER_DROP",
+      "argument_policy": "review"
+    },
+    "522": {
+      "symbol": "SC_WATER_DROP_OPTION",
+      "script_id": 510,
+      "source_symbol": "EFST_WATER_DROP_OPTION",
+      "argument_policy": "review"
+    },
+    "523": {
+      "symbol": "SC_WIND_STEP",
+      "script_id": 512,
+      "source_symbol": "EFST_WIND_STEP",
+      "argument_policy": "review"
+    },
+    "524": {
+      "symbol": "SC_WIND_STEP_OPTION",
+      "script_id": 513,
+      "source_symbol": "EFST_WIND_STEP_OPTION",
+      "argument_policy": "review"
+    },
+    "525": {
+      "symbol": "SC_WIND_CURTAIN",
+      "script_id": 514,
+      "source_symbol": "EFST_WIND_CURTAIN",
+      "argument_policy": "review"
+    },
+    "526": {
+      "symbol": "SC_WIND_CURTAIN_OPTION",
+      "script_id": 515,
+      "source_symbol": "EFST_WIND_CURTAIN_OPTION",
+      "argument_policy": "review"
+    },
+    "527": {
+      "symbol": "SC_WATER_BARRIER",
+      "script_id": 511,
+      "source_symbol": "EFST_WATER_BARRIER",
+      "argument_policy": "review"
+    },
+    "528": {
+      "symbol": "SC_ZEPHYR",
+      "script_id": 516,
+      "source_symbol": "EFST_ZEPHYR",
+      "argument_policy": "review"
+    },
+    "529": {
+      "symbol": "SC_SOLID_SKIN",
+      "script_id": 517,
+      "source_symbol": "EFST_SOLID_SKIN",
+      "argument_policy": "review"
+    },
+    "530": {
+      "symbol": "SC_SOLID_SKIN_OPTION",
+      "script_id": 518,
+      "source_symbol": "EFST_SOLID_SKIN_OPTION",
+      "argument_policy": "review"
+    },
+    "531": {
+      "symbol": "SC_STONE_SHIELD",
+      "script_id": 519,
+      "source_symbol": "EFST_STONE_SHIELD",
+      "argument_policy": "review"
+    },
+    "532": {
+      "symbol": "SC_STONE_SHIELD_OPTION",
+      "script_id": 520,
+      "source_symbol": "EFST_STONE_SHIELD_OPTION",
+      "argument_policy": "review"
+    },
+    "533": {
+      "symbol": "SC_POWER_OF_GAIA",
+      "script_id": 521,
+      "source_symbol": "EFST_POWER_OF_GAIA",
+      "argument_policy": "review"
+    },
+    "539": {
+      "symbol": "SC_PYROTECHNIC",
+      "script_id": 522,
+      "source_symbol": "EFST_PYROTECHNIC",
+      "argument_policy": "review"
+    },
+    "540": {
+      "symbol": "SC_PYROTECHNIC_OPTION",
+      "script_id": 523,
+      "source_symbol": "EFST_PYROTECHNIC_OPTION",
+      "argument_policy": "review"
+    },
+    "541": {
+      "symbol": "SC_HEATER",
+      "script_id": 524,
+      "source_symbol": "EFST_HEATER",
+      "argument_policy": "review"
+    },
+    "542": {
+      "symbol": "SC_HEATER_OPTION",
+      "script_id": 525,
+      "source_symbol": "EFST_HEATER_OPTION",
+      "argument_policy": "review"
+    },
+    "543": {
+      "symbol": "SC_TROPIC",
+      "script_id": 526,
+      "source_symbol": "EFST_TROPIC",
+      "argument_policy": "review"
+    },
+    "544": {
+      "symbol": "SC_TROPIC_OPTION",
+      "script_id": 527,
+      "source_symbol": "EFST_TROPIC_OPTION",
+      "argument_policy": "review"
+    },
+    "545": {
+      "symbol": "SC_AQUAPLAY",
+      "script_id": 528,
+      "source_symbol": "EFST_AQUAPLAY",
+      "argument_policy": "review"
+    },
+    "546": {
+      "symbol": "SC_AQUAPLAY_OPTION",
+      "script_id": 529,
+      "source_symbol": "EFST_AQUAPLAY_OPTION",
+      "argument_policy": "review"
+    },
+    "547": {
+      "symbol": "SC_COOLER",
+      "script_id": 530,
+      "source_symbol": "EFST_COOLER",
+      "argument_policy": "review"
+    },
+    "548": {
+      "symbol": "SC_COOLER_OPTION",
+      "script_id": 531,
+      "source_symbol": "EFST_COOLER_OPTION",
+      "argument_policy": "review"
+    },
+    "549": {
+      "symbol": "SC_CHILLY_AIR",
+      "script_id": 532,
+      "source_symbol": "EFST_CHILLY_AIR",
+      "argument_policy": "review"
+    },
+    "550": {
+      "symbol": "SC_CHILLY_AIR_OPTION",
+      "script_id": 533,
+      "source_symbol": "EFST_CHILLY_AIR_OPTION",
+      "argument_policy": "review"
+    },
+    "551": {
+      "symbol": "SC_GUST",
+      "script_id": 534,
+      "source_symbol": "EFST_GUST",
+      "argument_policy": "review"
+    },
+    "552": {
+      "symbol": "SC_GUST_OPTION",
+      "script_id": 535,
+      "source_symbol": "EFST_GUST_OPTION",
+      "argument_policy": "review"
+    },
+    "553": {
+      "symbol": "SC_BLAST",
+      "script_id": 536,
+      "source_symbol": "EFST_BLAST",
+      "argument_policy": "review"
+    },
+    "554": {
+      "symbol": "SC_BLAST_OPTION",
+      "script_id": 537,
+      "source_symbol": "EFST_BLAST_OPTION",
+      "argument_policy": "review"
+    },
+    "555": {
+      "symbol": "SC_WILD_STORM",
+      "script_id": 538,
+      "source_symbol": "EFST_WILD_STORM",
+      "argument_policy": "review"
+    },
+    "556": {
+      "symbol": "SC_WILD_STORM_OPTION",
+      "script_id": 539,
+      "source_symbol": "EFST_WILD_STORM_OPTION",
+      "argument_policy": "review"
+    },
+    "557": {
+      "symbol": "SC_PETROLOGY",
+      "script_id": 540,
+      "source_symbol": "EFST_PETROLOGY",
+      "argument_policy": "review"
+    },
+    "558": {
+      "symbol": "SC_PETROLOGY_OPTION",
+      "script_id": 541,
+      "source_symbol": "EFST_PETROLOGY_OPTION",
+      "argument_policy": "review"
+    },
+    "559": {
+      "symbol": "SC_CURSED_SOIL",
+      "script_id": 542,
+      "source_symbol": "EFST_CURSED_SOIL",
+      "argument_policy": "review"
+    },
+    "560": {
+      "symbol": "SC_CURSED_SOIL_OPTION",
+      "script_id": 543,
+      "source_symbol": "EFST_CURSED_SOIL_OPTION",
+      "argument_policy": "review"
+    },
+    "561": {
+      "symbol": "SC_UPHEAVAL",
+      "script_id": 544,
+      "source_symbol": "EFST_UPHEAVAL",
+      "argument_policy": "review"
+    },
+    "562": {
+      "symbol": "SC_UPHEAVAL_OPTION",
+      "script_id": 545,
+      "source_symbol": "EFST_UPHEAVAL_OPTION",
+      "argument_policy": "review"
+    },
+    "563": {
+      "symbol": "SC_TIDAL_WEAPON",
+      "script_id": 546,
+      "source_symbol": "EFST_TIDAL_WEAPON",
+      "argument_policy": "review"
+    },
+    "564": {
+      "symbol": "SC_TIDAL_WEAPON_OPTION",
+      "script_id": 547,
+      "source_symbol": "EFST_TIDAL_WEAPON_OPTION",
+      "argument_policy": "review"
+    },
+    "565": {
+      "symbol": "SC_ROCK_CRUSHER",
+      "script_id": 548,
+      "source_symbol": "EFST_ROCK_CRUSHER",
+      "argument_policy": "review"
+    },
+    "566": {
+      "symbol": "SC_ROCK_CRUSHER_ATK",
+      "script_id": 549,
+      "source_symbol": "EFST_ROCK_CRUSHER_ATK",
+      "argument_policy": "review"
+    },
+    "567": {
+      "symbol": "SC_FIRE_INSIGNIA",
+      "script_id": 559,
+      "source_symbol": "EFST_FIRE_INSIGNIA",
+      "argument_policy": "review"
+    },
+    "568": {
+      "symbol": "SC_WATER_INSIGNIA",
+      "script_id": 560,
+      "source_symbol": "EFST_WATER_INSIGNIA",
+      "argument_policy": "review"
+    },
+    "569": {
+      "symbol": "SC_WIND_INSIGNIA",
+      "script_id": 561,
+      "source_symbol": "EFST_WIND_INSIGNIA",
+      "argument_policy": "review"
+    },
+    "570": {
+      "symbol": "SC_EARTH_INSIGNIA",
+      "script_id": 562,
+      "source_symbol": "EFST_EARTH_INSIGNIA",
+      "argument_policy": "review"
+    },
+    "572": {
+      "symbol": "SC_GUARDIAN_RECALL",
+      "script_id": 991,
+      "source_symbol": "EFST_GUARDIAN_RECALL",
+      "argument_policy": "review"
+    },
+    "574": {
+      "symbol": "SC_REUSE_LIMIT_G",
+      "script_id": 669,
+      "source_symbol": "EFST_REUSE_LIMIT_G",
+      "argument_policy": "review"
+    },
+    "575": {
+      "symbol": "SC_REUSE_LIMIT_H",
+      "script_id": 670,
+      "source_symbol": "EFST_REUSE_LIMIT_H",
+      "argument_policy": "review"
+    },
+    "576": {
+      "symbol": "SC_PARALYSIS",
+      "script_id": 604,
+      "source_symbol": "EFST_NEEDLE_OF_PARALYZE",
+      "argument_policy": "review"
+    },
+    "577": {
+      "symbol": "SC_PAIN_KILLER",
+      "script_id": 605,
+      "source_symbol": "EFST_PAIN_KILLER",
+      "argument_policy": "review"
+    },
+    "578": {
+      "symbol": "SC_G_LIFEPOTION",
+      "script_id": 991,
+      "source_symbol": "EFST_G_LIFEPOTION",
+      "argument_policy": "review"
+    },
+    "579": {
+      "symbol": "SC_VITALIZE_POTION",
+      "script_id": 961,
+      "source_symbol": "EFST_VITALIZE_POTION",
+      "argument_policy": "review"
+    },
+    "580": {
+      "symbol": "SC_LIGHT_OF_REGENE",
+      "script_id": 599,
+      "source_symbol": "EFST_LIGHT_OF_REGENE",
+      "argument_policy": "review"
+    },
+    "581": {
+      "symbol": "SC_OVERED_BOOST",
+      "script_id": 598,
+      "source_symbol": "EFST_OVERED_BOOST",
+      "argument_policy": "review"
+    },
+    "583": {
+      "symbol": "SC_ODINS_POWER",
+      "script_id": 556,
+      "source_symbol": "EFST_ODINS_POWER",
+      "argument_policy": "review"
+    },
+    "598": {
+      "symbol": "SC_GOLDENE_FERSE",
+      "script_id": 596,
+      "source_symbol": "EFST_GOLDENE_FERSE",
+      "argument_policy": "review"
+    },
+    "599": {
+      "symbol": "SC_ANGRIFFS_MODUS",
+      "script_id": 597,
+      "source_symbol": "EFST_ANGRIFFS_MODUS",
+      "argument_policy": "review"
+    },
+    "600": {
+      "symbol": "SC_TINDER_BREAKER2",
+      "script_id": 593,
+      "source_symbol": "EFST_TINDER_BREAKER",
+      "argument_policy": "review"
+    },
+    "601": {
+      "symbol": "SC_TINDER_BREAKER",
+      "script_id": 592,
+      "source_symbol": "EFST_TINDER_BREAKER_POSTDELAY",
+      "argument_policy": "review"
+    },
+    "602": {
+      "symbol": "SC_CBC",
+      "script_id": 594,
+      "source_symbol": "EFST_CBC",
+      "argument_policy": "review"
+    },
+    "604": {
+      "symbol": "SC_EQC",
+      "script_id": 595,
+      "source_symbol": "EFST_EQC",
+      "argument_policy": "review"
+    },
+    "605": {
+      "symbol": "SC_MAGMA_FLOW",
+      "script_id": 602,
+      "source_symbol": "EFST_MAGMA_FLOW",
+      "argument_policy": "review"
+    },
+    "606": {
+      "symbol": "SC_GRANITIC_ARMOR",
+      "script_id": 601,
+      "source_symbol": "EFST_GRANITIC_ARMOR",
+      "argument_policy": "review"
+    },
+    "607": {
+      "symbol": "SC_PYROCLASTIC",
+      "script_id": 603,
+      "source_symbol": "EFST_PYROCLASTIC",
+      "argument_policy": "review"
+    },
+    "608": {
+      "symbol": "SC_ASH",
+      "script_id": 600,
+      "source_symbol": "EFST_VOLCANIC_ASH",
+      "argument_policy": "review"
+    },
+    "611": {
+      "symbol": "SC_MAGICCANDY",
+      "script_id": 958,
+      "source_symbol": "EFST_MAGIC_CANDY",
+      "argument_policy": "review"
+    },
+    "613": {
+      "symbol": "SC_ALL_RIDING",
+      "script_id": 646,
+      "source_symbol": "EFST_ALL_RIDING",
+      "argument_policy": "review"
+    },
+    "614": {
+      "symbol": "SC_ALL_RIDING_REUSE_LIMIT",
+      "script_id": 676,
+      "source_symbol": "EFST_ALL_RIDING_REUSE_LIMIT",
+      "argument_policy": "review"
+    },
+    "620": {
+      "symbol": "SC_CRUSHSTRIKE",
+      "script_id": 321,
+      "source_symbol": "EFST_CRUSHSTRIKE",
+      "argument_policy": "review"
+    },
+    "621": {
+      "symbol": "SC_MONSTER_TRANSFORM",
+      "script_id": 617,
+      "source_symbol": "EFST_MONSTER_TRANSFORM",
+      "argument_policy": "val1_only"
+    },
+    "624": {
+      "symbol": "SC_MTF_ASPD",
+      "script_id": 635,
+      "source_symbol": "EFST_MTF_ASPD",
+      "argument_policy": "review"
+    },
+    "625": {
+      "symbol": "SC_MTF_RANGEATK",
+      "script_id": 636,
+      "source_symbol": "EFST_MTF_RANGEATK",
+      "argument_policy": "review"
+    },
+    "626": {
+      "symbol": "SC_MTF_MATK",
+      "script_id": 637,
+      "source_symbol": "EFST_MTF_MATK",
+      "argument_policy": "review"
+    },
+    "627": {
+      "symbol": "SC_MTF_MLEATKED",
+      "script_id": 638,
+      "source_symbol": "EFST_MTF_MLEATKED",
+      "argument_policy": "review"
+    },
+    "628": {
+      "symbol": "SC_MTF_CRIDAMAGE",
+      "script_id": 639,
+      "source_symbol": "EFST_MTF_CRIDAMAGE",
+      "argument_policy": "review"
+    },
+    "629": {
+      "symbol": "SC_REUSE_LIMIT_MTF",
+      "script_id": 671,
+      "source_symbol": "EFST_REUSE_LIMIT_MTF",
+      "argument_policy": "review"
+    },
+    "632": {
+      "symbol": "SC_SKF_CAST",
+      "script_id": 966,
+      "source_symbol": "EFST_SKF_CAST",
+      "argument_policy": "review"
+    },
+    "633": {
+      "symbol": "SC_SKF_ASPD",
+      "script_id": 965,
+      "source_symbol": "EFST_SKF_ASPD",
+      "argument_policy": "review"
+    },
+    "634": {
+      "symbol": "SC_SKF_ATK",
+      "script_id": 964,
+      "source_symbol": "EFST_SKF_ATK",
+      "argument_policy": "review"
+    },
+    "635": {
+      "symbol": "SC_SKF_MATK",
+      "script_id": 963,
+      "source_symbol": "EFST_SKF_MATK",
+      "argument_policy": "review"
+    },
+    "637": {
+      "symbol": "SC_NORECOVER_STATE",
+      "script_id": 681,
+      "source_symbol": "EFST_HANDICAPSTATE_NORECOVER",
+      "argument_policy": "review"
+    },
+    "638": {
+      "symbol": "SC_DEFSET",
+      "script_id": 607,
+      "source_symbol": "EFST_SET_NUM_DEF",
+      "argument_policy": "review"
+    },
+    "639": {
+      "symbol": "SC_MDEFSET",
+      "script_id": 608,
+      "source_symbol": "EFST_SET_NUM_MDEF",
+      "argument_policy": "review"
+    },
+    "645": {
+      "symbol": "SC_JYUMONJIKIRI",
+      "script_id": 581,
+      "source_symbol": "EFST_KO_JYUMONJIKIRI",
+      "argument_policy": "review"
+    },
+    "646": {
+      "symbol": "SC_MEIKYOUSISUI",
+      "script_id": 580,
+      "source_symbol": "EFST_MEIKYOUSISUI",
+      "argument_policy": "review"
+    },
+    "647": {
+      "symbol": "SC_ATTHASTE_CASH",
+      "script_id": 662,
+      "source_symbol": "EFST_ATTHASTE_CASH",
+      "argument_policy": "review"
+    },
+    "651": {
+      "symbol": "SC_KYOUGAKU",
+      "script_id": 582,
+      "source_symbol": "EFST_KYOUGAKU",
+      "argument_policy": "review"
+    },
+    "652": {
+      "symbol": "SC_IZAYOI",
+      "script_id": 583,
+      "source_symbol": "EFST_IZAYOI",
+      "argument_policy": "review"
+    },
+    "653": {
+      "symbol": "SC_ZENKAI",
+      "script_id": 584,
+      "source_symbol": "EFST_ZENKAI",
+      "argument_policy": "review"
+    },
+    "654": {
+      "symbol": "SC_KAGEHUMI",
+      "script_id": 585,
+      "source_symbol": "EFST_KG_KAGEHUMI",
+      "argument_policy": "review"
+    },
+    "655": {
+      "symbol": "SC_KYOMU",
+      "script_id": 586,
+      "source_symbol": "EFST_KYOMU",
+      "argument_policy": "review"
+    },
+    "656": {
+      "symbol": "SC_KAGEMUSYA",
+      "script_id": 587,
+      "source_symbol": "EFST_KAGEMUSYA",
+      "argument_policy": "review"
+    },
+    "657": {
+      "symbol": "SC_ZANGETSU",
+      "script_id": 588,
+      "source_symbol": "EFST_ZANGETSU",
+      "argument_policy": "review"
+    },
+    "659": {
+      "symbol": "SC_GENSOU",
+      "script_id": 589,
+      "source_symbol": "EFST_GENSOU",
+      "argument_policy": "review"
+    },
+    "660": {
+      "symbol": "SC_AKAITSUKI",
+      "script_id": 590,
+      "source_symbol": "EFST_AKAITSUKI",
+      "argument_policy": "review"
+    },
+    "662": {
+      "symbol": "SC_COMBAT_PILL",
+      "script_id": 954,
+      "source_symbol": "EFST_GM_BATTLE",
+      "argument_policy": "review"
+    },
+    "663": {
+      "symbol": "SC_COMBAT_PILL2",
+      "script_id": 955,
+      "source_symbol": "EFST_GM_BATTLE2",
+      "argument_policy": "review"
+    },
+    "664": {
+      "symbol": "SC_2011RWC_SCROLL",
+      "script_id": 655,
+      "source_symbol": "EFST_2011RWC_SCROLL",
+      "argument_policy": "review"
+    },
+    "665": {
+      "symbol": "SC_ACTIVE_MONSTER_TRANSFORM",
+      "script_id": 695,
+      "source_symbol": "EFST_ACTIVE_MONSTER_TRANSFORM",
+      "argument_policy": "val1_only"
+    },
+    "666": {
+      "symbol": "SC_MYSTICPOWDER",
+      "script_id": 956,
+      "source_symbol": "EFST_MYSTICPOWDER",
+      "argument_policy": "review"
+    },
+    "667": {
+      "symbol": "SC_ECLAGE_RECALL",
+      "script_id": 992,
+      "source_symbol": "EFST_ECLAGE_RECALL",
+      "argument_policy": "review"
+    },
+    "668": {
+      "symbol": "SC_ENTRY_QUEUE_APPLY_DELAY",
+      "script_id": 764,
+      "source_symbol": "EFST_ENTRY_QUEUE_APPLY_DELAY",
+      "argument_policy": "review"
+    },
+    "669": {
+      "symbol": "SC_REUSE_LIMIT_ECL",
+      "script_id": 677,
+      "source_symbol": "EFST_REUSE_LIMIT_ECL",
+      "argument_policy": "review"
+    },
+    "670": {
+      "symbol": "SC_M_LIFEPOTION",
+      "script_id": 946,
+      "source_symbol": "EFST_M_LIFEPOTION",
+      "argument_policy": "review"
+    },
+    "671": {
+      "symbol": "SC_ENTRY_QUEUE_NOTIFY_ADMISSION_TIME_OUT",
+      "script_id": 765,
+      "source_symbol": "EFST_ENTRY_QUEUE_NOTIFY_ADMISSION_TIME_OUT",
+      "argument_policy": "review"
+    },
+    "673": {
+      "symbol": "SC_PUSH_CART",
+      "script_id": 564,
+      "source_symbol": "EFST_ON_PUSH_CART",
+      "argument_policy": "review"
+    },
+    "674": {
+      "symbol": "SC_HAT_EFFECT",
+      "script_id": 699,
+      "source_symbol": "EFST_HAT_EFFECT",
+      "argument_policy": "review"
+    },
+    "676": {
+      "symbol": "SC_PROTECTION",
+      "script_id": 953,
+      "source_symbol": "EFST_RAY_OF_PROTECTION",
+      "argument_policy": "review"
+    },
+    "677": {
+      "symbol": "SC_GLASTHEIM_ATK",
+      "script_id": 747,
+      "source_symbol": "EFST_GLASTHEIM_ATK",
+      "argument_policy": "review"
+    },
+    "678": {
+      "symbol": "SC_GLASTHEIM_DEF",
+      "script_id": 748,
+      "source_symbol": "EFST_GLASTHEIM_DEF",
+      "argument_policy": "review"
+    },
+    "679": {
+      "symbol": "SC_GLASTHEIM_HEAL",
+      "script_id": 749,
+      "source_symbol": "EFST_GLASTHEIM_HEAL",
+      "argument_policy": "review"
+    },
+    "680": {
+      "symbol": "SC_GLASTHEIM_HIDDEN",
+      "script_id": 750,
+      "source_symbol": "EFST_GLASTHEIM_HIDDEN",
+      "argument_policy": "review"
+    },
+    "681": {
+      "symbol": "SC_GLASTHEIM_STATE",
+      "script_id": 751,
+      "source_symbol": "EFST_GLASTHEIM_STATE",
+      "argument_policy": "review"
+    },
+    "682": {
+      "symbol": "SC_GLASTHEIM_ITEMDEF",
+      "script_id": 752,
+      "source_symbol": "EFST_GLASTHEIM_ITEMDEF",
+      "argument_policy": "review"
+    },
+    "683": {
+      "symbol": "SC_GLASTHEIM_HPSP",
+      "script_id": 753,
+      "source_symbol": "EFST_GLASTHEIM_HPSP",
+      "argument_policy": "review"
+    },
+    "685": {
+      "symbol": "SC_ALMIGHTY",
+      "script_id": 948,
+      "source_symbol": "EFST_ALMIGHTY",
+      "argument_policy": "review"
+    },
+    "686": {
+      "symbol": "SC_GVG_GIANT",
+      "script_id": 706,
+      "source_symbol": "EFST_GVG_GIANT",
+      "argument_policy": "review"
+    },
+    "687": {
+      "symbol": "SC_GVG_GOLEM",
+      "script_id": 707,
+      "source_symbol": "EFST_GVG_GOLEM",
+      "argument_policy": "review"
+    },
+    "688": {
+      "symbol": "SC_GVG_STUN",
+      "script_id": 708,
+      "source_symbol": "EFST_GVG_STUN",
+      "argument_policy": "review"
+    },
+    "689": {
+      "symbol": "SC_GVG_STONE",
+      "script_id": 709,
+      "source_symbol": "EFST_GVG_STONE",
+      "argument_policy": "review"
+    },
+    "690": {
+      "symbol": "SC_GVG_FREEZ",
+      "script_id": 710,
+      "source_symbol": "EFST_GVG_FREEZ",
+      "argument_policy": "review"
+    },
+    "691": {
+      "symbol": "SC_GVG_SLEEP",
+      "script_id": 711,
+      "source_symbol": "EFST_GVG_SLEEP",
+      "argument_policy": "review"
+    },
+    "692": {
+      "symbol": "SC_GVG_CURSE",
+      "script_id": 712,
+      "source_symbol": "EFST_GVG_CURSE",
+      "argument_policy": "review"
+    },
+    "693": {
+      "symbol": "SC_GVG_SILENCE",
+      "script_id": 713,
+      "source_symbol": "EFST_GVG_SILENCE",
+      "argument_policy": "review"
+    },
+    "694": {
+      "symbol": "SC_GVG_BLIND",
+      "script_id": 714,
+      "source_symbol": "EFST_GVG_BLIND",
+      "argument_policy": "review"
+    },
+    "696": {
+      "symbol": "SC_CLAN_INFO",
+      "script_id": 715,
+      "source_symbol": "EFST_CLAN_INFO",
+      "argument_policy": "review"
+    },
+    "700": {
+      "symbol": "SC_JP_EVENT04",
+      "script_id": 656,
+      "source_symbol": "EFST_JP_EVENT04",
+      "argument_policy": "review"
+    },
+    "702": {
+      "symbol": "SC_GEFFEN_MAGIC1",
+      "script_id": 722,
+      "source_symbol": "EFST_GEFFEN_MAGIC1",
+      "argument_policy": "review"
+    },
+    "703": {
+      "symbol": "SC_GEFFEN_MAGIC2",
+      "script_id": 723,
+      "source_symbol": "EFST_GEFFEN_MAGIC2",
+      "argument_policy": "review"
+    },
+    "704": {
+      "symbol": "SC_GEFFEN_MAGIC3",
+      "script_id": 724,
+      "source_symbol": "EFST_GEFFEN_MAGIC3",
+      "argument_policy": "review"
+    },
+    "705": {
+      "symbol": "SC_QUEST_BUFF1",
+      "script_id": 643,
+      "source_symbol": "EFST_QUEST_BUFF1",
+      "argument_policy": "review"
+    },
+    "706": {
+      "symbol": "SC_QUEST_BUFF2",
+      "script_id": 644,
+      "source_symbol": "EFST_QUEST_BUFF2",
+      "argument_policy": "review"
+    },
+    "707": {
+      "symbol": "SC_QUEST_BUFF3",
+      "script_id": 645,
+      "source_symbol": "EFST_QUEST_BUFF3",
+      "argument_policy": "review"
+    },
+    "708": {
+      "symbol": "SC_REUSE_LIMIT_RECALL",
+      "script_id": 678,
+      "source_symbol": "EFST_REUSE_LIMIT_RECALL",
+      "argument_policy": "review"
+    },
+    "712": {
+      "symbol": "SC_REUSE_LIMIT_ASPD_POTION",
+      "script_id": 672,
+      "source_symbol": "EFST_REUSE_LIMIT_ASPD_POTION",
+      "argument_policy": "review"
+    },
+    "713": {
+      "symbol": "SC_MAXPAIN",
+      "script_id": 725,
+      "source_symbol": "EFST_MAXPAIN",
+      "argument_policy": "review"
+    },
+    "715": {
+      "symbol": "SC_FRIGG_SONG",
+      "script_id": 616,
+      "source_symbol": "EFST_FRIGG_SONG",
+      "argument_policy": "review"
+    },
+    "716": {
+      "symbol": "SC_OFFERTORIUM",
+      "script_id": 615,
+      "source_symbol": "EFST_OFFERTORIUM",
+      "argument_policy": "review"
+    },
+    "717": {
+      "symbol": "SC_TELEKINESIS_INTENSE",
+      "script_id": 614,
+      "source_symbol": "EFST_TELEKINESIS_INTENSE",
+      "argument_policy": "review"
+    },
+    "718": {
+      "symbol": "SC_MOONSTAR",
+      "script_id": 621,
+      "source_symbol": "EFST_MOONSTAR",
+      "argument_policy": "review"
+    },
+    "719": {
+      "symbol": "SC_STRANGELIGHTS",
+      "script_id": 641,
+      "source_symbol": "EFST_STRANGELIGHTS",
+      "argument_policy": "review"
+    },
+    "720": {
+      "symbol": "SC_FULL_THROTTLE",
+      "script_id": 610,
+      "source_symbol": "EFST_FULL_THROTTLE",
+      "argument_policy": "review"
+    },
+    "721": {
+      "symbol": "SC_REBOUND",
+      "script_id": 611,
+      "source_symbol": "EFST_REBOUND",
+      "argument_policy": "review"
+    },
+    "722": {
+      "symbol": "SC_UNLIMIT",
+      "script_id": 612,
+      "source_symbol": "EFST_UNLIMIT",
+      "argument_policy": "review"
+    },
+    "723": {
+      "symbol": "SC_KINGS_GRACE",
+      "script_id": 613,
+      "source_symbol": "EFST_KINGS_GRACE",
+      "argument_policy": "review"
+    },
+    "728": {
+      "symbol": "SC_SUPER_STAR",
+      "script_id": 622,
+      "source_symbol": "EFST_SUPER_STAR",
+      "argument_policy": "review"
+    },
+    "730": {
+      "symbol": "SC_DARKCROW",
+      "script_id": 609,
+      "source_symbol": "EFST_DARKCROW",
+      "argument_policy": "review"
+    },
+    "734": {
+      "symbol": "SC_ILLUSIONDOPING",
+      "script_id": 619,
+      "source_symbol": "EFST_ILLUSIONDOPING",
+      "argument_policy": "review"
+    },
+    "735": {
+      "symbol": "SC_WIDEWEB",
+      "script_id": 830,
+      "source_symbol": "EFST_WIDEWEB",
+      "argument_policy": "review"
+    },
+    "736": {
+      "symbol": "SC_CHILL",
+      "script_id": 832,
+      "source_symbol": "EFST_CHILL",
+      "argument_policy": "review"
+    },
+    "740": {
+      "symbol": "SC_FLASHCOMBO",
+      "script_id": 620,
+      "source_symbol": "EFST_FLASHCOMBO",
+      "argument_policy": "review"
+    },
+    "751": {
+      "symbol": "SC_CUP_OF_BOZA",
+      "script_id": 962,
+      "source_symbol": "EFST_CUP_OF_BOZA",
+      "argument_policy": "review"
+    },
+    "752": {
+      "symbol": "SC_B_TRAP",
+      "script_id": 632,
+      "source_symbol": "EFST_B_TRAP",
+      "argument_policy": "review"
+    },
+    "753": {
+      "symbol": "SC_E_CHAIN",
+      "script_id": 629,
+      "source_symbol": "EFST_E_CHAIN",
+      "argument_policy": "review"
+    },
+    "754": {
+      "symbol": "SC_QD_SHOT_READY",
+      "script_id": 634,
+      "source_symbol": "EFST_E_QD_SHOT_READY",
+      "argument_policy": "review"
+    },
+    "755": {
+      "symbol": "SC_C_MARKER",
+      "script_id": 630,
+      "source_symbol": "EFST_C_MARKER",
+      "argument_policy": "review"
+    },
+    "756": {
+      "symbol": "SC_H_MINE",
+      "script_id": 633,
+      "source_symbol": "EFST_H_MINE",
+      "argument_policy": "review"
+    },
+    "758": {
+      "symbol": "SC_P_ALTER",
+      "script_id": 628,
+      "source_symbol": "EFST_P_ALTER",
+      "argument_policy": "review"
+    },
+    "759": {
+      "symbol": "SC_HEAT_BARREL",
+      "script_id": 626,
+      "source_symbol": "EFST_HEAT_BARREL",
+      "argument_policy": "review"
+    },
+    "760": {
+      "symbol": "SC_ANTI_M_BLAST",
+      "script_id": 631,
+      "source_symbol": "EFST_ANTI_M_BLAST",
+      "argument_policy": "review"
+    },
+    "762": {
+      "symbol": "SC_SWORDCLAN",
+      "script_id": 716,
+      "source_symbol": "EFST_SWORDCLAN",
+      "argument_policy": "review"
+    },
+    "763": {
+      "symbol": "SC_ARCWANDCLAN",
+      "script_id": 717,
+      "source_symbol": "EFST_ARCWANDCLAN",
+      "argument_policy": "review"
+    },
+    "764": {
+      "symbol": "SC_GOLDENMACECLAN",
+      "script_id": 718,
+      "source_symbol": "EFST_GOLDENMACECLAN",
+      "argument_policy": "review"
+    },
+    "765": {
+      "symbol": "SC_CROSSBOWCLAN",
+      "script_id": 719,
+      "source_symbol": "EFST_CROSSBOWCLAN",
+      "argument_policy": "review"
+    },
+    "766": {
+      "symbol": "SC_PACKING_ENVELOPE1",
+      "script_id": 819,
+      "source_symbol": "EFST_PACKING_ENVELOPE1",
+      "argument_policy": "review"
+    },
+    "767": {
+      "symbol": "SC_PACKING_ENVELOPE2",
+      "script_id": 820,
+      "source_symbol": "EFST_PACKING_ENVELOPE2",
+      "argument_policy": "review"
+    },
+    "768": {
+      "symbol": "SC_PACKING_ENVELOPE3",
+      "script_id": 821,
+      "source_symbol": "EFST_PACKING_ENVELOPE3",
+      "argument_policy": "review"
+    },
+    "769": {
+      "symbol": "SC_PACKING_ENVELOPE4",
+      "script_id": 822,
+      "source_symbol": "EFST_PACKING_ENVELOPE4",
+      "argument_policy": "review"
+    },
+    "770": {
+      "symbol": "SC_PACKING_ENVELOPE5",
+      "script_id": 823,
+      "source_symbol": "EFST_PACKING_ENVELOPE5",
+      "argument_policy": "review"
+    },
+    "771": {
+      "symbol": "SC_PACKING_ENVELOPE6",
+      "script_id": 824,
+      "source_symbol": "EFST_PACKING_ENVELOPE6",
+      "argument_policy": "review"
+    },
+    "772": {
+      "symbol": "SC_PACKING_ENVELOPE7",
+      "script_id": 825,
+      "source_symbol": "EFST_PACKING_ENVELOPE7",
+      "argument_policy": "review"
+    },
+    "773": {
+      "symbol": "SC_PACKING_ENVELOPE8",
+      "script_id": 826,
+      "source_symbol": "EFST_PACKING_ENVELOPE8",
+      "argument_policy": "review"
+    },
+    "774": {
+      "symbol": "SC_PACKING_ENVELOPE9",
+      "script_id": 827,
+      "source_symbol": "EFST_PACKING_ENVELOPE9",
+      "argument_policy": "review"
+    },
+    "775": {
+      "symbol": "SC_PACKING_ENVELOPE10",
+      "script_id": 828,
+      "source_symbol": "EFST_PACKING_ENVELOPE10",
+      "argument_policy": "review"
+    },
+    "779": {
+      "symbol": "SC_DECORATION_OF_MUSIC",
+      "script_id": 642,
+      "source_symbol": "EFST_DECORATION_OF_MUSIC",
+      "argument_policy": "review"
+    },
+    "783": {
+      "symbol": "SC_BEEF_RIB_STEW",
+      "script_id": 967,
+      "source_symbol": "EFST_BEEF_RIB_STEW",
+      "argument_policy": "review"
+    },
+    "784": {
+      "symbol": "SC_PORK_RIB_STEW",
+      "script_id": 968,
+      "source_symbol": "EFST_PORK_RIB_STEW",
+      "argument_policy": "review"
+    },
+    "793": {
+      "symbol": "SC_MTF_MHP",
+      "script_id": 657,
+      "source_symbol": "EFST_MTF_MHP",
+      "argument_policy": "review"
+    },
+    "794": {
+      "symbol": "SC_MTF_MSP",
+      "script_id": 658,
+      "source_symbol": "EFST_MTF_MSP",
+      "argument_policy": "review"
+    },
+    "795": {
+      "symbol": "SC_MTF_PUMPKIN",
+      "script_id": 659,
+      "source_symbol": "EFST_MTF_PUMPKIN",
+      "argument_policy": "review"
+    },
+    "796": {
+      "symbol": "SC_MTF_HITFLEE",
+      "script_id": 660,
+      "source_symbol": "EFST_MTF_HITFLEE",
+      "argument_policy": "review"
+    },
+    "815": {
+      "symbol": "SC_JUMPINGCLAN",
+      "script_id": 720,
+      "source_symbol": "EFST_JUMPINGCLAN",
+      "argument_policy": "review"
+    },
+    "818": {
+      "symbol": "SC_MTF_RANGEATK2",
+      "script_id": 653,
+      "source_symbol": "EFST_MTF_RANGEATK2",
+      "argument_policy": "review"
+    },
+    "819": {
+      "symbol": "SC_MTF_ASPD2",
+      "script_id": 652,
+      "source_symbol": "EFST_MTF_ASPD2",
+      "argument_policy": "review"
+    },
+    "820": {
+      "symbol": "SC_MTF_MATK2",
+      "script_id": 654,
+      "source_symbol": "EFST_MTF_MATK2",
+      "argument_policy": "review"
+    },
+    "822": {
+      "symbol": "SC_FLOWERSMOKE",
+      "script_id": 700,
+      "source_symbol": "EFST_FLOWERSMOKE",
+      "argument_policy": "review"
+    },
+    "823": {
+      "symbol": "SC_FSTONE",
+      "script_id": 701,
+      "source_symbol": "EFST_FSTONE",
+      "argument_policy": "review"
+    },
+    "824": {
+      "symbol": "SC_DAILYSENDMAILCNT",
+      "script_id": 729,
+      "source_symbol": "EFST_DAILYSENDMAILCNT",
+      "argument_policy": "review"
+    },
+    "826": {
+      "symbol": "SC_LJOSALFAR",
+      "script_id": 697,
+      "source_symbol": "EFST_LJOSALFAR",
+      "argument_policy": "review"
+    },
+    "849": {
+      "symbol": "SC_HAPPINESS_STAR",
+      "script_id": 702,
+      "source_symbol": "EFST_HAPPINESS_STAR",
+      "argument_policy": "review"
+    },
+    "856": {
+      "symbol": "SC_DRESSUP",
+      "script_id": 746,
+      "source_symbol": "EFST_DRESS_UP",
+      "argument_policy": "review"
+    },
+    "857": {
+      "symbol": "SC_MAPLE_FALLS",
+      "script_id": 703,
+      "source_symbol": "EFST_MAPLE_FALLS",
+      "argument_policy": "review"
+    },
+    "858": {
+      "symbol": "SC_ALL_NIFLHEIM_RECALL",
+      "script_id": 993,
+      "source_symbol": "EFST_ALL_NIFLHEIM_RECALL",
+      "argument_policy": "review"
+    },
+    "863": {
+      "symbol": "SC_MERMAID_LONGING",
+      "script_id": 698,
+      "source_symbol": "EFST_MERMAID_LONGING",
+      "argument_policy": "review"
+    },
+    "864": {
+      "symbol": "SC_MAGICAL_FEATHER",
+      "script_id": 705,
+      "source_symbol": "EFST_MAGICAL_FEATHER",
+      "argument_policy": "review"
+    },
+    "866": {
+      "symbol": "SC_ALL_PRONTERA_RECALL",
+      "script_id": 994,
+      "source_symbol": "EFST_ALL_PRONTERA_RECALL",
+      "argument_policy": "review"
+    },
+    "867": {
+      "symbol": "SC_LIMIT_POWER_BOOSTER",
+      "script_id": 953,
+      "source_symbol": "EFST_LIMIT_POWER_BOOSTER",
+      "argument_policy": "review"
+    },
+    "869": {
+      "symbol": "SC_NPC_HALLUCINATIONWALK",
+      "script_id": 818,
+      "source_symbol": "EFST_NPC_HALLUCINATIONWALK",
+      "argument_policy": "review"
+    },
+    "872": {
+      "symbol": "SC_TIME_ACCESSORY",
+      "script_id": 704,
+      "source_symbol": "EFST_TIME_ACCESSORY",
+      "argument_policy": "review"
+    },
+    "873": {
+      "symbol": "SC_EP16_DEF",
+      "script_id": 958,
+      "source_symbol": "EFST_EP16_DEF",
+      "argument_policy": "review"
+    },
+    "893": {
+      "symbol": "SC_SU_STOOP",
+      "script_id": 686,
+      "source_symbol": "EFST_SU_STOOP",
+      "argument_policy": "review"
+    },
+    "894": {
+      "symbol": "SC_CATNIPPOWDER",
+      "script_id": 688,
+      "source_symbol": "EFST_CATNIPPOWDER",
+      "argument_policy": "review"
+    },
+    "896": {
+      "symbol": "SC_SV_ROOTTWIST",
+      "script_id": 689,
+      "source_symbol": "EFST_SV_ROOTTWIST",
+      "argument_policy": "review"
+    },
+    "908": {
+      "symbol": "SC_ARMOR_ELEMENT_WATER",
+      "script_id": 105,
+      "source_symbol": "EFST_RESIST_PROPERTY_WATER",
+      "argument_policy": "review"
+    },
+    "909": {
+      "symbol": "SC_ARMOR_ELEMENT_EARTH",
+      "script_id": 726,
+      "source_symbol": "EFST_RESIST_PROPERTY_GROUND",
+      "argument_policy": "review"
+    },
+    "910": {
+      "symbol": "SC_ARMOR_ELEMENT_FIRE",
+      "script_id": 727,
+      "source_symbol": "EFST_RESIST_PROPERTY_FIRE",
+      "argument_policy": "review"
+    },
+    "911": {
+      "symbol": "SC_ARMOR_ELEMENT_WIND",
+      "script_id": 728,
+      "source_symbol": "EFST_RESIST_PROPERTY_WIND",
+      "argument_policy": "review"
+    },
+    "917": {
+      "symbol": "SC_BITESCAR",
+      "script_id": 690,
+      "source_symbol": "EFST_BITESCAR",
+      "argument_policy": "review"
+    },
+    "918": {
+      "symbol": "SC_ARCLOUSEDASH",
+      "script_id": 691,
+      "source_symbol": "EFST_ARCLOUSEDASH",
+      "argument_policy": "review"
+    },
+    "919": {
+      "symbol": "SC_TUNAPARTY",
+      "script_id": 692,
+      "source_symbol": "EFST_TUNAPARTY",
+      "argument_policy": "review"
+    },
+    "920": {
+      "symbol": "SC_SHRIMP",
+      "script_id": 693,
+      "source_symbol": "EFST_SHRIMP",
+      "argument_policy": "review"
+    },
+    "921": {
+      "symbol": "SC_FRESHSHRIMP",
+      "script_id": 694,
+      "source_symbol": "EFST_FRESHSHRIMP",
+      "argument_policy": "review"
+    },
+    "933": {
+      "symbol": "SC_SUHIDE",
+      "script_id": 685,
+      "source_symbol": "EFST_SUHIDE",
+      "argument_policy": "review"
+    },
+    "935": {
+      "symbol": "SC_DORAM_BUF_01",
+      "script_id": 730,
+      "source_symbol": "EFST_DORAM_BUF_01",
+      "argument_policy": "review"
+    },
+    "936": {
+      "symbol": "SC_DORAM_BUF_02",
+      "script_id": 731,
+      "source_symbol": "EFST_DORAM_BUF_02",
+      "argument_policy": "review"
+    },
+    "937": {
+      "symbol": "SC_SPRITEMABLE",
+      "script_id": 687,
+      "source_symbol": "EFST_SPRITEMABLE",
+      "argument_policy": "review"
+    },
+    "943": {
+      "symbol": "SC_ALL_GLASTHEIM_RECALL",
+      "script_id": 995,
+      "source_symbol": "EFST_ALL_GLASTHEIM_RECALL",
+      "argument_policy": "review"
+    },
+    "945": {
+      "symbol": "SC_ALL_THANATOS_RECALL",
+      "script_id": 996,
+      "source_symbol": "EFST_ALL_THANATOS_RECALL",
+      "argument_policy": "review"
+    },
+    "950": {
+      "symbol": "SC_HISS",
+      "script_id": 735,
+      "source_symbol": "EFST_HISS",
+      "argument_policy": "review"
+    },
+    "952": {
+      "symbol": "SC_NYANGGRASS",
+      "script_id": 736,
+      "source_symbol": "EFST_NYANGGRASS",
+      "argument_policy": "review"
+    },
+    "953": {
+      "symbol": "SC_CHATTERING",
+      "script_id": 739,
+      "source_symbol": "EFST_CHATTERING",
+      "argument_policy": "review"
+    },
+    "961": {
+      "symbol": "SC_GROOMING",
+      "script_id": 737,
+      "source_symbol": "EFST_GROOMING",
+      "argument_policy": "review"
+    },
+    "962": {
+      "symbol": "SC_SHRIMPBLESSING",
+      "script_id": 738,
+      "source_symbol": "EFST_PROTECTIONOFSHRIMP",
+      "argument_policy": "review"
+    },
+    "963": {
+      "symbol": "SC_EP16_2_BUFF_SS",
+      "script_id": 808,
+      "source_symbol": "EFST_EP16_2_BUFF_SS",
+      "argument_policy": "review"
+    },
+    "964": {
+      "symbol": "SC_EP16_2_BUFF_SC",
+      "script_id": 809,
+      "source_symbol": "EFST_EP16_2_BUFF_SC",
+      "argument_policy": "review"
+    },
+    "965": {
+      "symbol": "SC_EP16_2_BUFF_AC",
+      "script_id": 810,
+      "source_symbol": "EFST_EP16_2_BUFF_AC",
+      "argument_policy": "review"
+    },
+    "966": {
+      "symbol": "SC_MAGICALBULLET",
+      "script_id": 627,
+      "source_symbol": "EFST_GS_MAGICAL_BULLET",
+      "argument_policy": "review"
+    },
+    "982": {
+      "symbol": "SC_SOULATTACK",
+      "script_id": 829,
+      "source_symbol": "EFST_SOULATTACK",
+      "argument_policy": "review"
+    },
+    "992": {
+      "symbol": "SC_CHEERUP",
+      "script_id": 745,
+      "source_symbol": "EFST_CHEERUP",
+      "argument_policy": "review"
+    },
+    "995": {
+      "symbol": "SC_S_MANAPOTION",
+      "script_id": 947,
+      "source_symbol": "EFST_S_MANAPOTION",
+      "argument_policy": "review"
+    },
+    "996": {
+      "symbol": "SC_M_DEFSCROLL",
+      "script_id": 950,
+      "source_symbol": "EFST_M_DEFSCROLL",
+      "argument_policy": "review"
+    },
+    "998": {
+      "symbol": "SC_ALL_LIGHTHALZEN_RECALL",
+      "script_id": 997,
+      "source_symbol": "EFST_ALL_LIGHTHALZEN_RECALL",
+      "argument_policy": "review"
+    },
+    "1001": {
+      "symbol": "SC_LHZ_DUN_N1",
+      "script_id": 754,
+      "source_symbol": "EFST_LHZ_DUN_N1",
+      "argument_policy": "review"
+    },
+    "1002": {
+      "symbol": "SC_LHZ_DUN_N2",
+      "script_id": 755,
+      "source_symbol": "EFST_LHZ_DUN_N2",
+      "argument_policy": "review"
+    },
+    "1003": {
+      "symbol": "SC_LHZ_DUN_N3",
+      "script_id": 756,
+      "source_symbol": "EFST_LHZ_DUN_N3",
+      "argument_policy": "review"
+    },
+    "1004": {
+      "symbol": "SC_LHZ_DUN_N4",
+      "script_id": 757,
+      "source_symbol": "EFST_LHZ_DUN_N4",
+      "argument_policy": "review"
+    },
+    "1013": {
+      "symbol": "SC_ALL_STAT_DOWN",
+      "script_id": 974,
+      "source_symbol": "EFST_ALL_STAT_DOWN",
+      "argument_policy": "review"
+    },
+    "1014": {
+      "symbol": "SC_GRADUAL_GRAVITY",
+      "script_id": 973,
+      "source_symbol": "EFST_GRADUAL_GRAVITY",
+      "argument_policy": "review"
+    },
+    "1015": {
+      "symbol": "SC_DAMAGE_HEAL",
+      "script_id": 976,
+      "source_symbol": "EFST_DAMAGE_HEAL",
+      "argument_policy": "review"
+    },
+    "1016": {
+      "symbol": "SC_IMMUNE_PROPERTY_NOTHING",
+      "script_id": 977,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_NOTHING",
+      "argument_policy": "review"
+    },
+    "1017": {
+      "symbol": "SC_IMMUNE_PROPERTY_WATER",
+      "script_id": 978,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_WATER",
+      "argument_policy": "review"
+    },
+    "1018": {
+      "symbol": "SC_IMMUNE_PROPERTY_GROUND",
+      "script_id": 979,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_GROUND",
+      "argument_policy": "review"
+    },
+    "1019": {
+      "symbol": "SC_IMMUNE_PROPERTY_FIRE",
+      "script_id": 980,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_FIRE",
+      "argument_policy": "review"
+    },
+    "1020": {
+      "symbol": "SC_IMMUNE_PROPERTY_WIND",
+      "script_id": 981,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_WIND",
+      "argument_policy": "review"
+    },
+    "1021": {
+      "symbol": "SC_IMMUNE_PROPERTY_POISON",
+      "script_id": 982,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_POISON",
+      "argument_policy": "review"
+    },
+    "1022": {
+      "symbol": "SC_IMMUNE_PROPERTY_SAINT",
+      "script_id": 983,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_SAINT",
+      "argument_policy": "review"
+    },
+    "1023": {
+      "symbol": "SC_IMMUNE_PROPERTY_DARKNESS",
+      "script_id": 984,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_DARKNESS",
+      "argument_policy": "review"
+    },
+    "1024": {
+      "symbol": "SC_IMMUNE_PROPERTY_TELEKINESIS",
+      "script_id": 985,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_TELEKINESIS",
+      "argument_policy": "review"
+    },
+    "1025": {
+      "symbol": "SC_IMMUNE_PROPERTY_UNDEAD",
+      "script_id": 986,
+      "source_symbol": "EFST_IMMUNE_PROPERTY_UNDEAD",
+      "argument_policy": "review"
+    },
+    "1034": {
+      "symbol": "SC_ULTIMATECOOK",
+      "script_id": 949,
+      "source_symbol": "EFST_ULTIMATECOOK",
+      "argument_policy": "review"
+    },
+    "1035": {
+      "symbol": "SC_LIGHTOFMOON",
+      "script_id": 766,
+      "source_symbol": "EFST_LIGHTOFMOON",
+      "argument_policy": "review"
+    },
+    "1036": {
+      "symbol": "SC_LIGHTOFSUN",
+      "script_id": 767,
+      "source_symbol": "EFST_LIGHTOFSUN",
+      "argument_policy": "review"
+    },
+    "1037": {
+      "symbol": "SC_LIGHTOFSTAR",
+      "script_id": 768,
+      "source_symbol": "EFST_LIGHTOFSTAR",
+      "argument_policy": "review"
+    },
+    "1038": {
+      "symbol": "SC_LUNARSTANCE",
+      "script_id": 769,
+      "source_symbol": "EFST_LUNARSTANCE",
+      "argument_policy": "review"
+    },
+    "1039": {
+      "symbol": "SC_UNIVERSESTANCE",
+      "script_id": 770,
+      "source_symbol": "EFST_UNIVERSESTANCE",
+      "argument_policy": "review"
+    },
+    "1040": {
+      "symbol": "SC_SUNSTANCE",
+      "script_id": 771,
+      "source_symbol": "EFST_SUNSTANCE",
+      "argument_policy": "review"
+    },
+    "1041": {
+      "symbol": "SC_FLASHKICK",
+      "script_id": 772,
+      "source_symbol": "EFST_FLASHKICK",
+      "argument_policy": "review"
+    },
+    "1042": {
+      "symbol": "SC_NEWMOON",
+      "script_id": 773,
+      "source_symbol": "EFST_NEWMOON",
+      "argument_policy": "review"
+    },
+    "1043": {
+      "symbol": "SC_STARSTANCE",
+      "script_id": 774,
+      "source_symbol": "EFST_STARSTANCE",
+      "argument_policy": "review"
+    },
+    "1044": {
+      "symbol": "SC_DIMENSION",
+      "script_id": 775,
+      "source_symbol": "EFST_DIMENSION",
+      "argument_policy": "review"
+    },
+    "1047": {
+      "symbol": "SC_CREATINGSTAR",
+      "script_id": 778,
+      "source_symbol": "EFST_CREATINGSTAR",
+      "argument_policy": "review"
+    },
+    "1048": {
+      "symbol": "SC_FALLINGSTAR",
+      "script_id": 779,
+      "source_symbol": "EFST_FALLINGSTAR",
+      "argument_policy": "review"
+    },
+    "1049": {
+      "symbol": "SC_NOVAEXPLOSING",
+      "script_id": 780,
+      "source_symbol": "EFST_NOVAEXPLOSING",
+      "argument_policy": "review"
+    },
+    "1050": {
+      "symbol": "SC_GRAVITYCONTROL",
+      "script_id": 781,
+      "source_symbol": "EFST_GRAVITYCONTROL",
+      "argument_policy": "review"
+    },
+    "1053": {
+      "symbol": "SC_SOULCOLLECT",
+      "script_id": 782,
+      "source_symbol": "EFST_SOULCOLLECT",
+      "argument_policy": "review"
+    },
+    "1054": {
+      "symbol": "SC_SOULREAPER",
+      "script_id": 783,
+      "source_symbol": "EFST_SOULREAPER",
+      "argument_policy": "review"
+    },
+    "1055": {
+      "symbol": "SC_SOULUNITY",
+      "script_id": 784,
+      "source_symbol": "EFST_SOULUNITY",
+      "argument_policy": "review"
+    },
+    "1056": {
+      "symbol": "SC_SOULSHADOW",
+      "script_id": 785,
+      "source_symbol": "EFST_SOULSHADOW",
+      "argument_policy": "review"
+    },
+    "1057": {
+      "symbol": "SC_SOULFAIRY",
+      "script_id": 786,
+      "source_symbol": "EFST_SOULFAIRY",
+      "argument_policy": "review"
+    },
+    "1058": {
+      "symbol": "SC_SOULFALCON",
+      "script_id": 787,
+      "source_symbol": "EFST_SOULFALCON",
+      "argument_policy": "review"
+    },
+    "1059": {
+      "symbol": "SC_SOULGOLEM",
+      "script_id": 788,
+      "source_symbol": "EFST_SOULGOLEM",
+      "argument_policy": "review"
+    },
+    "1060": {
+      "symbol": "SC_SOULDIVISION",
+      "script_id": 789,
+      "source_symbol": "EFST_SOULDIVISION",
+      "argument_policy": "review"
+    },
+    "1061": {
+      "symbol": "SC_SOULENERGY",
+      "script_id": 790,
+      "source_symbol": "EFST_SOULENERGY",
+      "argument_policy": "review"
+    },
+    "1062": {
+      "symbol": "SC_USE_SKILL_SP_SPA",
+      "script_id": 791,
+      "source_symbol": "EFST_USE_SKILL_SP_SPA",
+      "argument_policy": "review"
+    },
+    "1063": {
+      "symbol": "SC_USE_SKILL_SP_SHA",
+      "script_id": 792,
+      "source_symbol": "EFST_USE_SKILL_SP_SHA",
+      "argument_policy": "review"
+    },
+    "1064": {
+      "symbol": "SC_SP_SHA",
+      "script_id": 793,
+      "source_symbol": "EFST_SP_SHA",
+      "argument_policy": "review"
+    },
+    "1065": {
+      "symbol": "SC_INFINITY_DRINK",
+      "script_id": 951,
+      "source_symbol": "EFST_INFINITY_DRINK",
+      "argument_policy": "review"
+    },
+    "1084": {
+      "symbol": "SC_PERIOD_RECEIVEITEM_2ND",
+      "script_id": 1008,
+      "source_symbol": "EFST_PERIOD_RECEIVEITEM_2ND",
+      "argument_policy": "review"
+    },
+    "1085": {
+      "symbol": "SC_PERIOD_PLUSEXP_2ND",
+      "script_id": 1009,
+      "source_symbol": "EFST_PERIOD_PLUSEXP_2ND",
+      "argument_policy": "review"
+    },
+    "1088": {
+      "symbol": "SC_ENSEMBLEFATIGUE",
+      "script_id": 805,
+      "source_symbol": "EFST_ENSEMBLEFATIGUE",
+      "argument_policy": "review"
+    },
+    "1089": {
+      "symbol": "SC_ADAPTATION",
+      "script_id": 762,
+      "source_symbol": "EFST_ADAPTATION",
+      "argument_policy": "review"
+    },
+    "1095": {
+      "symbol": "SC_ANCILLA",
+      "script_id": 758,
+      "source_symbol": "EFST_ANCILLA",
+      "argument_policy": "review"
+    },
+    "1107": {
+      "symbol": "SC_WEAPONBLOCK_ON",
+      "script_id": 760,
+      "source_symbol": "EFST_WEAPONBLOCK_ON",
+      "argument_policy": "review"
+    },
+    "1122": {
+      "symbol": "SC_BASILICA",
+      "script_id": 116,
+      "source_symbol": "EFST_BASILICA_BUFF",
+      "argument_policy": "review"
+    },
+    "1125": {
+      "symbol": "SC_SOULCURSE",
+      "script_id": 794,
+      "source_symbol": "EFST_SOULCURSE",
+      "argument_policy": "review"
+    },
+    "1126": {
+      "symbol": "SC_SOUNDOFDESTRUCTION",
+      "script_id": 802,
+      "source_symbol": "EFST_SOUND_OF_DESTRUCTION",
+      "argument_policy": "review"
+    },
+    "1130": {
+      "symbol": "SC_HELPANGEL",
+      "script_id": 801,
+      "source_symbol": "EFST_HELPANGEL",
+      "argument_policy": "review"
+    },
+    "1139": {
+      "symbol": "SC_EARTHSHAKER",
+      "script_id": 759,
+      "source_symbol": "EFST_EARTHSHAKER",
+      "argument_policy": "review"
+    },
+    "1141": {
+      "symbol": "SC_MISTY_FROST",
+      "script_id": 806,
+      "source_symbol": "EFST_MISTY_FROST",
+      "argument_policy": "review"
+    },
+    "1142": {
+      "symbol": "SC_MAGIC_POISON",
+      "script_id": 807,
+      "source_symbol": "EFST_MAGIC_POISON",
+      "argument_policy": "review"
+    },
+    "1149": {
+      "symbol": "SC_MADOGEAR",
+      "script_id": 817,
+      "source_symbol": "EFST_MADOGEAR_TYPE",
+      "argument_policy": "review"
+    },
+    "1150": {
+      "symbol": "SC_DEADLY_DEFEASANCE",
+      "script_id": 851,
+      "source_symbol": "EFST_DEADLY_DEFEASANCE",
+      "argument_policy": "review"
+    },
+    "1151": {
+      "symbol": "SC_CLIMAX_DES_HU",
+      "script_id": 852,
+      "source_symbol": "EFST_CLIMAX_DES_HU",
+      "argument_policy": "review"
+    },
+    "1152": {
+      "symbol": "SC_CLIMAX",
+      "script_id": 853,
+      "source_symbol": "EFST_CLIMAX",
+      "argument_policy": "review"
+    },
+    "1154": {
+      "symbol": "SC_LUXANIMA",
+      "script_id": 803,
+      "source_symbol": "EFST_LUXANIMA",
+      "argument_policy": "review"
+    },
+    "1155": {
+      "symbol": "SC_BATH_FOAM_A",
+      "script_id": 954,
+      "source_symbol": "EFST_BATH_FOAM_A",
+      "argument_policy": "review"
+    },
+    "1156": {
+      "symbol": "SC_BATH_FOAM_B",
+      "script_id": 955,
+      "source_symbol": "EFST_BATH_FOAM_B",
+      "argument_policy": "review"
+    },
+    "1157": {
+      "symbol": "SC_BATH_FOAM_C",
+      "script_id": 956,
+      "source_symbol": "EFST_BATH_FOAM_C",
+      "argument_policy": "review"
+    },
+    "1159": {
+      "symbol": "SC_REUSE_LIMIT_LUXANIMA",
+      "script_id": 804,
+      "source_symbol": "EFST_REUSE_LIMIT_LUXANIMA",
+      "argument_policy": "review"
+    },
+    "1160": {
+      "symbol": "SC_POWERFUL_FAITH",
+      "script_id": 904,
+      "source_symbol": "EFST_POWERFUL_FAITH",
+      "argument_policy": "review"
+    },
+    "1161": {
+      "symbol": "SC_SINCERE_FAITH",
+      "script_id": 905,
+      "source_symbol": "EFST_SINCERE_FAITH",
+      "argument_policy": "review"
+    },
+    "1162": {
+      "symbol": "SC_FIRM_FAITH",
+      "script_id": 906,
+      "source_symbol": "EFST_FIRM_FAITH",
+      "argument_policy": "review"
+    },
+    "1165": {
+      "symbol": "SC_HELLS_PLANT",
+      "script_id": 795,
+      "source_symbol": "EFST_HELLS_PLANT_ARMOR",
+      "argument_policy": "review"
+    },
+    "1166": {
+      "symbol": "SC_RELIEVE_ON",
+      "script_id": 987,
+      "source_symbol": "EFST_RELIEVE_DAMAGE",
+      "argument_policy": "review"
+    },
+    "1169": {
+      "symbol": "SC_REF_T_POTION",
+      "script_id": 798,
+      "source_symbol": "EFST_REF_T_POTION",
+      "argument_policy": "review"
+    },
+    "1170": {
+      "symbol": "SC_ADD_ATK_DAMAGE",
+      "script_id": 799,
+      "source_symbol": "EFST_ADD_ATK_DAMAGE",
+      "argument_policy": "review"
+    },
+    "1171": {
+      "symbol": "SC_ADD_MATK_DAMAGE",
+      "script_id": 800,
+      "source_symbol": "EFST_ADD_MATK_DAMAGE",
+      "argument_policy": "review"
+    },
+    "1172": {
+      "symbol": "SC_SERVANTWEAPON",
+      "script_id": 845,
+      "source_symbol": "EFST_SERVANTWEAPON",
+      "argument_policy": "review"
+    },
+    "1173": {
+      "symbol": "SC_SERVANT_SIGN",
+      "script_id": 846,
+      "source_symbol": "EFST_SERVANT_SIGN",
+      "argument_policy": "review"
+    },
+    "1174": {
+      "symbol": "SC_CHARGINGPIERCE",
+      "script_id": 847,
+      "source_symbol": "EFST_CHARGINGPIERCE",
+      "argument_policy": "review"
+    },
+    "1175": {
+      "symbol": "SC_CHARGINGPIERCE_COUNT",
+      "script_id": 848,
+      "source_symbol": "EFST_CHARGINGPIERCE_COUNT",
+      "argument_policy": "review"
+    },
+    "1176": {
+      "symbol": "SC_DRAGONIC_AURA",
+      "script_id": 849,
+      "source_symbol": "EFST_DRAGONIC_AURA",
+      "argument_policy": "review"
+    },
+    "1178": {
+      "symbol": "SC_VIGOR",
+      "script_id": 850,
+      "source_symbol": "EFST_VIGOR",
+      "argument_policy": "review"
+    },
+    "1182": {
+      "symbol": "SC_CLIMAX_EARTH",
+      "script_id": 854,
+      "source_symbol": "EFST_CLIMAX_EARTH",
+      "argument_policy": "review"
+    },
+    "1183": {
+      "symbol": "SC_CLIMAX_BLOOM",
+      "script_id": 855,
+      "source_symbol": "EFST_CLIMAX_BLOOM",
+      "argument_policy": "review"
+    },
+    "1184": {
+      "symbol": "SC_CLIMAX_CRYIMP",
+      "script_id": 856,
+      "source_symbol": "EFST_CLIMAX_CRYIMP",
+      "argument_policy": "review"
+    },
+    "1190": {
+      "symbol": "SC_HOLY_OIL",
+      "script_id": 907,
+      "source_symbol": "EFST_HOLY_OIL",
+      "argument_policy": "review"
+    },
+    "1192": {
+      "symbol": "SC_SHADOW_EXCEED",
+      "script_id": 874,
+      "source_symbol": "EFST_SHADOW_EXCEED",
+      "argument_policy": "review"
+    },
+    "1193": {
+      "symbol": "SC_DANCING_KNIFE",
+      "script_id": 875,
+      "source_symbol": "EFST_DANCING_KNIFE",
+      "argument_policy": "review"
+    },
+    "1194": {
+      "symbol": "SC_POTENT_VENOM",
+      "script_id": 876,
+      "source_symbol": "EFST_POTENT_VENOM",
+      "argument_policy": "review"
+    },
+    "1195": {
+      "symbol": "SC_SHADOW_SCAR",
+      "script_id": 877,
+      "source_symbol": "EFST_SHADOW_SCAR",
+      "argument_policy": "review"
+    },
+    "1196": {
+      "symbol": "SC_E_SLASH_COUNT",
+      "script_id": 878,
+      "source_symbol": "EFST_E_SLASH_COUNT",
+      "argument_policy": "review"
+    },
+    "1197": {
+      "symbol": "SC_MEDIALE",
+      "script_id": 860,
+      "source_symbol": "EFST_MEDIALE",
+      "argument_policy": "review"
+    },
+    "1198": {
+      "symbol": "SC_A_VITA",
+      "script_id": 861,
+      "source_symbol": "EFST_A_VITA",
+      "argument_policy": "review"
+    },
+    "1199": {
+      "symbol": "SC_A_TELUM",
+      "script_id": 862,
+      "source_symbol": "EFST_A_TELUM",
+      "argument_policy": "review"
+    },
+    "1200": {
+      "symbol": "SC_PRE_ACIES",
+      "script_id": 863,
+      "source_symbol": "EFST_PRE_ACIES",
+      "argument_policy": "review"
+    },
+    "1201": {
+      "symbol": "SC_COMPETENTIA",
+      "script_id": 864,
+      "source_symbol": "EFST_COMPETENTIA",
+      "argument_policy": "review"
+    },
+    "1202": {
+      "symbol": "SC_GUARD_STANCE",
+      "script_id": 880,
+      "source_symbol": "EFST_GUARD_STANCE",
+      "argument_policy": "review"
+    },
+    "1203": {
+      "symbol": "SC_ATTACK_STANCE",
+      "script_id": 881,
+      "source_symbol": "EFST_ATTACK_STANCE",
+      "argument_policy": "review"
+    },
+    "1204": {
+      "symbol": "SC_GUARDIAN_S",
+      "script_id": 882,
+      "source_symbol": "EFST_GUARDIAN_S",
+      "argument_policy": "review"
+    },
+    "1205": {
+      "symbol": "SC_HANDICAPSTATE_DEEPBLIND",
+      "script_id": 833,
+      "source_symbol": "EFST_HANDICAPSTATE_DEEPBLIND",
+      "argument_policy": "review"
+    },
+    "1206": {
+      "symbol": "SC_HANDICAPSTATE_DEEPSILENCE",
+      "script_id": 834,
+      "source_symbol": "EFST_HANDICAPSTATE_DEEPSILENCE",
+      "argument_policy": "review"
+    },
+    "1208": {
+      "symbol": "SC_HANDICAPSTATE_FROSTBITE",
+      "script_id": 836,
+      "source_symbol": "EFST_HANDICAPSTATE_FROSTBITE",
+      "argument_policy": "review"
+    },
+    "1209": {
+      "symbol": "SC_HANDICAPSTATE_SWOONING",
+      "script_id": 837,
+      "source_symbol": "EFST_HANDICAPSTATE_SWOONING",
+      "argument_policy": "review"
+    },
+    "1210": {
+      "symbol": "SC_HANDICAPSTATE_LIGHTNINGSTRIKE",
+      "script_id": 838,
+      "source_symbol": "EFST_HANDICAPSTATE_LIGHTNINGSTRIKE",
+      "argument_policy": "review"
+    },
+    "1211": {
+      "symbol": "SC_HANDICAPSTATE_CRYSTALLIZATION",
+      "script_id": 839,
+      "source_symbol": "EFST_HANDICAPSTATE_CRYSTALLIZATION",
+      "argument_policy": "review"
+    },
+    "1212": {
+      "symbol": "SC_HANDICAPSTATE_CONFLAGRATION",
+      "script_id": 840,
+      "source_symbol": "EFST_HANDICAPSTATE_CONFLAGRATION",
+      "argument_policy": "review"
+    },
+    "1213": {
+      "symbol": "SC_HANDICAPSTATE_MISFORTUNE",
+      "script_id": 841,
+      "source_symbol": "EFST_HANDICAPSTATE_MISFORTUNE",
+      "argument_policy": "review"
+    },
+    "1214": {
+      "symbol": "SC_HANDICAPSTATE_DEADLYPOISON",
+      "script_id": 842,
+      "source_symbol": "EFST_HANDICAPSTATE_DEADLYPOISON",
+      "argument_policy": "review"
+    },
+    "1215": {
+      "symbol": "SC_HANDICAPSTATE_DEPRESSION",
+      "script_id": 843,
+      "source_symbol": "EFST_HANDICAPSTATE_DEPRESSION",
+      "argument_policy": "review"
+    },
+    "1216": {
+      "symbol": "SC_HANDICAPSTATE_HOLYFLAME",
+      "script_id": 844,
+      "source_symbol": "EFST_HANDICAPSTATE_HOLYFLAME",
+      "argument_policy": "review"
+    },
+    "1217": {
+      "symbol": "SC_REBOUND_S",
+      "script_id": 883,
+      "source_symbol": "EFST_REBOUND_S",
+      "argument_policy": "review"
+    },
+    "1220": {
+      "symbol": "SC_HOLY_S",
+      "script_id": 884,
+      "source_symbol": "EFST_HOLY_S",
+      "argument_policy": "review"
+    },
+    "1221": {
+      "symbol": "SC_ULTIMATE_S",
+      "script_id": 885,
+      "source_symbol": "EFST_ULTIMATE_S",
+      "argument_policy": "review"
+    },
+    "1222": {
+      "symbol": "SC_SPEAR_SCAR",
+      "script_id": 886,
+      "source_symbol": "EFST_SPEAR_SCAR",
+      "argument_policy": "review"
+    },
+    "1223": {
+      "symbol": "SC_SHIELD_POWER",
+      "script_id": 887,
+      "source_symbol": "EFST_SHIELD_POWER",
+      "argument_policy": "review"
+    },
+    "1226": {
+      "symbol": "SC_SHADOW_WEAPON",
+      "script_id": 879,
+      "source_symbol": "EFST_SHADOW_WEAPON",
+      "argument_policy": "review"
+    },
+    "1227": {
+      "symbol": "SC_RELIGIO",
+      "script_id": 865,
+      "source_symbol": "EFST_RELIGIO",
+      "argument_policy": "review"
+    },
+    "1228": {
+      "symbol": "SC_BENEDICTUM",
+      "script_id": 866,
+      "source_symbol": "EFST_BENEDICTUM",
+      "argument_policy": "review"
+    },
+    "1230": {
+      "symbol": "SC_FIRST_BRAND",
+      "script_id": 908,
+      "source_symbol": "EFST_FIRST_BRAND",
+      "argument_policy": "review"
+    },
+    "1231": {
+      "symbol": "SC_SECOND_BRAND",
+      "script_id": 909,
+      "source_symbol": "EFST_SECOND_BRAND",
+      "argument_policy": "review"
+    },
+    "1232": {
+      "symbol": "SC_SECOND_JUDGE",
+      "script_id": 910,
+      "source_symbol": "EFST_SECOND_JUDGE",
+      "argument_policy": "review"
+    },
+    "1233": {
+      "symbol": "SC_THIRD_EXOR_FLAME",
+      "script_id": 911,
+      "source_symbol": "EFST_THIRD_EXOR_FLAME",
+      "argument_policy": "review"
+    },
+    "1234": {
+      "symbol": "SC_FIRST_FAITH_POWER",
+      "script_id": 912,
+      "source_symbol": "EFST_FIRST_FAITH_POWER",
+      "argument_policy": "review"
+    },
+    "1235": {
+      "symbol": "SC_AXE_STOMP",
+      "script_id": 867,
+      "source_symbol": "EFST_AXE_STOMP",
+      "argument_policy": "review"
+    },
+    "1237": {
+      "symbol": "SC_D_MACHINE",
+      "script_id": 869,
+      "source_symbol": "EFST_D_MACHINE",
+      "argument_policy": "review"
+    },
+    "1242": {
+      "symbol": "SC_SHADOW_STRIP",
+      "script_id": 921,
+      "source_symbol": "EFST_SHADOW_STRIP",
+      "argument_policy": "review"
+    },
+    "1243": {
+      "symbol": "SC_ABYSS_DAGGER",
+      "script_id": 922,
+      "source_symbol": "EFST_ABYSS_DAGGER",
+      "argument_policy": "review"
+    },
+    "1244": {
+      "symbol": "SC_ABYSSFORCEWEAPON",
+      "script_id": 923,
+      "source_symbol": "EFST_ABYSSFORCEWEAPON",
+      "argument_policy": "review"
+    },
+    "1245": {
+      "symbol": "SC_ABYSS_SLAYER",
+      "script_id": 924,
+      "source_symbol": "EFST_ABYSS_SLAYER",
+      "argument_policy": "review"
+    },
+    "1247": {
+      "symbol": "SC_PROTECTSHADOWEQUIP",
+      "script_id": 914,
+      "source_symbol": "EFST_PROTECTSHADOWEQUIP",
+      "argument_policy": "review"
+    },
+    "1248": {
+      "symbol": "SC_RESEARCHREPORT",
+      "script_id": 915,
+      "source_symbol": "EFST_RESEARCHREPORT",
+      "argument_policy": "review"
+    },
+    "1249": {
+      "symbol": "SC_BO_HELL_DUSTY",
+      "script_id": 916,
+      "source_symbol": "EFST_BO_HELL_DUSTY",
+      "argument_policy": "review"
+    },
+    "1250": {
+      "symbol": "SC_WINDSIGN",
+      "script_id": 857,
+      "source_symbol": "EFST_WINDSIGN",
+      "argument_policy": "review"
+    },
+    "1251": {
+      "symbol": "SC_CRESCIVEBOLT",
+      "script_id": 858,
+      "source_symbol": "EFST_CRESCIVEBOLT",
+      "argument_policy": "review"
+    },
+    "1252": {
+      "symbol": "SC_CALAMITYGALE",
+      "script_id": 859,
+      "source_symbol": "EFST_CALAMITYGALE",
+      "argument_policy": "review"
+    },
+    "1256": {
+      "symbol": "SC_MYSTIC_SYMPHONY",
+      "script_id": 895,
+      "source_symbol": "EFST_MYSTIC_SYMPHONY",
+      "argument_policy": "review"
+    },
+    "1257": {
+      "symbol": "SC_KVASIR_SONATA",
+      "script_id": 896,
+      "source_symbol": "EFST_KVASIR_SONATA",
+      "argument_policy": "review"
+    },
+    "1258": {
+      "symbol": "SC_SOUNDBLEND",
+      "script_id": 897,
+      "source_symbol": "EFST_SOUNDBLEND",
+      "argument_policy": "review"
+    },
+    "1259": {
+      "symbol": "SC_GEF_NOCTURN",
+      "script_id": 898,
+      "source_symbol": "EFST_GEF_NOCTURN",
+      "argument_policy": "review"
+    },
+    "1260": {
+      "symbol": "SC_AIN_RHAPSODY",
+      "script_id": 899,
+      "source_symbol": "EFST_AIN_RHAPSODY",
+      "argument_policy": "review"
+    },
+    "1261": {
+      "symbol": "SC_MUSICAL_INTERLUDE",
+      "script_id": 900,
+      "source_symbol": "EFST_MUSICAL_INTERLUDE",
+      "argument_policy": "review"
+    },
+    "1262": {
+      "symbol": "SC_JAWAII_SERENADE",
+      "script_id": 901,
+      "source_symbol": "EFST_JAWAII_SERENADE",
+      "argument_policy": "review"
+    },
+    "1263": {
+      "symbol": "SC_PRON_MARCH",
+      "script_id": 902,
+      "source_symbol": "EFST_PRON_MARCH",
+      "argument_policy": "review"
+    },
+    "1264": {
+      "symbol": "SC_ROSEBLOSSOM",
+      "script_id": 903,
+      "source_symbol": "EFST_ROSEBLOSSOM",
+      "argument_policy": "review"
+    },
+    "1271": {
+      "symbol": "SC_SPELL_ENCHANTING",
+      "script_id": 888,
+      "source_symbol": "EFST_SPELL_ENCHANTING",
+      "argument_policy": "review"
+    },
+    "1272": {
+      "symbol": "SC_SUMMON_ELEMENTAL_ARDOR",
+      "script_id": 889,
+      "source_symbol": "EFST_SUMMON_ELEMENTAL_ARDOR",
+      "argument_policy": "review"
+    },
+    "1273": {
+      "symbol": "SC_SUMMON_ELEMENTAL_DILUVIO",
+      "script_id": 890,
+      "source_symbol": "EFST_SUMMON_ELEMENTAL_DILUVIO",
+      "argument_policy": "review"
+    },
+    "1274": {
+      "symbol": "SC_SUMMON_ELEMENTAL_PROCELLA",
+      "script_id": 891,
+      "source_symbol": "EFST_SUMMON_ELEMENTAL_PROCELLA",
+      "argument_policy": "review"
+    },
+    "1275": {
+      "symbol": "SC_SUMMON_ELEMENTAL_TERREMOTUS",
+      "script_id": 892,
+      "source_symbol": "EFST_SUMMON_ELEMENTAL_TERREMOTUS",
+      "argument_policy": "review"
+    },
+    "1276": {
+      "symbol": "SC_SUMMON_ELEMENTAL_SERPENS",
+      "script_id": 893,
+      "source_symbol": "EFST_SUMMON_ELEMENTAL_SERPENS",
+      "argument_policy": "review"
+    },
+    "1277": {
+      "symbol": "SC_FLAMETECHNIC",
+      "script_id": 925,
+      "source_symbol": "EFST_FLAMETECHNIC",
+      "argument_policy": "review"
+    },
+    "1278": {
+      "symbol": "SC_FLAMETECHNIC_OPTION",
+      "script_id": 926,
+      "source_symbol": "EFST_FLAMETECHNIC_OPTION",
+      "argument_policy": "review"
+    },
+    "1279": {
+      "symbol": "SC_FLAMEARMOR",
+      "script_id": 927,
+      "source_symbol": "EFST_FLAMEARMOR",
+      "argument_policy": "review"
+    },
+    "1280": {
+      "symbol": "SC_FLAMEARMOR_OPTION",
+      "script_id": 928,
+      "source_symbol": "EFST_FLAMEARMOR_OPTION",
+      "argument_policy": "review"
+    },
+    "1281": {
+      "symbol": "SC_COLD_FORCE",
+      "script_id": 929,
+      "source_symbol": "EFST_COLD_FORCE",
+      "argument_policy": "review"
+    },
+    "1282": {
+      "symbol": "SC_COLD_FORCE_OPTION",
+      "script_id": 930,
+      "source_symbol": "EFST_COLD_FORCE_OPTION",
+      "argument_policy": "review"
+    },
+    "1283": {
+      "symbol": "SC_CRYSTAL_ARMOR",
+      "script_id": 931,
+      "source_symbol": "EFST_CRYSTAL_ARMOR",
+      "argument_policy": "review"
+    },
+    "1284": {
+      "symbol": "SC_CRYSTAL_ARMOR_OPTION",
+      "script_id": 932,
+      "source_symbol": "EFST_CRYSTAL_ARMOR_OPTION",
+      "argument_policy": "review"
+    },
+    "1285": {
+      "symbol": "SC_GRACE_BREEZE",
+      "script_id": 933,
+      "source_symbol": "EFST_GRACE_BREEZE",
+      "argument_policy": "review"
+    },
+    "1286": {
+      "symbol": "SC_GRACE_BREEZE_OPTION",
+      "script_id": 934,
+      "source_symbol": "EFST_GRACE_BREEZE_OPTION",
+      "argument_policy": "review"
+    },
+    "1287": {
+      "symbol": "SC_EYES_OF_STORM",
+      "script_id": 935,
+      "source_symbol": "EFST_EYES_OF_STORM",
+      "argument_policy": "review"
+    },
+    "1288": {
+      "symbol": "SC_EYES_OF_STORM_OPTION",
+      "script_id": 936,
+      "source_symbol": "EFST_EYES_OF_STORM_OPTION",
+      "argument_policy": "review"
+    },
+    "1289": {
+      "symbol": "SC_EARTH_CARE",
+      "script_id": 937,
+      "source_symbol": "EFST_EARTH_CARE",
+      "argument_policy": "review"
+    },
+    "1290": {
+      "symbol": "SC_EARTH_CARE_OPTION",
+      "script_id": 938,
+      "source_symbol": "EFST_EARTH_CARE_OPTION",
+      "argument_policy": "review"
+    },
+    "1291": {
+      "symbol": "SC_STRONG_PROTECTION",
+      "script_id": 939,
+      "source_symbol": "EFST_STRONG_PROTECTION",
+      "argument_policy": "review"
+    },
+    "1292": {
+      "symbol": "SC_STRONG_PROTECTION_OPTION",
+      "script_id": 940,
+      "source_symbol": "EFST_STRONG_PROTECTION_OPTION",
+      "argument_policy": "review"
+    },
+    "1293": {
+      "symbol": "SC_DEEP_POISONING",
+      "script_id": 941,
+      "source_symbol": "EFST_DEEP_POISONING",
+      "argument_policy": "review"
+    },
+    "1294": {
+      "symbol": "SC_DEEP_POISONING_OPTION",
+      "script_id": 942,
+      "source_symbol": "EFST_DEEP_POISONING_OPTION",
+      "argument_policy": "review"
+    },
+    "1295": {
+      "symbol": "SC_POISON_SHIELD",
+      "script_id": 943,
+      "source_symbol": "EFST_POISON_SHIELD",
+      "argument_policy": "review"
+    },
+    "1296": {
+      "symbol": "SC_POISON_SHIELD_OPTION",
+      "script_id": 944,
+      "source_symbol": "EFST_POISON_SHIELD_OPTION",
+      "argument_policy": "review"
+    },
+    "1297": {
+      "symbol": "SC_ABR_BATTLE_WARIOR",
+      "script_id": 870,
+      "source_symbol": "EFST_ABR_BATTLE_WARIOR",
+      "argument_policy": "review"
+    },
+    "1298": {
+      "symbol": "SC_ABR_DUAL_CANNON",
+      "script_id": 871,
+      "source_symbol": "EFST_ABR_DUAL_CANNON",
+      "argument_policy": "review"
+    },
+    "1299": {
+      "symbol": "SC_ABR_MOTHER_NET",
+      "script_id": 872,
+      "source_symbol": "EFST_ABR_MOTHER_NET",
+      "argument_policy": "review"
+    },
+    "1300": {
+      "symbol": "SC_ABR_INFINITY",
+      "script_id": 873,
+      "source_symbol": "EFST_ABR_INFINITY",
+      "argument_policy": "review"
+    },
+    "1301": {
+      "symbol": "SC_ELEMENTAL_VEIL",
+      "script_id": 894,
+      "source_symbol": "EFST_ELEMENTAL_VEIL",
+      "argument_policy": "review"
+    },
+    "1303": {
+      "symbol": "SC_HOMUN_TIME",
+      "script_id": 815,
+      "source_symbol": "EFST_HOMUN_TIME",
+      "argument_policy": "review"
+    },
+    "1310": {
+      "symbol": "SC_POISON_MIST",
+      "script_id": 812,
+      "source_symbol": "EFST_POISON_MIST",
+      "argument_policy": "review"
+    },
+    "1313": {
+      "symbol": "SC_STONE_WALL",
+      "script_id": 813,
+      "source_symbol": "EFST_STONE_WALL",
+      "argument_policy": "review"
+    },
+    "1315": {
+      "symbol": "SC_OVERBRANDREADY",
+      "script_id": 811,
+      "source_symbol": "EFST_OVERBRANDREADY",
+      "argument_policy": "review"
+    },
+    "1318": {
+      "symbol": "SC_CLOUD_POISON",
+      "script_id": 814,
+      "source_symbol": "EFST_CLOUD_POISON",
+      "argument_policy": "review"
+    },
+    "1319": {
+      "symbol": "SC_SPORE_EXPLOSION",
+      "script_id": 761,
+      "source_symbol": "EFST_SPORE_EXPLOSION_DEBUFF",
+      "argument_policy": "review"
+    },
+    "1326": {
+      "symbol": "SC_MASSIVE_F_BLASTER",
+      "script_id": 913,
+      "source_symbol": "EFST_MASSIVE_F_BLASTER",
+      "argument_policy": "review"
+    },
+    "1339": {
+      "symbol": "SC_KILLING_AURA",
+      "script_id": 975,
+      "source_symbol": "EFST_KILLING_AURA",
+      "argument_policy": "review"
+    },
+    "1341": {
+      "symbol": "SC_TOXIN_OF_MANDARA",
+      "script_id": 970,
+      "source_symbol": "EFST_TOXIN_OF_MANDARA",
+      "argument_policy": "review"
+    },
+    "1342": {
+      "symbol": "SC_GOLDENE_TONE",
+      "script_id": 971,
+      "source_symbol": "EFST_GOLDENE_TONE",
+      "argument_policy": "review"
+    },
+    "1343": {
+      "symbol": "SC_TEMPERING",
+      "script_id": 972,
+      "source_symbol": "EFST_TEMPERING",
+      "argument_policy": "review"
+    },
+    "1345": {
+      "symbol": "SC_INTENSIVE_AIM",
+      "script_id": 998,
+      "source_symbol": "EFST_INTENSIVE_AIM",
+      "argument_policy": "review"
+    },
+    "1346": {
+      "symbol": "SC_INTENSIVE_AIM_COUNT",
+      "script_id": 999,
+      "source_symbol": "EFST_INTENSIVE_AIM_COUNT",
+      "argument_policy": "review"
+    },
+    "1347": {
+      "symbol": "SC_GRENADE_FRAGMENT_1",
+      "script_id": 1000,
+      "source_symbol": "EFST_GRENADE_FRAGMENT_1",
+      "argument_policy": "review"
+    },
+    "1348": {
+      "symbol": "SC_GRENADE_FRAGMENT_2",
+      "script_id": 1001,
+      "source_symbol": "EFST_GRENADE_FRAGMENT_2",
+      "argument_policy": "review"
+    },
+    "1349": {
+      "symbol": "SC_GRENADE_FRAGMENT_3",
+      "script_id": 1002,
+      "source_symbol": "EFST_GRENADE_FRAGMENT_3",
+      "argument_policy": "review"
+    },
+    "1350": {
+      "symbol": "SC_GRENADE_FRAGMENT_4",
+      "script_id": 1003,
+      "source_symbol": "EFST_GRENADE_FRAGMENT_4",
+      "argument_policy": "review"
+    },
+    "1351": {
+      "symbol": "SC_GRENADE_FRAGMENT_5",
+      "script_id": 1004,
+      "source_symbol": "EFST_GRENADE_FRAGMENT_5",
+      "argument_policy": "review"
+    },
+    "1352": {
+      "symbol": "SC_GRENADE_FRAGMENT_6",
+      "script_id": 1005,
+      "source_symbol": "EFST_GRENADE_FRAGMENT_6",
+      "argument_policy": "review"
+    },
+    "1353": {
+      "symbol": "SC_AUTO_FIRING_LAUNCHER",
+      "script_id": 1006,
+      "source_symbol": "EFST_AUTO_FIRING_LAUNCHEREFST",
+      "argument_policy": "review"
+    },
+    "1354": {
+      "symbol": "SC_HIDDEN_CARD",
+      "script_id": 1007,
+      "source_symbol": "EFST_HIDDEN_CARD",
+      "argument_policy": "review"
+    },
+    "1356": {
+      "symbol": "SC_TALISMAN_OF_PROTECTION",
+      "script_id": 979,
+      "source_symbol": "EFST_TALISMAN_OF_PROTECTION",
+      "argument_policy": "review"
+    },
+    "1357": {
+      "symbol": "SC_TALISMAN_OF_WARRIOR",
+      "script_id": 980,
+      "source_symbol": "EFST_TALISMAN_OF_WARRIOR",
+      "argument_policy": "review"
+    },
+    "1358": {
+      "symbol": "SC_TALISMAN_OF_MAGICIAN",
+      "script_id": 981,
+      "source_symbol": "EFST_TALISMAN_OF_MAGICIAN",
+      "argument_policy": "review"
+    },
+    "1359": {
+      "symbol": "SC_TALISMAN_OF_FIVE_ELEMENTS",
+      "script_id": 982,
+      "source_symbol": "EFST_TALISMAN_OF_FIVE_ELEMENTS",
+      "argument_policy": "review"
+    },
+    "1360": {
+      "symbol": "SC_T_FIRST_GOD",
+      "script_id": 983,
+      "source_symbol": "EFST_T_FIRST_GOD",
+      "argument_policy": "review"
+    },
+    "1361": {
+      "symbol": "SC_T_SECOND_GOD",
+      "script_id": 984,
+      "source_symbol": "EFST_T_SECOND_GOD",
+      "argument_policy": "review"
+    },
+    "1362": {
+      "symbol": "SC_T_THIRD_GOD",
+      "script_id": 985,
+      "source_symbol": "EFST_T_THIRD_GOD",
+      "argument_policy": "review"
+    },
+    "1363": {
+      "symbol": "SC_T_FOURTH_GOD",
+      "script_id": 986,
+      "source_symbol": "EFST_T_FOURTH_GOD",
+      "argument_policy": "review"
+    },
+    "1364": {
+      "symbol": "SC_T_FIFTH_GOD",
+      "script_id": 987,
+      "source_symbol": "EFST_T_FIVETH_GOD",
+      "argument_policy": "review"
+    },
+    "1365": {
+      "symbol": "SC_HEAVEN_AND_EARTH",
+      "script_id": 988,
+      "source_symbol": "EFST_HEAVEN_AND_EARTH",
+      "argument_policy": "review"
+    },
+    "1366": {
+      "symbol": "SC_HOGOGONG",
+      "script_id": 998,
+      "source_symbol": "EFST_HOGOGONG",
+      "argument_policy": "review"
+    },
+    "1367": {
+      "symbol": "SC_MARINE_FESTIVAL",
+      "script_id": 999,
+      "source_symbol": "EFST_MARINE_FESTIVAL",
+      "argument_policy": "review"
+    },
+    "1368": {
+      "symbol": "SC_SANDY_FESTIVAL",
+      "script_id": 1000,
+      "source_symbol": "EFST_SANDY_FESTIVAL",
+      "argument_policy": "review"
+    },
+    "1369": {
+      "symbol": "SC_KI_SUL_RAMPAGE",
+      "script_id": 1001,
+      "source_symbol": "EFST_KI_SUL_RAMPAGE",
+      "argument_policy": "review"
+    },
+    "1370": {
+      "symbol": "SC_COLORS_OF_HYUN_ROK_1",
+      "script_id": 1002,
+      "source_symbol": "EFST_COLORS_OF_HYUN_ROK_1",
+      "argument_policy": "review"
+    },
+    "1371": {
+      "symbol": "SC_COLORS_OF_HYUN_ROK_2",
+      "script_id": 1003,
+      "source_symbol": "EFST_COLORS_OF_HYUN_ROK_2",
+      "argument_policy": "review"
+    },
+    "1372": {
+      "symbol": "SC_COLORS_OF_HYUN_ROK_3",
+      "script_id": 1004,
+      "source_symbol": "EFST_COLORS_OF_HYUN_ROK_3",
+      "argument_policy": "review"
+    },
+    "1373": {
+      "symbol": "SC_COLORS_OF_HYUN_ROK_4",
+      "script_id": 1005,
+      "source_symbol": "EFST_COLORS_OF_HYUN_ROK_4",
+      "argument_policy": "review"
+    },
+    "1374": {
+      "symbol": "SC_COLORS_OF_HYUN_ROK_5",
+      "script_id": 1006,
+      "source_symbol": "EFST_COLORS_OF_HYUN_ROK_5",
+      "argument_policy": "review"
+    },
+    "1375": {
+      "symbol": "SC_COLORS_OF_HYUN_ROK_6",
+      "script_id": 1007,
+      "source_symbol": "EFST_COLORS_OF_HYUN_ROK_6",
+      "argument_policy": "review"
+    },
+    "1376": {
+      "symbol": "SC_COLORS_OF_HYUN_ROK_BUFF",
+      "script_id": 1008,
+      "source_symbol": "EFST_COLORS_OF_HYUN_ROK_BUFF",
+      "argument_policy": "review"
+    },
+    "1377": {
+      "symbol": "SC_TEMPORARY_COMMUNION",
+      "script_id": 1009,
+      "source_symbol": "EFST_TEMPORARY_COMMUNION",
+      "argument_policy": "review"
+    },
+    "1378": {
+      "symbol": "SC_BLESSING_OF_M_CREATURES",
+      "script_id": 1010,
+      "source_symbol": "EFST_BLESSING_OF_M_CREATURES",
+      "argument_policy": "review"
+    },
+    "1379": {
+      "symbol": "SC_BLESSING_OF_M_C_DEBUFF",
+      "script_id": 1011,
+      "source_symbol": "EFST_BLESSING_OF_M_C_DEBUFF",
+      "argument_policy": "review"
+    },
+    "1380": {
+      "symbol": "SC_SHIELDCHAINRUSH",
+      "script_id": 993,
+      "source_symbol": "EFST_SHIELDCHAINRUSH",
+      "argument_policy": "review"
+    },
+    "1381": {
+      "symbol": "SC_MISTYFROST",
+      "script_id": 994,
+      "source_symbol": "EFST_MISTYFROST",
+      "argument_policy": "review"
+    },
+    "1382": {
+      "symbol": "SC_GROUNDGRAVITY",
+      "script_id": 995,
+      "source_symbol": "EFST_GROUNDGRAVITY",
+      "argument_policy": "review"
+    },
+    "1383": {
+      "symbol": "SC_BREAKINGLIMIT",
+      "script_id": 996,
+      "source_symbol": "EFST_BREAKINGLIMIT",
+      "argument_policy": "review"
+    },
+    "1384": {
+      "symbol": "SC_RULEBREAK",
+      "script_id": 997,
+      "source_symbol": "EFST_RULEBREAK",
+      "argument_policy": "review"
+    },
+    "1385": {
+      "symbol": "SC_RISING_SUN",
+      "script_id": 1012,
+      "source_symbol": "EFST_RISING_SUN",
+      "argument_policy": "review"
+    },
+    "1386": {
+      "symbol": "SC_NOON_SUN",
+      "script_id": 1013,
+      "source_symbol": "EFST_NOON_SUN",
+      "argument_policy": "review"
+    },
+    "1387": {
+      "symbol": "SC_SUNSET_SUN",
+      "script_id": 1014,
+      "source_symbol": "EFST_SUNSET_SUN",
+      "argument_policy": "review"
+    },
+    "1388": {
+      "symbol": "SC_RISING_MOON",
+      "script_id": 1015,
+      "source_symbol": "EFST_RISING_MOON",
+      "argument_policy": "review"
+    },
+    "1389": {
+      "symbol": "SC_MIDNIGHT_MOON",
+      "script_id": 1016,
+      "source_symbol": "EFST_MIDNIGHT_MOON",
+      "argument_policy": "review"
+    },
+    "1390": {
+      "symbol": "SC_DAWN_MOON",
+      "script_id": 1017,
+      "source_symbol": "EFST_DAWN_MOON",
+      "argument_policy": "review"
+    },
+    "1391": {
+      "symbol": "SC_STAR_BURST",
+      "script_id": 1018,
+      "source_symbol": "EFST_STAR_BURST",
+      "argument_policy": "review"
+    },
+    "1392": {
+      "symbol": "SC_SKY_ENCHANT",
+      "script_id": 1019,
+      "source_symbol": "EFST_SKY_ENCHANT",
+      "argument_policy": "review"
+    },
+    "1393": {
+      "symbol": "SC_SHADOW_CLOCK",
+      "script_id": 1021,
+      "source_symbol": "EFST_SHADOW_CLOCK",
+      "argument_policy": "review"
+    },
+    "1395": {
+      "symbol": "SC_NIGHTMARE",
+      "script_id": 1023,
+      "source_symbol": "EFST_NIGHTMARE",
+      "argument_policy": "review"
+    },
+    "1402": {
+      "symbol": "SC_RUSH_QUAKE1",
+      "script_id": 989,
+      "source_symbol": "EFST_RUSH_QUAKE1",
+      "argument_policy": "review"
+    },
+    "1403": {
+      "symbol": "SC_RUSH_QUAKE2",
+      "script_id": 990,
+      "source_symbol": "EFST_RUSH_QUAKE2",
+      "argument_policy": "review"
+    },
+    "1415": {
+      "symbol": "SC_SHINKIROU_CALL",
+      "script_id": 1022,
+      "source_symbol": "EFST_SBUNSHIN",
+      "argument_policy": "review"
+    },
+    "1459": {
+      "symbol": "SC_CONTENTS_1",
+      "script_id": 961,
+      "source_symbol": "EFST_CONTENTS_1",
+      "argument_policy": "review"
+    },
+    "1460": {
+      "symbol": "SC_CONTENTS_2",
+      "script_id": 962,
+      "source_symbol": "EFST_CONTENTS_2",
+      "argument_policy": "review"
+    },
+    "1461": {
+      "symbol": "SC_CONTENTS_3",
+      "script_id": 963,
+      "source_symbol": "EFST_CONTENTS_3",
+      "argument_policy": "review"
+    },
+    "1462": {
+      "symbol": "SC_CONTENTS_4",
+      "script_id": 964,
+      "source_symbol": "EFST_CONTENTS_4",
+      "argument_policy": "review"
+    },
+    "1463": {
+      "symbol": "SC_CONTENTS_5",
+      "script_id": 965,
+      "source_symbol": "EFST_CONTENTS_5",
+      "argument_policy": "review"
+    },
+    "1464": {
+      "symbol": "SC_CONTENTS_6",
+      "script_id": 966,
+      "source_symbol": "EFST_CONTENTS_6",
+      "argument_policy": "review"
+    },
+    "1465": {
+      "symbol": "SC_CONTENTS_7",
+      "script_id": 967,
+      "source_symbol": "EFST_CONTENTS_7",
+      "argument_policy": "review"
+    },
+    "1466": {
+      "symbol": "SC_CONTENTS_8",
+      "script_id": 968,
+      "source_symbol": "EFST_CONTENTS_8",
+      "argument_policy": "review"
+    },
+    "1467": {
+      "symbol": "SC_CONTENTS_9",
+      "script_id": 969,
+      "source_symbol": "EFST_CONTENTS_9",
+      "argument_policy": "review"
+    },
+    "1468": {
+      "symbol": "SC_CONTENTS_10",
+      "script_id": 970,
+      "source_symbol": "EFST_CONTENTS_10",
+      "argument_policy": "review"
+    },
+    "1473": {
+      "symbol": "SC_CONTENTS_15",
+      "script_id": 1032,
+      "source_symbol": "EFST_CONTENTS_15",
+      "argument_policy": "review"
+    },
+    "1474": {
+      "symbol": "SC_CONTENTS_16",
+      "script_id": 1033,
+      "source_symbol": "EFST_CONTENTS_16",
+      "argument_policy": "review"
+    },
+    "1475": {
+      "symbol": "SC_CONTENTS_17",
+      "script_id": 1034,
+      "source_symbol": "EFST_CONTENTS_17",
+      "argument_policy": "review"
+    },
+    "1476": {
+      "symbol": "SC_CONTENTS_18",
+      "script_id": 1035,
+      "source_symbol": "EFST_CONTENTS_18",
+      "argument_policy": "review"
+    },
+    "1477": {
+      "symbol": "SC_CONTENTS_19",
+      "script_id": 1036,
+      "source_symbol": "EFST_CONTENTS_19",
+      "argument_policy": "review"
+    },
+    "1478": {
+      "symbol": "SC_CONTENTS_20",
+      "script_id": 1037,
+      "source_symbol": "EFST_CONTENTS_20",
+      "argument_policy": "review"
+    },
+    "1484": {
+      "symbol": "SC_CONTENTS_26",
+      "script_id": 972,
+      "source_symbol": "EFST_CONTENTS_26",
+      "argument_policy": "review"
+    },
+    "1485": {
+      "symbol": "SC_CONTENTS_27",
+      "script_id": 973,
+      "source_symbol": "EFST_CONTENTS_27",
+      "argument_policy": "review"
+    },
+    "1486": {
+      "symbol": "SC_CONTENTS_28",
+      "script_id": 974,
+      "source_symbol": "EFST_CONTENTS_28",
+      "argument_policy": "review"
+    },
+    "1487": {
+      "symbol": "SC_CONTENTS_29",
+      "script_id": 975,
+      "source_symbol": "EFST_CONTENTS_29",
+      "argument_policy": "review"
+    },
+    "1489": {
+      "symbol": "SC_CONTENTS_31",
+      "script_id": 976,
+      "source_symbol": "EFST_CONTENTS_31",
+      "argument_policy": "review"
+    },
+    "1490": {
+      "symbol": "SC_CONTENTS_32",
+      "script_id": 977,
+      "source_symbol": "EFST_CONTENTS_32",
+      "argument_policy": "review"
+    },
+    "1491": {
+      "symbol": "SC_CONTENTS_33",
+      "script_id": 978,
+      "source_symbol": "EFST_CONTENTS_33",
+      "argument_policy": "review"
+    },
+    "1492": {
+      "symbol": "SC_CONTENTS_34",
+      "script_id": 1025,
+      "source_symbol": "EFST_CONTENTS_34",
+      "argument_policy": "review"
+    },
+    "1493": {
+      "symbol": "SC_CONTENTS_35",
+      "script_id": 1026,
+      "source_symbol": "EFST_CONTENTS_35",
+      "argument_policy": "review"
+    },
+    "1511": {
+      "symbol": "SC_C_BUFF_3",
+      "script_id": 1028,
+      "source_symbol": "EFST_C_BUFF_3",
+      "argument_policy": "review"
+    },
+    "1512": {
+      "symbol": "SC_C_BUFF_4",
+      "script_id": 1029,
+      "source_symbol": "EFST_C_BUFF_4",
+      "argument_policy": "review"
+    },
+    "1513": {
+      "symbol": "SC_C_BUFF_5",
+      "script_id": 1030,
+      "source_symbol": "EFST_C_BUFF_5",
+      "argument_policy": "review"
+    },
+    "1514": {
+      "symbol": "SC_C_BUFF_6",
+      "script_id": 1031,
+      "source_symbol": "EFST_C_BUFF_6",
+      "argument_policy": "review"
+    },
+    "1560": {
+      "symbol": "SC_CHASING",
+      "script_id": 1039,
+      "source_symbol": "EFST_CHASING",
+      "argument_policy": "review"
+    },
+    "1665": {
+      "symbol": "SC_MYSTERY_POWDER",
+      "script_id": 971,
+      "source_symbol": "EFST_MYSTERY_POWDER",
+      "argument_policy": "review"
+    },
+    "1666": {
+      "symbol": "SC_WILD_WALK",
+      "script_id": 1020,
+      "source_symbol": "EFST_WILD_WALK",
+      "argument_policy": "review"
+    },
+    "1667": {
+      "symbol": "SC_FIRE_CHARM_POWER",
+      "script_id": 1040,
+      "source_symbol": "EFST_FIRE_CHARM_POWER",
+      "argument_policy": "review"
+    },
+    "1668": {
+      "symbol": "SC_WATER_CHARM_POWER",
+      "script_id": 1041,
+      "source_symbol": "EFST_WATER_CHARM_POWER",
+      "argument_policy": "review"
+    },
+    "1669": {
+      "symbol": "SC_WIND_CHARM_POWER",
+      "script_id": 1042,
+      "source_symbol": "EFST_WIND_CHARM_POWER",
+      "argument_policy": "review"
+    },
+    "1670": {
+      "symbol": "SC_GROUND_CHARM_POWER",
+      "script_id": 1043,
+      "source_symbol": "EFST_GROUND_CHARM_POWER",
+      "argument_policy": "review"
+    },
+    "1671": {
+      "symbol": "SC_OVERCOMING_CRISIS",
+      "script_id": 1038,
+      "source_symbol": "EFST_OVERCOMING_CRISIS",
+      "argument_policy": "review"
+    }
+  },
+  "ambiguous": {
+    "12": [
+      {
+        "script_id": 32,
+        "symbol": "SC_INCREASEAGI",
+        "source_symbol": "EFST_INC_AGI"
+      },
+      {
+        "script_id": 816,
+        "symbol": "SC_EMERGENCY_MOVE",
+        "source_symbol": "EFST_INC_AGI"
+      }
+    ],
+    "50": [
+      {
+        "script_id": 68,
+        "symbol": "SC_STRIPWEAPON",
+        "source_symbol": "EFST_NOEQUIPWEAPON"
+      },
+      {
+        "script_id": 992,
+        "symbol": "SC_HNNOWEAPON",
+        "source_symbol": "EFST_NOEQUIPWEAPON"
+      }
+    ],
+    "112": [
+      {
+        "script_id": 100,
+        "symbol": "SC_VOLCANO",
+        "source_symbol": "EFST_GROUNDMAGIC"
+      },
+      {
+        "script_id": 101,
+        "symbol": "SC_DELUGE",
+        "source_symbol": "EFST_GROUNDMAGIC"
+      },
+      {
+        "script_id": 102,
+        "symbol": "SC_VIOLENTGALE",
+        "source_symbol": "EFST_GROUNDMAGIC"
+      }
+    ],
+    "149": [
+      {
+        "script_id": 184,
+        "symbol": "SC_SPIRIT",
+        "source_symbol": "EFST_SOULLINK"
+      },
+      {
+        "script_id": 227,
+        "symbol": "SC_MIRACLE",
+        "source_symbol": "EFST_SOULLINK"
+      }
+    ],
+    "324": [
+      {
+        "script_id": 320,
+        "symbol": "SC_MILLENNIUMSHIELD",
+        "source_symbol": "EFST_REUSE_MILLENNIUMSHIELD"
+      },
+      {
+        "script_id": 673,
+        "symbol": "SC_REUSE_MILLENNIUMSHIELD",
+        "source_symbol": "EFST_REUSE_MILLENNIUMSHIELD"
+      }
+    ],
+    "438": [
+      {
+        "script_id": 432,
+        "symbol": "SC_GLOOMYDAY",
+        "source_symbol": "EFST_GLOOMYDAY"
+      },
+      {
+        "script_id": 433,
+        "symbol": "SC_GLOOMYDAY_SK",
+        "source_symbol": "EFST_GLOOMYDAY"
+      }
+    ],
+    "737": [
+      {
+        "script_id": 313,
+        "symbol": "SC_BURNING",
+        "source_symbol": "EFST_BURNT"
+      },
+      {
+        "script_id": 831,
+        "symbol": "SC_BURNT",
+        "source_symbol": "EFST_BURNT"
+      }
+    ],
+    "1316": [
+      {
+        "script_id": 402,
+        "symbol": "SC_SHIELDSPELL_HP",
+        "source_symbol": "EFST_SHIELDSPELL"
+      },
+      {
+        "script_id": 403,
+        "symbol": "SC_SHIELDSPELL_SP",
+        "source_symbol": "EFST_SHIELDSPELL"
+      },
+      {
+        "script_id": 404,
+        "symbol": "SC_SHIELDSPELL_ATK",
+        "source_symbol": "EFST_SHIELDSPELL"
+      }
+    ]
+  }
 }

@@ -12,19 +12,19 @@ from reconstruction.world import WorldStore
 from reconstruction.actor_appearance import JOB_IDS_PATH, render_display
 from reconstruction.player import PlayerStore
 from reconstruction.dialogue import DialogueStore
-from reconstruction.conversation_actions import STATUS_MAP
-from reconstruction.script_commands import POLICY_PATH, render_command
+from reconstruction.script_commands import render_command
 from reconstruction.shops import ShopStore
 from reconstruction.combat import CombatStore
 from reconstruction.skills import SkillStore
 from reconstruction.mob_spawns import MobSpawnStore
 from reconstruction.mob_spawn_export import build_candidates
 from reconstruction.branches import build_merged
-from reconstruction.auriga import AurigaRenderer, DEFAULT_DIALOGUE_PROFILE
+from reconstruction.auriga import AurigaRenderer
+from reconstruction.emulator_profiles import profile as generation_profile
 from reconstruction.session_quality import summarize_quality
 from reconstruction.dialogue_review import build_review_queue
 from reconstruction.cast_review import build_cast_review
-from reconstruction.entity_metadata import build_metadata_report, DEFAULT_PROFILE as METADATA_PROFILE
+from reconstruction.entity_metadata import build_metadata_report
 from storage.project import fingerprint
 from tools.replay_capture import replay
 
@@ -36,11 +36,11 @@ def analyze(path, definitions):
     started = perf_counter()
     path = Path(path).resolve()
     source_hash = fingerprint(path, MAX_LOG_BYTES)
-    profile_hash = fingerprint(DEFAULT_DIALOGUE_PROFILE, 2 * 1024 * 1024)
-    status_hash = fingerprint(STATUS_MAP, 2 * 1024 * 1024)
+    profile_hash = fingerprint(generation_profile('dialogue.json'), 2 * 1024 * 1024)
+    status_hash = fingerprint(generation_profile('status_ids.json'), 2 * 1024 * 1024)
     job_hash = fingerprint(JOB_IDS_PATH,65536)
-    command_policy_hash = fingerprint(POLICY_PATH,65536)
-    metadata_hash = fingerprint(METADATA_PROFILE, 65536)
+    command_policy_hash = fingerprint(generation_profile('script_commands.json'),65536)
+    metadata_hash = fingerprint(generation_profile('entity_metadata.json'), 65536)
     world, players = WorldStore(), PlayerStore()
     spawns = MobSpawnStore(world)
     dialogues = DialogueStore(world=world)
@@ -65,7 +65,7 @@ def analyze(path, definitions):
     source_ref = str(path)
     merged = build_merged((source_ref, item) for item in dialogues.sessions)
     generated = AurigaRenderer().render_groups(merged['groups'])
-    if fingerprint(DEFAULT_DIALOGUE_PROFILE, 2 * 1024 * 1024) != profile_hash:
+    if fingerprint(generation_profile('dialogue.json'), 2 * 1024 * 1024) != profile_hash:
         raise ValueError('解析中に会話生成書式が変更されました。再実行してください。')
     sections = dict(world=world.snapshot(), player=players.snapshot(), dialogues=dialogues.snapshot(source_ref),
                     shops=shops.snapshot(), combat=combat.snapshot(), skills=skills.snapshot(),
@@ -73,7 +73,7 @@ def analyze(path, definitions):
     definition_text = ''.join(f'{pid:04X} {size}\n' for pid, size in sorted(definitions.items()))
     report = dict(schema_version=1, source_log=source_ref, source_sha256=source_hash,
                 definitions_sha256=hashlib.sha256(definition_text.encode('utf-8')).hexdigest(),
-                dialogue_profile=dict(path=str(DEFAULT_DIALOGUE_PROFILE), sha256=profile_hash),
+                dialogue_profile=dict(path=str(generation_profile('dialogue.json')), sha256=profile_hash),
                 replay=transport, **sections,
                 mob_spawn_candidates=build_candidates(sections['mob_spawns'], {0: source_ref}),
                 merged_dialogues=dict(merged, **generated),
@@ -84,13 +84,13 @@ def analyze(path, definitions):
     report['dialogue_review'] = build_review_queue(sections['dialogues']['conversations'], merged)
     report['skill_cast_review'] = build_cast_review(sections['skills']['observations'])
     report['entity_metadata'] = build_metadata_report(sections['world']['entities'])
-    if fingerprint(METADATA_PROFILE, 65536) != metadata_hash:
+    if fingerprint(generation_profile('entity_metadata.json'), 65536) != metadata_hash:
         raise ValueError('解析中に個体メタデータ書式が変更されました。再実行してください。')
-    if fingerprint(STATUS_MAP, 2 * 1024 * 1024) != status_hash:
+    if fingerprint(generation_profile('status_ids.json'), 2 * 1024 * 1024) != status_hash:
         raise ValueError('解析中に状態異常ID変換表が変更されました。再実行してください。')
-    if fingerprint(POLICY_PATH,65536) != command_policy_hash:
+    if fingerprint(generation_profile('script_commands.json'),65536) != command_policy_hash:
         raise ValueError('解析中に命令判定設定が変更されました。再実行してください。')
-    report['script_command_policy'] = dict(path=str(POLICY_PATH), sha256=command_policy_hash)
+    report['script_command_policy'] = dict(path=str(generation_profile('script_commands.json')), sha256=command_policy_hash)
     command_style = AurigaRenderer().templates
     if fingerprint(JOB_IDS_PATH,65536)!=job_hash:
         raise ValueError('解析中に職業class表が変更されました。再実行してください。')
@@ -100,8 +100,8 @@ def analyze(path, definitions):
         for row in sections['world']['display_observations'] if row['kind']=='NPC' and 'class_id' in row['changes']]
     report['script_command_candidates'] = [dict(row, auriga=render_command(row['fields'], command_style))
                                            for row in sections['dialogues']['script_command_observations']]
-    report['status_id_map'] = dict(path=str(STATUS_MAP), sha256=status_hash)
-    report['entity_metadata_profile'] = dict(path=str(METADATA_PROFILE), sha256=metadata_hash)
+    report['status_id_map'] = dict(path=str(generation_profile('status_ids.json')), sha256=status_hash)
+    report['entity_metadata_profile'] = dict(path=str(generation_profile('entity_metadata.json')), sha256=metadata_hash)
     report['measurements']['total_seconds'] = perf_counter() - started
     return report
 

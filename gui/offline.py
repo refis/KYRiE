@@ -11,7 +11,7 @@ from parser.display import DisplayProfile, ReceiveDisplay
 from tools.replay_capture import replay, ReplayCancelled
 from storage.project import fingerprint, verify_project, save_project, save_multiple_project, CATALOG_PATHS
 from parser.definitions import load_lengths
-from reconstruction.auriga import DEFAULT_DIALOGUE_PROFILE
+from reconstruction.emulator_profiles import profile as generation_profile
 
 
 class ReplayLimitError(ValueError):
@@ -309,7 +309,7 @@ class OfflineWindow(MainWindow):
                         merged=self.dialogue_panel.merge_checkbox.isChecked())
             expected_catalogs=self.loaded_catalog_hashes()
             catalogs={key:CATALOG_PATHS[key] for key in expected_catalogs}
-            common = dict(recv=profiles['RECV'], send=profiles['SEND'], dialogue=DEFAULT_DIALOGUE_PROFILE)
+            common = dict(recv=profiles['RECV'], send=profiles['SEND'], dialogue=generation_profile('dialogue.json'))
             if self.multiple:
                 save_multiple_project(destination, common, self.replay_report['sources'], view, self.project_note,
                                       catalogs=catalogs,expected_catalog_hashes=expected_catalogs)

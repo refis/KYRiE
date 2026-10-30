@@ -28,7 +28,9 @@ def shop_name_for(npc, items):
 
 
 class ShopRenderer:
-    def __init__(self, path=DEFAULT_SHOP_PROFILE):
+    def __init__(self, path=None):
+        from reconstruction.emulator_profiles import profile
+        path = Path(path) if path is not None else profile('shops.json')
         self.templates = read_render_json(path)
         if isinstance(self.templates, dict):
             defaults = read_render_json(DEFAULT_SHOP_PROFILE)

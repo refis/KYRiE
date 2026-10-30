@@ -306,7 +306,7 @@ def _build_settings(w):
     display_form = QFormLayout()
     w.emulator = QComboBox()
     w.emulator.addItem('Auriga（標準）', 'auriga')
-    w.emulator.addItem('rAthena（会話表示の雛形）', 'rathena')
+    w.emulator.addItem('rAthena', 'rathena')
     w.emulator.currentIndexChanged.connect(w.select_emulator_profile)
     w.display_direction = QComboBox()
     w.display_direction.addItems(['RECV', 'SEND'])

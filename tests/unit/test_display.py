@@ -157,3 +157,20 @@ class DisplayTests(unittest.TestCase):
         self.assertEqual(display.decode(map_packet('1@toy.gat')).text, 'warp "1@toy.gat", 100, 120;')
         self.assertTrue(display.decode(event(0xBA2, struct.pack('<II', 10, 20))).text.startswith('// messize'))
 
+    def test_rathena_generation_profiles_exist_with_matched_status_ids(self):
+        root = Path(__file__).resolve().parents[2]
+        for name in ('dialogue.json', 'entity_metadata.json', 'shops.json', 'mob_skills.json',
+                     'mob_skill_configured.json', 'mob_spawns.json', 'mob_spawn_configured.json',
+                     'event_timers.json', 'script_commands.json', 'status_ids.json'):
+            path = root / 'config' / 'rathena' / name
+            self.assertTrue(path.is_file(), name)
+            json.loads(path.read_text(encoding='utf-8'))
+        status = json.loads((root / 'config' / 'rathena' / 'status_ids.json').read_text(encoding='utf-8'))
+        self.assertEqual(status['target'], 'rathena')
+        self.assertEqual(status['source']['commit'], 'd4b8e7b8f16061cc2496d377ac8f777ce72a4f39')
+        self.assertGreater(len(status['entries']), 800)
+        self.assertIn('ambiguous', status)
+        dialogue = json.loads((root / 'config' / 'rathena' / 'dialogue.json').read_text(encoding='utf-8'))
+        self.assertNotIn('getmdmapname', json.dumps(dialogue))
+        self.assertIn('instance_mapname', dialogue['instance_map_reference'])
+

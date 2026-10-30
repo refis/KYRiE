@@ -22,6 +22,11 @@ ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 
 
+def _timer_profile(path=None):
+    from reconstruction.emulator_profiles import profile
+    return Path(path) if path is not None else profile('event_timers.json')
+
+
 def load_timer_candidate(path, report, trial_index):
     """Restore manual times only when the full evidence and generated code match."""
     def unique(pairs):
@@ -130,7 +135,7 @@ def validate_timer_trial(report, trial_index):
     return trial
 
 
-def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, profile=DEFAULT_PROFILE):
+def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, profile=None):
     trial = validate_timer_trial(report, trial_index)
     if confirmed is not True:
         raise ValueError('対象NPC・採用試行・全手入力時刻の確認が必要です。')
@@ -142,6 +147,7 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
     if times_ms != sorted(times_ms):
         raise ValueError('時刻は観測順で同じか増える値にしてください。')
     identity = report['npc_identity']
+    profile = _timer_profile(profile)
     templates = json.loads(Path(profile).read_text(encoding='utf-8'))
     if isinstance(templates, dict):
         defaults = json.loads(DEFAULT_PROFILE.read_text(encoding='utf-8'))

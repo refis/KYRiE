@@ -15,6 +15,11 @@ FIELDS = {'npc_context': {'actor_id', 'actor_name'}, 'mob_context': {'actor_id',
           'waitingroom': {'title', 'limit'}, 'end': set(), 'indent': set(), 'conflict': set(), 'block_open': set(), 'block_close': set()}
 
 
+def _entity_profile(path=None):
+    from reconstruction.emulator_profiles import profile
+    return Path(path) if path is not None else profile('entity_metadata.json')
+
+
 def metadata_values(npc):
     evidence, issues = npc.get('metadata_evidence', {}), npc.get('field_issues', {})
     values = {}
@@ -26,8 +31,8 @@ def metadata_values(npc):
     return values
 
 
-def templates(path=DEFAULT_PROFILE):
-    path = Path(path)
+def templates(path=None):
+    path = _entity_profile(path)
     if render_profile_size(path) > 65536:
         raise ValueError('個体メタデータ書式は64KiB以内にしてください。')
     result = read_render_json(path)
@@ -64,7 +69,7 @@ def display_values(values):
             if key == 'group_id' and value > 0 or key == 'title' and value.strip()}
 
 
-def render_npc_initialization(npcs, profile=DEFAULT_PROFILE):
+def render_npc_initialization(npcs, profile=None):
     npcs = list(npcs)
     rooms = {(room['title'], room['limit']) for npc in npcs for room in npc.get('waitingrooms', [])}
     if any(not isinstance(title, str) or type(limit) is not int or not 0 <= limit <= 65535 for title, limit in rooms):
@@ -118,8 +123,8 @@ def render_npc_initialization(npcs, profile=DEFAULT_PROFILE):
     return result
 
 
-def append_initialization(body, npcs):
-    initialization = render_npc_initialization(npcs)
+def append_initialization(body, npcs, profile=None):
+    initialization = render_npc_initialization(npcs, profile)
     if not initialization:
         return body
     # Dialogue rendering already emits close/end on its paths. Metadata must
@@ -130,15 +135,15 @@ def append_initialization(body, npcs):
     return result
 
 
-def render_entity_metadata(data):
+def render_entity_metadata(data, profile=None):
     values = display_values(metadata_values(data))
     kind, actor = data['kind'], data['actor_id']
     if not values or kind not in ('NPC', 'MOB'):
         return '', {}
-    style = templates()
+    style = templates(profile)
     context = style['npc_context' if kind == 'NPC' else 'mob_context'].format(
         actor_id=actor, actor_name=json.dumps(data.get('name', ''), ensure_ascii=False))
-    body = (style['end'] + '\n\n' + render_npc_initialization([data]) if kind == 'NPC' else
+    body = (style['end'] + '\n\n' + render_npc_initialization([data], profile) if kind == 'NPC' else
             '\n'.join(commands(values, 'mob', actor, style)) + '\n')
     return context + '\n' + body.rstrip(), dict(actor_id=actor, entity_kind=kind, **values)
 

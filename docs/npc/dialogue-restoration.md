@@ -300,7 +300,10 @@ SC_MONSTER_TRANSFORM・SC_ACTIVE_MONSTER_TRANSFORM・SC_HAT_EFFECTだけをval1_
 そのうえでvalue2/value3が0、通常の時間値を持つ場合に`sc_start 変換後ID,時間,value1;`を生成する。
 変換済みの終了通知は`sc_end 変換後ID;`とする。特殊時間値9999、未対応引数・ID、
 多義的なアイコンは確認用コメントへ残す。未観測のレベル・val4・起因条件は補わない。
-rAthena表は未照合の空表で、Aurigaの番号を流用しない。rAthenaコード生成への接続は未実装。
+rAthena表は本家 master（commit d4b8e7b8）の EFST→SC 一意対応を一回照合した静止表で、
+Auriga番号は流用しない。曖昧アイコンはambiguousへ分離。argument_policyはreviewを基本とし、
+status.yml Flags.SendVal1が確認できた SC_MONSTER_TRANSFORM / SC_ACTIVE_MONSTER_TRANSFORM のみ
+val1_only。GUIのエミュレータ切替で生成プロファイルごと切り替える（sendは共有）。
 
 生成書式はconfig/auriga/dialogue.jsonのprogress_action、hideonnpc等、unittalk_target、
 status_start/status_end/status_review等で変更できる。GUIのタイムラインから元Packetへ移動できる。
