@@ -1,0 +1,178 @@
+# One-shot bootstrap: create the five agreed priority issues, then no-op on rerun.
+# Safe to delete after issues exist.
+name: Bootstrap priority issues
+
+on:
+  push:
+    branches: [cursor/bootstrap-priority-issues-d40d]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Create priority issues if missing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issues = [
+              {
+                title: '[enhancement] イベントアイコン等の未対応通知の対象洗い出しと構造化保持',
+                labels: ['enhancement', 'documentation'],
+                body: `## 目的
+            表示JSONにはあるが会話モデル／命令生成に未接続の通知（イベントアイコン等）について、対象PacketIDを洗い出し、観測／未採用／生成不可を区別して構造化保持できるようにする。
+
+            ## 観測境界
+            - 観測する: 既存表示定義・合成パケットでのID・フィールド・対象有無
+            - 推測しない / 自動補完しない: 起因NPC、OnTimer値、サーバー内部状態、未観測フィールドの発明
+            - 生データ採取は必須としない（合成＋既存ログで点検）
+
+            ## 領域
+            npc / config-dict / documentation
+
+            ## 完了条件
+            - 未対応通知の一覧を docs に残す
+            - 構造化保持が必要なIDの方針を明記
+            - 関連グループのみ選択テスト
+            - 実機 / Auriga 確認は不要
+
+            ## 優先
+            P2
+
+            ## 根拠
+            development-roadmap.md / restoration-plan.md`
+              },
+              {
+                title: '[enhancement] 確認済み対象・操作だけを命令候補へ切替（P1-A③）',
+                labels: ['enhancement'],
+                body: `## 目的
+            会話中のアイテム／Zeny／マップ差分など、現状は根拠コメントに留めている観測について、利用者が明示確認した行だけ getitem 等の命令候補へ切り替えられるようにする。
+
+            ## 観測境界
+            - 観測する: 既存の resource / script_command 観測と確認フラグ
+            - 推測しない / 自動補完しない: 隠れた報酬条件、起因クエスト、未確認行の自動命令化
+            - 生データ採取は必須としない
+
+            ## 領域
+            npc / gui
+
+            ## 完了条件
+            - 確認フラグ付きの命令候補出力契約と外部テンプレート対応
+            - 未確認行は従来どおりコメント／未生成を維持
+            - 関連 unit/GUI テストを選択実行
+            - docs 更新
+            - 実機 / Auriga 確認は任意
+
+            ## 優先
+            P1
+
+            ## 根拠
+            development-roadmap.md P1-A 項目3 / restoration-plan.md 実装順2`
+              },
+              {
+                title: '[enhancement] 手動タイマー／共通イベント列の対応演出拡張（P1-B）',
+                labels: ['enhancement'],
+                body: `## 目的
+            会話外イベントの手動基準点比較と手動OnTimer候補について、未対応演出種別を共通イベント列へ載せ、手動採用できる範囲だけ広げる。
+
+            ## 観測境界
+            - 観測する: 既存イベント列・手動採用フロー・合成パケット
+            - 推測しない / 自動補完しない: OnTimer値、sleep、イベントラベル、開始条件の自動生成
+            - 生データ採取は必須としない
+
+            ## 領域
+            npc / gui
+
+            ## 完了条件
+            - 追加対応種別の一覧とテンプレート更新
+            - 未対応のまま残す種別を明示
+            - events / 関連 GUI グループの選択テスト
+            - docs（event-trials / event-timer-candidates）更新
+
+            ## 優先
+            P1
+
+            ## 根拠
+            development-roadmap.md P1-B / restoration-plan.md 実装順3`
+              },
+              {
+                title: '[enhancement] MOBスキル候補の文字列VALと辞書版の扱い（P1-C）',
+                labels: ['enhancement'],
+                body: `## 目的
+            mob_skill_db編集用候補で整数VAL以外を黙って埋めず、文字列VALの明示入力／未対応表示と、スキル辞書の版・出典分離を進める。
+
+            ## 観測境界
+            - 観測する: 既存候補JSON・手動設定UI・辞書ファイル
+            - 推測しない / 自動補完しない: AI条件、発動確率、設定ディレイ、未知レベル
+            - 生データ採取は必須としない
+
+            ## 領域
+            mob / gui / config-dict
+
+            ## 完了条件
+            - 文字列VALの入力契約または明確な未対応エラー
+            - 辞書の版／出典メタデータ方針を docs に記載
+            - mob 関連テストの選択実行
+            - 稼働用DBへ未確認行が流れないことを維持
+
+            ## 優先
+            P1
+
+            ## 根拠
+            development-roadmap.md P1-C / docs/mob/mob-skill-export.md`
+              },
+              {
+                title: '[documentation] 開発計画ドキュメントと実装のズレ解消',
+                labels: ['documentation'],
+                body: `## 目的
+            development-roadmap.md / restoration-plan.md 等の「現状」「次単位」記載を実装に合わせ、優先判断の誤認を防ぐ。
+
+            ## 観測境界
+            - 観測する: リポジトリ現状のコード・config・既存docs・直近PR
+            - 推測しない / 自動補完しない: 未実装を完了扱いしない、採取必須作業を繰り上げない
+            - 生データ採取は不要
+
+            ## 領域
+            documentation
+
+            ## 完了条件
+            - rAthena「会話4 IDの表示雛形のみ」等の古い記述を現状（display同ID＋生成JSON／status_ids／切替）へ修正
+            - 到達点・次単位・P3記述を 2026-10-30 以降の実装に整合
+            - docs/README.md のリンク整合を確認
+
+            ## 優先
+            P2
+
+            ## 根拠
+            承諾済み優先提案 #5`
+              },
+            ];
+
+            function normalizeBody(text) {
+              return text.replace(/^[ \t]+/gm, '').trim() + '\n';
+            }
+
+            for (const issue of issues) {
+              const q = `repo:${owner}/${repo} is:issue in:title "${issue.title.replace(/"/g, '')}"`;
+              const search = await github.rest.search.issuesAndPullRequests({ q });
+              const hit = (search.data.items || []).find((it) => it.title === issue.title);
+              if (hit) {
+                core.info(`exists #${hit.number}: ${issue.title}`);
+                continue;
+              }
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title: issue.title,
+                labels: issue.labels,
+                body: normalizeBody(issue.body),
+              });
+              core.info(`created #${created.data.number}: ${created.data.html_url}`);
+            }
