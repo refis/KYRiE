@@ -40,6 +40,12 @@
     "walk": [
       "0085",
       "035F"
+    ],
+    "cart_from_body": [
+      "0126"
+    ],
+    "cart_to_body": [
+      "0127"
     ]
   },
   "dropitem_lifetime_ms": 60000,

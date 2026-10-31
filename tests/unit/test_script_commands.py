@@ -189,6 +189,96 @@ class ScriptCommandTests(unittest.TestCase):
         self.assertIn('openstorage;',code)
         self.assertFalse(any(line.startswith(('getitem ','delitem ')) for line in code.splitlines()))
 
+    def test_cart_transfer_is_not_an_npc_reward_or_deletion(self):
+        _,store,consume=self.setup_store()
+        consume(packet(0x127,struct.pack('<HI',9,50),direction='SEND'))
+        consume(pickup(index=2,item_id=1010,amount=50))
+        consume(packet(0x126,struct.pack('<HI',2,50),direction='SEND'))
+        consume(packet(0x7fa,struct.pack('<HHH',0,2,50)))
+        self.close(consume)
+        code=self.code(store)
+        self.assertFalse(any(line.startswith(('getitem ','getitem2 ','delitem ','delequip '))
+                             for line in code.splitlines()))
+        self.assertFalse(store.commands.observations)
+        inventory=store.commands.states[(0,'game')]['inventory'][2]
+        self.assertEqual((inventory['item_id'],inventory['amount']),(1010,0))
+
+    def test_cart_transfer_regressions_keep_normal_rewards_and_leave_ambiguous_unresolved(self):
+        # Request only / response only do not invent the other half.
+        _,store,consume=self.setup_store()
+        consume(packet(0x127,struct.pack('<HI',1,3),direction='SEND'))
+        self.close(consume)
+        self.assertFalse(store.commands.observations)
+        _,store,consume=self.setup_store()
+        consume(pickup(index=4,item_id=501,amount=3))
+        self.close(consume)
+        self.assertIn('getitem 501,3;',self.code(store))
+
+        # Different amount than the cart request remains a normal reward.
+        _,store,consume=self.setup_store()
+        consume(packet(0x127,struct.pack('<HI',1,7),direction='SEND'))
+        consume(pickup(index=5,item_id=502,amount=9))
+        self.close(consume)
+        self.assertIn('getitem 502,9;',self.code(store))
+        self.assertEqual(len(store.commands.states[(0,'game')]['cart_to_body']),1)
+
+        # Half-connection SEND/RECV still share flow-scoped cart state.
+        _,store,consume=self.setup_store(split_connections=True)
+        consume(packet(0x127,struct.pack('<HI',8,4),direction='SEND'))
+        consume(pickup(index=6,item_id=503,amount=4))
+        consume(packet(0x126,struct.pack('<HI',6,4),direction='SEND'))
+        consume(packet(0x7fa,struct.pack('<HHH',0,6,4)))
+        self.close(consume)
+        self.assertFalse(any(line.startswith(('getitem ','delitem ')) for line in self.code(store).splitlines()))
+
+        # Ambiguous same-amount cart withdrawals stay review-only, not executable.
+        _,store,consume=self.setup_store()
+        consume(packet(0x127,struct.pack('<HI',1,2),direction='SEND'))
+        consume(packet(0x127,struct.pack('<HI',2,2),direction='SEND'))
+        consume(pickup(index=7,item_id=504,amount=2))
+        self.close(consume)
+        code=self.code(store)
+        self.assertIn('// getitem 504,2;',code)
+        self.assertFalse(any(line.startswith('getitem ') for line in code.splitlines()))
+
+        # Partial amount vs cart-from-body request stays unresolved review.
+        _,store,consume=self.setup_store()
+        consume(pickup(index=8,item_id=505,amount=10))
+        consume(packet(0x126,struct.pack('<HI',8,10),direction='SEND'))
+        consume(packet(0x7fa,struct.pack('<HHH',0,8,4)))
+        self.close(consume)
+        code=self.code(store)
+        self.assertIn('getitem 505,10;',code)
+        self.assertIn('// delitem 505,4;',code)
+        self.assertFalse(any(line.startswith('delitem ') for line in code.splitlines()))
+
+        # Late cart response after many unrelated packets still suppresses reward conversion.
+        _,store,consume=self.setup_store()
+        consume(packet(0x127,struct.pack('<HI',3,1),direction='SEND'))
+        for _ in range(5):
+            consume(dialogue_packet(0xb4,struct.pack('<I',42)+b'x\0'))
+        consume(pickup(index=9,item_id=506,amount=1))
+        self.close(consume)
+        self.assertFalse(any(line.startswith('getitem ') for line in self.code(store).splitlines()))
+
+        # Normal NPC reward/deletion without cart SEND still emits.
+        _,store,consume=self.setup_store()
+        consume(pickup(index=2,item_id=507,amount=1))
+        consume(packet(0xaf,struct.pack('<HH',2,1)))
+        self.close(consume)
+        code=self.code(store)
+        self.assertIn('getitem 507,1;',code)
+        self.assertIn('delitem 507,1;',code)
+
+        # Storage suppression remains independent of cart handling.
+        _,store,consume=self.setup_store()
+        consume(packet(0xf2,struct.pack('<HH',0,600)))
+        consume(packet(0x127,struct.pack('<HI',4,1),direction='SEND'))
+        consume(pickup(index=3,item_id=508,amount=1))
+        self.close(consume)
+        self.assertIn('openstorage;',self.code(store))
+        self.assertFalse(any(line.startswith('getitem ') for line in self.code(store).splitlines()))
+
     def test_cutincard_is_not_generated_and_original_cutin_is_preserved(self):
         _,store,consume=self.setup_store()
         consume(packet(0x1b3,b'card_picture'.ljust(64,b'\0')+bytes([4])))
