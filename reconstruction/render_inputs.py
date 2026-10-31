@@ -40,7 +40,8 @@ class NpcRenderInputs:
 def freeze_npc_render_inputs():
     from reconstruction.emulator_profiles import profile
     files={}
-    for name in ('dialogue.json', 'shops.json', 'entity_metadata.json', 'status_ids.json'):
+    for name in ('dialogue.json', 'shops.json', 'entity_metadata.json', 'status_ids.json',
+                 'identity_protection.json'):
         path=profile(name).absolute()
         try:
             with path.open('rb') as stream:data=stream.read(MAX_PROFILE_BYTES+1)
