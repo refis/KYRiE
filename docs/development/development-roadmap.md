@@ -249,8 +249,9 @@ SHA256: `74e5748d61ac8c23222c3a55ac7a7e78f167826165075a51caa636eccabad7ef`。
 [公開元](https://github.com/refis/MARiA/blob/master/maria.py)の将来の変更まで反映した比較ではない。
 参照ソース上での機能存在を確認したもので、両製品の全動作を同一条件で試験した結果ではない。
 
-以下は2026-10-30時点の現行作業版。初期調査時の「未対応」記載を更新した。
-保存済みv0.0.4 ZIPの同梱範囲や実機検証済み範囲を拡大した意味ではない。
+以下は2026-11-01再確認の現行作業版。初期調査時の「未対応」記載を更新した。
+保存済みZIPの同梱範囲や実機検証済み範囲を拡大した意味ではない。
+受信表示側の要約は[受信パケットの表示書式](../capture/receive-display.md#mariaからの調査範囲と互換性)を参照。
 
 ### 1. NPC情報・会話・経路
 
@@ -264,15 +265,21 @@ OnTouch・初期表示状態・外見・group/title/waitingroomの候補出力�
 
 MARiAのReadPacketはclasschange、quest、announce、progressbar、値付きeffect、viewpoint、
 mapcell、BGM、showscript、status、会話サイズ・位置・整列等を逐次表示する。
-こちらもエモーション・基本効果・解除・unittalk・効果音・カットイン・マーカー・クエスト・
-会話中の状態通知等を、各命令の既存生成条件または未採用観測として保持する。
-BGM・対象付き進捗・値付き効果等は対象と起因の制約を明示。進捗応答は成功と断定しない。
-0192マップセル変更は対象マップ・座標・値を構造化し、同一MAP世代の比較窓へ関連表示する。
-呼出元NPCを割り当てずsetcellは未生成。実ログ例は未確認。
-会話サイズ・位置・整列は構造化観測・同一会話開始での比較と、進行中会話の命令生成に対応済み。
-イベントアイコン（0446）は観測・コメント保持まで。実行命令対応済みとは扱わない。
-帽子エフェクト（0A3B）も観測・コメント保持まで（#18）。残る display_only は
-[未対応通知](../npc/unsupported-notifications.md)を参照。
+こちらは種別ごとに観測／コメント／条件付き命令が分かれる（一括「対応済み」ではない）。
+
+| 種別 | KYRiEの到達点 |
+|------|----------------|
+| announce・通常 effect／解除・emotion・sound・cutin・unittalk | 条件付きで本文／命令候補へ |
+| quest set／delete | 通知と命令候補。条件式は生成しない |
+| classchange（01B0） | 観測。setnpcdisplay経路／コメント。単純classchange命令化は限定 |
+| progressbar（02F0／09D1） | 構造化。会話中は条件付き命令、対象付き・応答成功は断定しない |
+| viewpoint | 対応値は命令、未対応はコメント。タイマー採用は拒否 |
+| 値付き effect（0284）・BGM（07FE/0B8C） | 観測／コメント。実行命令・NPC割当なし |
+| mapcell（0192） | 構造化と比較窓関連。setcell未生成。実ログ例は未確認 |
+| showscript系 | overhead／showmessage候補。MARiA逐次表示の完全互換ではない |
+| 会話サイズ・位置・整列 | 構造化・比較・進行中会話の命令生成まで対応 |
+| 0446／0A3B | 観測・コメント／`not_adopted`。実行命令なし |
+| display_only | [未対応通知](../npc/unsupported-notifications.md) |
 
 ### 3. ワープ・移動・アイテム・Zeny
 
