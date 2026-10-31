@@ -30,7 +30,7 @@ def analyze(path, definitions):
     definition_text = ''.join(f'{pid:04X} {size}\n' for pid, size in sorted(definitions.items()))
     result.update(source_log=str(path), source_sha256=source_hash, replay=transport,
                   definitions_sha256=hashlib.sha256(definition_text.encode('utf-8')).hexdigest())
-    renderer = AurigaRenderer()
+    from reconstruction.identity_protection import identity_for_connection
     source = str(Path(path).resolve())
     merged = build_merged((source, conversation) for conversation in store.sessions)
     checks = {(ref['source_ref'], ref['capture_session'], ref['conversation_id']): group['presentation_check']
@@ -38,8 +38,11 @@ def analyze(path, definitions):
               }
     result['presentation_checks'] = [dict(npc=group['npc'], **group['presentation_check'])
                                      for group in merged['groups']]
-    result['auriga'] = [renderer.render(conversation, checks.get(observation_key(source, conversation)))
-                        for conversation in store.sessions]
+    result['auriga'] = [
+        AurigaRenderer(identity=identity_for_connection(
+            players, conversation.capture_session, conversation.flow_id)).render(
+            conversation, checks.get(observation_key(source, conversation)))
+        for conversation in store.sessions]
     if fingerprint(path,128*1024*1024)!=source_hash:
         raise ValueError('解析中に生ログが変更されました。取得停止後に再実行してください。')
     return result

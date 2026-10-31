@@ -68,6 +68,7 @@
 - [NPC・MOB個体の観測](observations/entity-observations.md)
 - [プレイヤー現在マップによる配置補完](observations/entity-map-context.md)
 - [グループ・称号とOnInit](observations/entity-group-title.md)
+- [操作キャラクター情報の保護置換](observations/identity-protection.md)
 
 ## 開発方針
 

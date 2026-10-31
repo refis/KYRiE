@@ -21,6 +21,10 @@ KYRiEはゲーム通信の観測・保存を扱います。リポジトリやIss
 
 診断ログにも平文ペイロードを出さないでください。
 
+観測ログとコード候補では、操作キャラクターの名前・パーティ名・ギルド名を
+`getstrcharinfo` 等へ置換し、本人ActorID注釈は `self` と表記します。
+詳細は [docs/observations/identity-protection.md](docs/observations/identity-protection.md)。
+
 ## 脆弱性や取り扱い上の懸念
 
 private リポジトリ向けの作業です。取得経路・IPC・保存周りで危険な挙動を見つけた場合は、公開Issueに詳細ペイロードを載せず、メンテナ（リポジトリ所有者）へ直接連絡してください。

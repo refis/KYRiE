@@ -164,7 +164,8 @@ class DisplayTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         for name in ('dialogue.json', 'entity_metadata.json', 'shops.json', 'mob_skills.json',
                      'mob_skill_configured.json', 'mob_spawns.json', 'mob_spawn_configured.json',
-                     'event_timers.json', 'script_commands.json', 'status_ids.json'):
+                     'event_timers.json', 'script_commands.json', 'status_ids.json',
+                     'identity_protection.json'):
             path = root / 'config' / 'rathena' / name
             self.assertTrue(path.is_file(), name)
             json.loads(path.read_text(encoding='utf-8'))
