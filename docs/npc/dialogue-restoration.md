@@ -5,8 +5,8 @@
 ## イベントアイコン（0446）
 
 0x0446は14バイト固定。ActorID・座標・state・kindを `event_marker` として構造化保持する。
-実行の showevent 命令は出さず、手動タイマー採用も未対応として拒否する。
-対照表と display_only の他IDは[未対応通知](unsupported-notifications.md)。
+実行の showevent 命令は出さない。手動タイマーではコメント採用のみ
+（[タイマー候補](event-timer-candidates.md)）。対照表は[未対応通知](unsupported-notifications.md)。
 
 ## 値付きエフェクト
 
@@ -16,8 +16,9 @@ effect_valueとして通常付与・解除から区別し、追加値の異な�
 会話・入力待ち・別の既知NPCへの外部候補を保持し、値・ID・有無・順序の相違を反復照合する。
 
 ローカルAurigaにはmisceffect_valueスクリプト命令の登録が確認できないため、生成は観測コメントまでとする。
-追加値を捨ててmisceffectへ置き換えない。観測窓の比較には残すが、この通知を含む手動タイマー候補は
-未対応演出として明示的に拒否し、通知を黙って省略しない。書式はdialogue.jsonのeffect_value／external_effect_value。
+追加値を捨ててmisceffectへ置き換えない。観測窓の比較には残す。手動タイマーではコメント採用のみで、
+実行命令へ落とさず黙って省略もしない。書式はdialogue.jsonのeffect_value／external_effect_valueと
+event_timers.jsonのeffect_value。
 全370テスト通過。合成パケット・GUIで検証し、実クライアント／Aurigaでの実行確認は未実施。
 既存ログ20261027-193248-fcdc039cで会話外の1件（effect_id=657、value=90406）も保持確認。
 再解析は会話6件・統合2群・会話解析問題0件。元ログは変更せず別レポートへ保存した。

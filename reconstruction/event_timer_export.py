@@ -9,17 +9,26 @@ from string import Formatter
 from reconstruction.announcements import template_values as announcement_values
 from reconstruction.event_trials import announcement_in_scope
 
-TIMER_PRESENTATION_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'announcement', 'unittalk'))
+TIMER_PRESENTATION_KINDS = frozenset((
+    'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
+    'effect_value', 'event_marker', 'classchange'))
+COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'classchange'))
 
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'event_timers.json'
 MAX_CONFIGURED_BYTES = 32 * 1024 * 1024
 FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_end': set(),
           'label': {'time_ms'}, 'evidence': {'packet', 'observed_ms', 'manual_ms'},
           'emotion': {'value'}, 'effect': {'value'}, 'effect_remove': {'value'},
-          'unittalk': {'text'}, 'label_end': set()}
+          'unittalk': {'text'}, 'overhead': {'text'},
+          'effect_value': {'effect_id', 'value'},
+          'event_marker': {'x', 'y', 'state', 'kind'},
+          'classchange': {'class_id', 'kind'},
+          'label_end': set()}
 ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
     'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
 FIELDS.update(ANNOUNCEMENT_FIELDS)
+DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
+                         'effect_value', 'event_marker', 'classchange')
 
 
 def _timer_profile(path=None):
@@ -77,6 +86,38 @@ def render_timer_text(document, report, trial_index):
     return text
 
 
+def _validate_observation_fields(row):
+    kind, fields = row['kind'], row['fields']
+    if kind == 'announcement':
+        announcement_values(fields)
+        return
+    if kind in ('unittalk', 'overhead'):
+        if set(fields) != {'text'} or not isinstance(fields['text'], str) or len(fields['text']) > 65535:
+            raise ValueError('ユニット／頭上メッセージの本文が不正です。')
+        return
+    if kind == 'effect_value':
+        if (set(fields) != {'effect_id', 'value'}
+                or any(type(fields[key]) is not int or not 0 <= fields[key] <= 2147483647
+                       for key in ('effect_id', 'value'))):
+            raise ValueError('値付きエフェクトの観測値が不正です。')
+        return
+    if kind == 'event_marker':
+        if (set(fields) != {'x', 'y', 'state', 'kind'}
+                or any(type(fields[key]) is not int or not 0 <= fields[key] <= 65535
+                       for key in fields)):
+            raise ValueError('イベントアイコンの観測値が不正です。')
+        return
+    if kind == 'classchange':
+        if (set(fields) != {'class_id', 'kind'}
+                or type(fields['class_id']) is not int or not 0 <= fields['class_id'] <= 2147483647
+                or type(fields['kind']) is not int or not 0 <= fields['kind'] <= 255):
+            raise ValueError('外見変更の観測値が不正です。')
+        return
+    value = fields.get('value')
+    if type(value) is not int or not 0 <= value <= (255 if kind == 'emotion' else 2147483647):
+        raise ValueError('演出IDが範囲外です。')
+
+
 def validate_timer_trial(report, trial_index):
     """Shared entry guard for the editor and generator, including legacy reports."""
     if report.get('anchor_type', 'presentation') != 'presentation' or report.get('include_dialogue_actions'):
@@ -95,7 +136,11 @@ def validate_timer_trial(report, trial_index):
                           if event['observation']['kind'] not in TIMER_PRESENTATION_KINDS)
     if unsupported:
         kinds = ' / '.join(f'{kind}: {count}件' for kind, count in sorted(unsupported.items()))
-        raise ValueError('未対応演出: '+kinds+'。この試行は比較のみです。対象NPC自身のエモーション・エフェクト・解除・announce・unittalkに対応しています。')
+        raise ValueError(
+            '未対応演出: '+kinds+'。この試行は比較のみです。'
+            '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
+            'およびコメント採用の値付きエフェクト・イベントアイコン・外見変更に対応しています。'
+            'sound／music／viewpoint／progressbar／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
         raise ValueError('対象NPCの名前とマップが必要です。')
@@ -116,15 +161,7 @@ def validate_timer_trial(report, trial_index):
             raise ValueError('演出の対象・配置・取得範囲が一致しません。')
         if type(row.get('packet_index')) is not int or row['packet_index'] < 0:
             raise ValueError('演出の根拠Packet番号がありません。')
-        value = row['fields'].get('value')
-        if row['kind'] == 'announcement':
-            announcement_values(row['fields'])
-        elif row['kind'] == 'unittalk':
-            if (set(row['fields']) != {'text'} or not isinstance(row['fields']['text'], str)
-                    or len(row['fields']['text']) > 65535):
-                raise ValueError('ユニット発言の本文が不正です。')
-        elif type(value) is not int or not 0 <= value <= (255 if row['kind'] == 'emotion' else 2147483647):
-            raise ValueError('演出IDが範囲外です。')
+        _validate_observation_fields(row)
         try:
             valid_offset = type(offset) in (int, float) and math.isfinite(offset) and offset >= previous
         except OverflowError:
@@ -151,7 +188,7 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
     templates = json.loads(Path(profile).read_text(encoding='utf-8'))
     if isinstance(templates, dict):
         defaults = json.loads(DEFAULT_PROFILE.read_text(encoding='utf-8'))
-        for key in (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk'):
+        for key in DEFAULT_FALLBACK_KEYS:
             templates.setdefault(key, defaults[key])
     if not isinstance(templates, dict) or set(templates) != set(FIELDS):
         raise ValueError('タイマー候補書式の項目が不正です。')
@@ -167,18 +204,22 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
     def emit(key, indent=False, **values):
         nonlocal size
         text = templates[key].format_map(values)
-        if key in ('header', 'evidence') and any(not line.startswith('//') or '\r' in line for line in text.split('\n')):
-            raise ValueError('注意文と根拠の書式は全行コメントにしてください。')
+        comment_only = all(line.startswith('//') and '\r' not in line for line in text.split('\n'))
+        if key in ('header', 'evidence') or key in COMMENT_TIMER_KINDS:
+            if not comment_only:
+                raise ValueError('注意文・根拠・コメント採用演出の書式は全行コメントにしてください。')
         if key == 'label' and text != f'OnTimer{values["time_ms"]}:':
             raise ValueError('タイマーラベル書式が手入力時刻と一致しません。')
         if key in ('entry_end', 'label_end') and not re.fullmatch(r'end[ \t]*;', text):
             raise ValueError('タイマー候補の終端はend命令にしてください。')
-        if key in ('emotion', 'effect', 'effect_remove'):
+        if key in ('emotion', 'effect', 'effect_remove') and not comment_only:
             command = {'emotion': 'emotion', 'effect': 'misceffect', 'effect_remove': 'delmisceffect'}[key]
             if not re.fullmatch(command + r'[ \t]+' + str(values['value']) + r'[ \t]*;', text):
                 raise ValueError('演出書式の命令・IDが観測内容と一致しません。')
-        if key == 'unittalk' and text != 'unittalk '+values['text']+';':
+        if key == 'unittalk' and not comment_only and text != 'unittalk '+values['text']+';':
             raise ValueError('ユニット発言書式の命令・本文が観測内容と一致しません。')
+        if key == 'overhead' and not comment_only and text != 'showmessage '+values['text']+';':
+            raise ValueError('頭上メッセージ書式の命令・本文が観測内容と一致しません。')
         for line in text.split('\n'):
             line = (templates['indent'] if indent else '') + line
             size += len(line) + 1
@@ -199,8 +240,14 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         if row['kind'] == 'announcement':
             template, values = announcement_values(row['fields'])
             emit(template, True, **values)
-        elif row['kind'] == 'unittalk':
-            emit('unittalk', True, text=json.dumps(row['fields']['text'], ensure_ascii=False))
+        elif row['kind'] in ('unittalk', 'overhead'):
+            emit(row['kind'], True, text=json.dumps(row['fields']['text'], ensure_ascii=False))
+        elif row['kind'] == 'effect_value':
+            emit('effect_value', True, effect_id=row['fields']['effect_id'], value=row['fields']['value'])
+        elif row['kind'] == 'event_marker':
+            emit('event_marker', True, **{key: row['fields'][key] for key in ('x', 'y', 'state', 'kind')})
+        elif row['kind'] == 'classchange':
+            emit('classchange', True, class_id=row['fields']['class_id'], kind=row['fields']['kind'])
         else:
             emit(row['kind'], True, value=row['fields']['value'])
         previous_time = time

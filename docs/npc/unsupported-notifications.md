@@ -27,7 +27,7 @@
 | 状態 | `observed` + `not_adopted` |
 | 観測 kind | `event_marker` |
 | 生成 | コメントのみ（`event_marker` / `external_event_marker`）。実行 `showevent` は出さない |
-| タイマー | `TIMER_PRESENTATION_KINDS` 外。手動採用も未対応として拒否 |
+| タイマー | 手動採用時は**全行コメント**のみ。実行 showevent は出さない（[event-timer-candidates](event-timer-candidates.md)） |
 | 外部候補 | 会話中の別既知NPCへ届いた場合は `external_presentations` へ保持。呼出し元は未確定 |
 
 合成パケットで decode・保持・コメント出力・タイマー拒否を確認。実機／Auriga実行確認は不要（本Issue範囲）。
@@ -54,7 +54,7 @@
 |-----------|------|----------------|
 | `music`（07FE/0B8C） | 対象なしで構造化 | 本文・タイマーへ musiceffect しない（[event-trials](event-trials.md)） |
 | `mapcell`（0192） | 構造化 | setcell／タイマーへ出さない |
-| `effect_value`（0284） | 構造化・コメント | 実行命令なし。タイマー拒否（[dialogue-restoration](dialogue-restoration.md)） |
+| `effect_value`（0284） | 構造化・コメント | 実行命令なし。タイマーはコメント採用可（[event-timer-candidates](event-timer-candidates.md)） |
 | `external_*` | 外部候補 | 既定はコメント。採用切替は別Issue |
 | `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 対応範囲外はコメントまたは非タイマー |
 
