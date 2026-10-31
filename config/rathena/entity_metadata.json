@@ -4,6 +4,8 @@
   "oninit": "OnInit:",
   "npc_group": "// setnpcgroup相当はrAthena未確認: group_id={group_id}",
   "npc_title": "// setnpctitle相当はrAthena未確認: title={title}",
+  "npc_group_log": "// setnpcgroup相当はrAthena未確認: group_id={group_id}\t// NPC {actor_id} {actor_name}",
+  "npc_title_log": "// setnpctitle相当はrAthena未確認: title={title}\t// NPC {actor_id} {actor_name}",
   "mob_group": "// setunitgroup相当はrAthena未確認: group_id={group_id}, actor_id={actor_id}",
   "mob_title": "setunittitle {actor_id},{title};",
   "end": "end;",
