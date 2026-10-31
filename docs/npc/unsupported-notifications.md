@@ -55,11 +55,7 @@
 | `music`（07FE/0B8C） | 対象なしで構造化 | 本文・タイマーへ musiceffect しない（[event-trials](event-trials.md)） |
 | `mapcell`（0192） | 構造化 | setcell／タイマーへ出さない |
 | `effect_value`（0284） | 構造化・コメント | 実行命令なし。タイマーはコメント採用可（[event-timer-candidates](event-timer-candidates.md)） |
-<<<<<<< HEAD
 | `external_*` | 外部候補 | 既定はコメント。emotion／effect／解除／overhead／unittalk は明示採用可（#16）。sound等は不可 |
-=======
-| `external_*` | 外部候補 | 既定はコメント。採用切替は #16 |
->>>>>>> origin/main
 | `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 対応範囲外はコメントまたは非タイマー |
 
 ## 変更時の確認
