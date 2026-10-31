@@ -33,6 +33,8 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'effect_value': {'effect_id', 'value'}, 'external_effect_value': {'effect_id', 'value', 'target'},
                        'event_marker': {'x', 'y', 'state', 'kind'},
                        'external_event_marker': {'x', 'y', 'state', 'kind', 'target'},
+                       'hat_effect': {'enabled', 'effect_id'},
+                       'external_hat_effect': {'enabled', 'effect_id', 'target'},
                        'external_effect_remove': {'value', 'target'},
                        'classchange': {'class_id', 'kind'},
                        'progressbar': {'seconds', 'color'},
@@ -200,7 +202,7 @@ class AurigaRenderer:
             kind = row['kind']
             adopted = row.get('adoption_confirmed') is True and kind in self.ADOPTABLE_EXTERNAL_KINDS
             if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
-                            'sound', 'effect_value', 'event_marker'):
+                            'sound', 'effect_value', 'event_marker', 'hat_effect'):
                 continue
             if adopted:
                 adopted_any = True
@@ -518,6 +520,8 @@ class AurigaRenderer:
             elif kind == 'event_marker':
                 emit('event_marker', depth, x=fields['x'], y=fields['y'],
                      state=fields['state'], kind=fields['kind'])
+            elif kind == 'hat_effect':
+                emit('hat_effect', depth, enabled=fields['enabled'], effect_id=fields['effect_id'])
             elif kind == 'classchange':
                 if npc_name:
                     emit('script_rendered',depth,text=render_display(dict(name=npc_name,map_name=map_name),{'class_id':fields['class_id']},self.templates))

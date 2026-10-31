@@ -11,8 +11,8 @@ from reconstruction.event_trials import announcement_in_scope
 
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
-    'effect_value', 'event_marker', 'classchange'))
-COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'classchange'))
+    'effect_value', 'event_marker', 'hat_effect', 'classchange'))
+COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'hat_effect', 'classchange'))
 
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'event_timers.json'
 MAX_CONFIGURED_BYTES = 32 * 1024 * 1024
@@ -22,13 +22,14 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'unittalk': {'text'}, 'overhead': {'text'},
           'effect_value': {'effect_id', 'value'},
           'event_marker': {'x', 'y', 'state', 'kind'},
+          'hat_effect': {'enabled', 'effect_id'},
           'classchange': {'class_id', 'kind'},
           'label_end': set()}
 ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
     'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
-                         'effect_value', 'event_marker', 'classchange')
+                         'effect_value', 'event_marker', 'hat_effect', 'classchange')
 
 
 def _timer_profile(path=None):
@@ -106,6 +107,12 @@ def _validate_observation_fields(row):
                 or any(type(fields[key]) is not int or not 0 <= fields[key] <= 65535
                        for key in fields)):
             raise ValueError('イベントアイコンの観測値が不正です。')
+        return
+    if kind == 'hat_effect':
+        if (set(fields) != {'enabled', 'effect_id'}
+                or type(fields['enabled']) is not int or not 0 <= fields['enabled'] <= 255
+                or type(fields['effect_id']) is not int or not 0 <= fields['effect_id'] <= 65535):
+            raise ValueError('帽子エフェクトの観測値が不正です。')
         return
     if kind == 'classchange':
         if (set(fields) != {'class_id', 'kind'}
@@ -246,6 +253,8 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             emit('effect_value', True, effect_id=row['fields']['effect_id'], value=row['fields']['value'])
         elif row['kind'] == 'event_marker':
             emit('event_marker', True, **{key: row['fields'][key] for key in ('x', 'y', 'state', 'kind')})
+        elif row['kind'] == 'hat_effect':
+            emit('hat_effect', True, enabled=row['fields']['enabled'], effect_id=row['fields']['effect_id'])
         elif row['kind'] == 'classchange':
             emit('classchange', True, class_id=row['fields']['class_id'], kind=row['fields']['kind'])
         else:

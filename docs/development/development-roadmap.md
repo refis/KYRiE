@@ -271,7 +271,8 @@ BGM・対象付き進捗・値付き効果等は対象と起因の制約を明�
 呼出元NPCを割り当てずsetcellは未生成。実ログ例は未確認。
 会話サイズ・位置・整列は構造化観測・同一会話開始での比較と、進行中会話の命令生成に対応済み。
 イベントアイコン（0446）は観測・コメント保持まで。実行命令対応済みとは扱わない。
-他の display_only 通知は[未対応通知](../npc/unsupported-notifications.md)を参照。
+帽子エフェクト（0A3B）も観測・コメント保持まで（#18）。残る display_only は
+[未対応通知](../npc/unsupported-notifications.md)を参照。
 
 ### 3. ワープ・移動・アイテム・Zeny
 
@@ -377,7 +378,7 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
 - 最初は候補と根拠を保存。利用者が採用した観測に限り、編集用の待機／タイマー形式へ出力する。
   [手動採用・全時刻手入力のNPCタイマー候補](../npc/event-timer-candidates.md)を追加済み。
   実行採用: emotion／effect／effect_remove／announce／unittalk／対象NPC自身のoverhead。
-  コメント採用: effect_value／event_marker／classchange。
+  コメント採用: effect_value／event_marker／hat_effect／classchange。
   sound／music／viewpoint／progressbar／mapcell等は明示拒否。開始条件は生成しない。
   本体での読込・実行確認は残る。OnTimer値・sleep命令・イベントラベルが元コードと一致するとは扱わない。
 - 完了条件: 単発や欠損ログを自動でタイマー化せず、演出の相違が注意として残り、
@@ -508,13 +509,13 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 2026-10-31時点。優先提案 #5–#9（Issue #5–#9 / PR #4・#11–#14）は完了済み。
 残る分割・補完（生データ採取必須を除く）:
 
-1. P2: display_only 通知の個別構造化配線（#18 / #5残・必要時。一覧化は完了）
-2. P1-C継続: 状態／エフェクト辞書の版・出典外部化、MOB配置の湧き数・ディレイ未補完
+1. P1-C継続: 状態／エフェクト辞書の版・出典外部化、MOB配置の湧き数・ディレイ未補完
+2. 残 display_only（0A24 等）は必要時に個別配線（#18 で 0A3B を完了）
 
 完了済みの参照: P2 イベントアイコン一覧・0446は #5 / PR #11、P1-A③採用フラグは #6 / PR #12、
 P1-Bタイマー演出拡張は #7 / PR #13、P1-C文字列VAL・辞書版docsは #8 / PR #14、
 roadmap再同期は #15 / PR #20、external_* 採用切替は #16 / PR #21、
-共通イベント列の相違・除外表示は #17。
+共通イベント列の相違・除外表示は #17、帽子エフェクト 0A3B 構造化は #18。
 
 P0-BのGUI読み戻し・作業プロジェクト・複数ログは実装済み
 （[読み戻し](../guide/offline-replay.md) / [プロジェクト](../guide/offline-project.md) /

@@ -36,6 +36,10 @@ def presentation_context(row):
         result.update(actor_role='event_marker_target',
             short='イベントアイコンの対象IDです。起因NPC・OnTimer・表示条件は未確定です。',
             summary='0x0446は対象ActorIDと座標・state・kindを保持します。表示JSONの@showevent雛形とは別で、会話命令やNPCタイマーへは変換しません。起因・他ユーザー操作の混入は確定せず、手動確認前の実行命令も生成しません。')
+    elif kind=='hat_effect':
+        result.update(actor_role='hat_effect_target',
+            short='帽子エフェクトの対象IDです。起因・装備条件・実行命令は未確定です。',
+            summary='0x0A3Bは対象ActorID・enabled・effect_idを保持します。表示JSONの@hat_effect雛形とは別で、会話命令やNPCタイマーへ実行命令は出しません。コメント採用のみとし、hateffect等の未確認命令へ置き換えません。')
     elif kind=='mapcell':
         result.update(actor_role='map_cell',observed_actor_id=None,
             short='マップセル変更の観測です。呼出元NPCのIDは含まれていません。',
