@@ -1,35 +1,45 @@
-"""Read-only review of recipient evidence, never confirmation of a caller."""
+"""External candidate review; optional explicit adoption never confirms the caller."""
 from reconstruction.speech_origin import index_player_notifications
 from reconstruction.player_notification_review import review_player_notification_repeats
+from reconstruction.dialogue import DialogueStore
 from copy import deepcopy
 import json
-from PySide6.QtCore import QSignalBlocker
+from PySide6.QtCore import Qt, QSignalBlocker
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableWidget,
-    QTableWidgetItem, QAbstractItemView, QPushButton, QPlainTextEdit)
+    QTableWidgetItem, QAbstractItemView, QPushButton, QPlainTextEdit, QMessageBox)
 
 KINDS = {'emotion': 'エモーション', 'effect': 'エフェクト', 'sound': '効果音',
          'effect_remove': 'エフェクト解除',
          'effect_value': '値付きエフェクト',
+         'event_marker': 'イベントアイコン',
          'overhead': '頭上メッセージ', 'unittalk': 'ユニット発言'}
 
 
 class ExternalPresentationPanel(QWidget):
-    def __init__(self, on_source):
+    def __init__(self, on_source, store=None, on_changed=None):
         super().__init__()
         self.on_source, self.rows = on_source, []
+        self.store, self.on_changed = store, on_changed
+        self.conversation = None
         self.is_current = None
         self.player_review = None
         layout = QVBoxLayout(self)
         self.caption = QLabel()
         self.caption.setWordWrap(True)
         layout.addWidget(self.caption)
-        self.table = QTableWidget(0, 5)
-        self.table.setHorizontalHeaderLabels(['取得 / 会話', '演出', '受信対象 / ID / 観測区間', '演出Packet', '直前会話Packet'])
+        layout.addWidget(QLabel(
+            '外部演出の命令採用（emotion／effect／解除／overhead／unittalk）。'
+            '呼出し元は未確定のまま。未確認行はコメントのみ。sound等は採用不可。'))
+        self.table = QTableWidget(0, 6)
+        self.table.setHorizontalHeaderLabels(
+            ['採用', '取得 / 会話', '演出', '受信対象 / ID / 観測区間', '演出Packet', '直前会話Packet'])
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.table.setColumnWidth(0, 50)
         self.table.itemSelectionChanged.connect(self.show_selected)
-        self.table.cellDoubleClicked.connect(lambda *_: self.jump('packet_index'))
+        self.table.itemChanged.connect(self.toggle_adoption)
+        self.table.cellDoubleClicked.connect(lambda row, column: self.jump('packet_index') if column != 0 else None)
         layout.addWidget(self.table)
         actions = QHBoxLayout()
         self.event_button = QPushButton('演出の根拠パケット')
@@ -46,6 +56,7 @@ class ExternalPresentationPanel(QWidget):
 
     def set_conversation(self, conversation, group=None, sources=None, player_notifications=(), *, is_current=None):
         self.rows = []
+        self.conversation = conversation
         self.is_current = is_current
         sources = sources or {}
         contributions = group['contributions'] if group else ([dict(conversation=vars(conversation),
@@ -79,18 +90,41 @@ class ExternalPresentationPanel(QWidget):
             self.player_review_error=''
         except ValueError as exc:
             self.player_review=None;self.player_review_error=str(exc)
-        self.table.clearSelection()
-        self.table.setCurrentCell(-1, -1)
-        self.table.setRowCount(len(self.rows))
-        for number, row in enumerate(self.rows):
-            context={'during_dialogue':'会話中','input_wait':'入力待ち中','close_wait':'close応答待ち中'}.get(row['context'],'') if row.get('entity_kind')=='PLAYER' else ''
-            values = [f'{row["capture_session"]} / {row["conversation_id"]}', KINDS.get(row['kind'], row['kind'])+(' / '+context if context else ''),
-                      f'{row["npc"].get("name") or ('本人プレイヤー' if row.get('entity_kind')=='PLAYER' else '名称不明')} / {row["actor_id"]} / {row["npc"].get("appearance", "不明")}',
-                      row['packet_index'], row['anchor_packet_index']]
-            for column, value in enumerate(values):
-                cell = QTableWidgetItem('—' if value is None else str(value))
-                cell.setToolTip(row['source_ref'])
-                self.table.setItem(number, column, cell)
+        with QSignalBlocker(self.table):
+            self.table.clearSelection()
+            self.table.setCurrentCell(-1, -1)
+            self.table.setRowCount(len(self.rows))
+            for number, row in enumerate(self.rows):
+                context={'during_dialogue':'会話中','input_wait':'入力待ち中','close_wait':'close応答待ち中'}.get(row['context'],'') if row.get('entity_kind')=='PLAYER' else ''
+                adoptable = (row.get('context') == 'external_candidate' and row.get('entity_kind') == 'NPC'
+                             and row.get('kind') in DialogueStore.ADOPTABLE_EXTERNAL_KINDS
+                             and bool((row.get('npc') or {}).get('name'))
+                             and self.store is not None and self.conversation is not None
+                             and not group)
+                check = QTableWidgetItem()
+                if adoptable:
+                    check.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+                    check.setCheckState(Qt.Checked if row.get('adoption_confirmed') else Qt.Unchecked)
+                    check.setData(Qt.UserRole, row['packet_index'])
+                else:
+                    check.setFlags(Qt.ItemIsSelectable)
+                    if row.get('entity_kind') == 'PLAYER':
+                        check.setToolTip('本人宛て通知は外部NPC命令採用の対象外です。')
+                    elif row.get('kind') not in DialogueStore.ADOPTABLE_EXTERNAL_KINDS:
+                        check.setToolTip('この種別は命令採用できません。')
+                    elif group:
+                        check.setToolTip('統合表示では採用を切り替えません。単一会話を選んでください。')
+                    else:
+                        check.setToolTip('名称不明など、命令化できない候補です。')
+                values = [f'{row["capture_session"]} / {row["conversation_id"]}',
+                          KINDS.get(row['kind'], row['kind'])+(' / '+context if context else ''),
+                          f'{row["npc"].get("name") or ('本人プレイヤー' if row.get('entity_kind')=='PLAYER' else '名称不明')} / {row["actor_id"]} / {row["npc"].get("appearance", "不明")}',
+                          row['packet_index'], row['anchor_packet_index']]
+                self.table.setItem(number, 0, check)
+                for column, value in enumerate(values):
+                    cell = QTableWidgetItem('—' if value is None else str(value))
+                    cell.setToolTip(row['source_ref'])
+                    self.table.setItem(number, column + 1, cell)
         conflicts = group.get('presentation_check', {}).get('conflicts', 0) if group else 0
         players=sum(row.get('entity_kind')=='PLAYER' for row in self.rows)
         self.caption.setText(f'外部演出候補 {len(self.rows)-players}件 / 本人宛て関連通知 {players}件。受信対象と会話NPCは別に保持。'
@@ -107,9 +141,26 @@ class ExternalPresentationPanel(QWidget):
             self.caption.setText(self.caption.text()+f'\n本人通知比較の対象外 {len(self.player_review["excluded"])}観測 / 重複 {self.player_review["duplicate_observations"]}観測（理由は根拠JSON）。')
         self.show_selected()
 
+    def toggle_adoption(self, cell):
+        if cell is None or cell.column() != 0 or self.store is None or self.conversation is None:
+            return
+        packet_index = cell.data(Qt.UserRole)
+        if packet_index is None:
+            return
+        try:
+            self.store.set_external_adoption(self.conversation, packet_index, cell.checkState() == Qt.Checked)
+        except ValueError as exc:
+            with QSignalBlocker(self.table):
+                cell.setCheckState(Qt.Unchecked)
+            QMessageBox.warning(self, '命令採用を変更できません', str(exc))
+            return
+        if self.on_changed:
+            self.on_changed()
+
     def check_current(self):
         if self.is_current is not None and not self.is_current():
             self.rows=[]
+            self.conversation=None
             self.player_review=None
             with QSignalBlocker(self.table):
                 self.table.setRowCount(0)

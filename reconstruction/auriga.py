@@ -41,8 +41,13 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'overhead': {'text'},
                        'unittalk': {'text'},
                        'external_candidate': {'evidence'},
+                       'external_adoption_review': set(),
                        'external_emotion': {'value', 'target'}, 'external_effect': {'value', 'target'},
                        'external_overhead': {'text', 'target'}, 'external_unittalk': {'text', 'target'},
+                       'adopted_external_emotion': {'value', 'target'}, 'adopted_external_effect': {'value', 'target'},
+                       'adopted_external_effect_remove': {'value', 'target'},
+                       'adopted_external_overhead': {'text', 'target'},
+                       'adopted_external_unittalk': {'text', 'target'},
                        'external_sound': {'sound', 'mode', 'interval', 'target'},
                        'announcement': {'text', 'flag'},
                        'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'},
@@ -175,8 +180,11 @@ class AurigaRenderer:
         from reconstruction.emulator_profiles import profile
         return append_initialization(body, [conversation.npc], profile('entity_metadata.json', self._target))
 
+    ADOPTABLE_EXTERNAL_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk'))
+
     def _external_preamble(self, conversation):
         result = []
+        adopted_any = False
         for row in conversation.external_presentations:
             result.append(('external_candidate', dict(evidence=json.dumps(row, ensure_ascii=True, sort_keys=True))))
             name = row['npc'].get('name')
@@ -189,8 +197,18 @@ class AurigaRenderer:
             for key in ('text', 'sound'):
                 if key in values:
                     values[key] = _quote(values[key])
-            if row['kind'] != 'unittalk':
-                result.append(('external_' + row['kind'], values))
+            kind = row['kind']
+            adopted = row.get('adoption_confirmed') is True and kind in self.ADOPTABLE_EXTERNAL_KINDS
+            if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
+                            'sound', 'effect_value', 'event_marker'):
+                continue
+            if adopted:
+                adopted_any = True
+                result.append(('adopted_external_' + kind, values))
+            else:
+                result.append(('external_' + kind, values))
+        if adopted_any:
+            result.insert(0, ('external_adoption_review', {}))
         return result
 
     @staticmethod

@@ -53,12 +53,18 @@ class ConversationActionTests(unittest.TestCase):
         code = AurigaRenderer().render(item)
         expected = ['mes "hello";', 'delquest 100;', 'hideonnpc getmdnpcname("Target");',
                     'hideoffnpc getmdnpcname("Target");', 'cloakonnpc;', 'cloakoffnpc;',
-                    'unittalk getnpcid(0,getmdnpcname("Target")),"outside words";',
                     'unittalk "own words";', 'close;']
         positions = [code.index(command) for command in expected]
         self.assertEqual(positions, sorted(positions))
-        self.assertEqual(item, before)
-        self.assertFalse(build_merged([('', item)])['excluded'])
+        self.assertIn('// unittalk getnpcid(0,getmdnpcname("Target")),"outside words";', code)
+        self.assertTrue(all(not line.strip().startswith('unittalk getnpcid(0,') for line in code.splitlines()))
+        external = next(row for row in item.external_presentations if row['kind'] == 'unittalk')
+        store.set_external_adoption(item, external['packet_index'], True)
+        adopted = AurigaRenderer().render(item)
+        self.assertTrue(any(line.strip().startswith('unittalk getnpcid(0,') for line in adopted.splitlines()))
+        self.assertFalse(external['cause_confirmed'])
+        self.assertEqual(len(item.actions), len(before.actions))
+        self.assertFalse(build_merged([('', before)])['excluded'])
 
     def test_progress_wait_notification_preserves_reply_link_and_is_deferred_with_comment(self):
         store, consume = self.opened()

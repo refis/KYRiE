@@ -136,7 +136,8 @@ class DialoguePanel(QWidget):
         self.presentations = DeferredJsonView(ensure_current=self.ensure_json_current)
         self.presentations.setReadOnly(True)
         details.addTab(self.presentations, '並行・会話外演出')
-        self.external_presentations = ExternalPresentationPanel(show_source)
+        self.external_presentations = ExternalPresentationPanel(
+            show_source, store=store, on_changed=self._external_adoption_changed)
         details.addTab(self.external_presentations, '対象別通知')
         self.event_trials = EventTrialPanel(store, show_source)
         review_page = QWidget()
@@ -436,6 +437,10 @@ class DialoguePanel(QWidget):
             self.resource_adoption.blockSignals(False)
             QMessageBox.warning(self, '命令採用を変更できません', str(exc))
             return
+        self.revision = -1
+        self.refresh_selected()
+
+    def _external_adoption_changed(self):
         self.revision = -1
         self.refresh_selected()
 
