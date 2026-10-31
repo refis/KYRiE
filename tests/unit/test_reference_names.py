@@ -7,8 +7,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from parser.display import DisplayProfile,ReceiveDisplay
-from reconstruction.reference_names import load_reference_names,reference_labels
-from tools.build_reference_names import constants,maria_statuses,supplement_statuses
+from reconstruction.reference_names import (
+    DESCRIPTION_MISSING, load_reference_names, reference_labels)
+from tools.build_reference_names import (
+    constants, maria_statuses, status_descriptions, supplement_statuses)
 from tests.support.display import event
 
 
@@ -104,6 +106,62 @@ class ReferenceNameTests(unittest.TestCase):
         self.assertEqual(result.status,'decoded')
         self.assertEqual(result.fields['effect_id'],0xffffffff)
         self.assertFalse(result.fields['reference_known'])
+        self.assertEqual(result.fields['reference_description'],DESCRIPTION_MISSING)
         for raw in (packet.raw[:-1],packet.raw+b'\0'):
             self.assertEqual(display.decode(replace(packet,raw=raw)).status,'error')
         self.assertEqual(display.decode(event(0xb5,struct.pack('<I',42))).text,'next;')
+
+    def test_optional_japanese_descriptions_stay_separate_from_symbols_and_sc(self):
+        catalog=load_reference_names()
+        self.assertEqual(catalog['descriptions']['visual_effect'],{})
+        self.assertEqual(catalog['descriptions']['status_icon'],{})
+        labels=reference_labels(catalog,'status_icon',0)
+        self.assertEqual(labels['reference_symbols'],'EFST_PROVOKE')
+        self.assertEqual(labels['reference_description'],DESCRIPTION_MISSING)
+        fixture=copy.deepcopy({key:catalog[key] for key in catalog if not key.startswith('_')})
+        fixture['descriptions']={'status_icon':{'0':'挑発'},'visual_effect':{}}
+        fixture['description_sources']=[{
+            'namespace':'status_icon','path':'C:/fixture/stateiconinfo.lua',
+            'sha256':'a'*64,'field':'descriptive','encoding':'cp932'}]
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/'names.json'
+            path.write_text(json.dumps(fixture,ensure_ascii=False),encoding='utf-8')
+            loaded=load_reference_names(path)
+            self.assertEqual(reference_labels(loaded,'status_icon',0)['reference_description'],'挑発')
+            self.assertEqual(reference_labels(loaded,'status_icon',1)['reference_description'],
+                             DESCRIPTION_MISSING)
+            self.assertFalse(loaded['script_id_conversion'])
+            self.assertEqual(loaded['catalogs']['status_icon']['0'],['EFST_PROVOKE'])
+        for bad in (
+                {'status_icon':{'999999':'x'},'visual_effect':{}},
+                {'status_icon':{'0':'x\ny'},'visual_effect':{}},
+                {'status_icon':{'0':''},'visual_effect':{}},
+                {'status_icon':{'0':'挑発'},'visual_effect':{},'extra':{}}):
+            with self.subTest(repr=bad),tempfile.TemporaryDirectory() as folder:
+                data=copy.deepcopy(fixture)
+                data['descriptions']=bad
+                path=Path(folder)/'bad.json'
+                path.write_text(json.dumps(data,ensure_ascii=False),encoding='utf-8')
+                with self.assertRaises(ValueError):
+                    load_reference_names(path)
+        symbol_to_id={'EFST_PROVOKE':0,'EFST_ENDURE':1}
+        raw=('StateIconList={\n'
+             '[EFST_IDs.EFST_PROVOKE]={descriptive="挑発",haveTimeLimit=1},\n'
+             '[EFST_IDs.EFST_ENDURE]={descriptive="忍耐"},\n'
+             '[EFST_IDs.EFST_UNKNOWN]={descriptive="未対応IDは無視"},\n'
+             '}\n').encode('utf-8')
+        self.assertEqual(status_descriptions(raw,symbol_to_id,encoding='utf-8'),
+                         {'0':'挑発','1':'忍耐'})
+        with self.assertRaises(ValueError):
+            status_descriptions(
+                b'StateIconList={[EFST_IDs.EFST_PROVOKE]={descriptive="a\\nb"}}\n',
+                symbol_to_id,encoding='utf-8')
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/'named.json'
+            path.write_text(json.dumps(fixture,ensure_ascii=False),encoding='utf-8')
+            profile=DisplayProfile.load()
+            profile.reference_names=load_reference_names(path)
+            text=ReceiveDisplay(profile).decode(event(0x196,struct.pack('<HIB',0,42,1))).text
+        self.assertIn('挑発',text)
+        self.assertIn('EFST_PROVOKE',text)
+        self.assertIn('status_icon',text)
