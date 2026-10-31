@@ -58,8 +58,11 @@ class EffectValueTests(unittest.TestCase):
         report = repeated_report('effect_value')
         for trial in report['trials']:
             trial['events'][1]['observation']['fields'] = {'effect_id': 333, 'value': 9}
-        with self.assertRaisesRegex(ValueError, '未対応'):
-            build_timer_candidate(report, 0, [100, 1100], confirmed=True)
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('effect=333, value=9', code)
+        self.assertTrue(any(line.strip().startswith('//') and '値付きエフェクト' in line
+                            for line in code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('misceffect ') for line in code.splitlines()))
 
     def test_display_context_preserves_target_and_never_confirms_cause(self):
         from copy import deepcopy

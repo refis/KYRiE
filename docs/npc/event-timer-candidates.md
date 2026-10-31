@@ -30,10 +30,20 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 
 ## 出力範囲
 
-NPC対象のエモーション・エフェクト・エフェクト解除と、選択した観測窓内のannounceに対応する。
-emotionとmisceffectを、対象NPC自身が実行するOnTimerラベルの本文として出力する。
-効果音は採用しない。照合したsoundeffectはプレイヤーの紐付けが必要で、
-プレイヤーなしのNPCタイマーへ置くと同じ動作を再現できないため、別の実行方式の検証が必要。
+手動採用できる演出（対象NPC自身・会話外。announceは選択窓の関連候補）:
+
+| 種別 | 出力 |
+|------|------|
+| emotion / effect / effect_remove | 実行命令（Auriga: emotion / misceffect / delmisceffect） |
+| unittalk | 実行命令（unittalk） |
+| overhead | 実行命令（showmessage）。対象NPC自身のみ |
+| announcement | announce（関連候補・起因未確定の注記付き） |
+| effect_value / event_marker / classchange | **全行コメント**。実行命令へ落とさない |
+
+未対応のまま拒否する種別（比較列には載せられるがタイマー採用不可）:
+sound、music、viewpoint、progressbar／progress_action、mapcell、会話レイアウト、
+status_action、script_command、visibility_action、npc_display_action など。
+効果音・BGMはプレイヤー紐付けが必要で、NPCタイマー本文へ置いても同動作を再現できない。
 未対応演出を含む試行は、黙って省略せず拒否する。
 
 候補は既存の対象NPC本文へ統合するラベル断片。NPC宣言は生成しない。

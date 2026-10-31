@@ -123,7 +123,8 @@ class EventTimerExportTests(unittest.TestCase):
         for fields in changes:
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation'].update(fields)
             with self.subTest(fields=fields),self.assertRaises(ValueError):validate_timer_trial(changed,0)
-        for kind in ('music','sound','viewpoint','progress_action','status_action','script_command','visibility_action','npc_display_action'):
+        for kind in ('music','sound','viewpoint','progressbar','progress_action','status_action',
+                     'script_command','visibility_action','npc_display_action','mapcell','dialogue_size'):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation']['kind']=kind
             with self.subTest(kind=kind),self.assertRaises(ValueError):validate_timer_trial(changed,0)
         announcement=deepcopy(report);event=announcement['trials'][0]['events'][1]
@@ -170,6 +171,25 @@ class EventTimerExportTests(unittest.TestCase):
             with self.subTest(change=change),self.assertRaises(ValueError):
                 build_timer_candidate(changed,0,[100,1100],confirmed=True)
         self.assertEqual(report,before)
+
+    def test_overhead_and_comment_timer_kinds_are_manually_adoptable(self):
+        report = repeated_report('overhead')
+        for trial in report['trials']:
+            trial['events'][1]['observation']['fields'] = {'text': '頭上"}'}
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('showmessage ' + json.dumps('頭上"}', ensure_ascii=False) + ';', code)
+        for kind, fields, needle in (
+                ('effect_value', {'effect_id': 7, 'value': 9}, 'effect=7, value=9'),
+                ('event_marker', {'x': 1, 'y': 2, 'state': 3, 'kind': 4}, 'state=3, kind=4, x=1, y=2'),
+                ('classchange', {'class_id': 1002, 'kind': 1}, 'class=1002, kind=1')):
+            with self.subTest(kind=kind):
+                sample = repeated_report(kind)
+                for trial in sample['trials']:
+                    trial['events'][1]['observation']['fields'] = fields
+                text = build_timer_candidate(sample, 0, [100, 1100], confirmed=True)['auriga']
+                self.assertIn(needle, text)
+                self.assertTrue(any(line.lstrip().startswith('//') and needle in line
+                                    for line in text.splitlines()))
 
     def test_unittalk_audit_is_preliminary_bounded_and_keeps_source_reasons(self):
         from tools.audit_event_trial_review import review_unittalk

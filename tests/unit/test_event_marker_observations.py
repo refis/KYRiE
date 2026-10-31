@@ -52,7 +52,7 @@ class EventMarkerObservationTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 decode_dialogue(replace(good, raw=raw))
 
-    def test_field_changes_conflict_and_timer_generation_stays_unsupported(self):
+    def test_field_changes_conflict_and_timer_adoption_stays_comment_only(self):
         for fields in (None, {'x': 10, 'y': 20, 'state': 1, 'kind': 9},
                        {'x': 11, 'y': 20, 'state': 1, 'kind': 2}):
             first, second = conversation(), conversation(identifier=2)
@@ -69,8 +69,9 @@ class EventMarkerObservationTests(unittest.TestCase):
         for trial in report['trials']:
             trial['events'][1]['observation']['fields'] = {
                 'x': 10, 'y': 20, 'state': 1, 'kind': 2}
-        with self.assertRaisesRegex(ValueError, '未対応'):
-            build_timer_candidate(report, 0, [100, 1100], confirmed=True)
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('state=1, kind=2, x=10, y=20', code)
+        self.assertFalse(any(line.strip().startswith('showevent') for line in code.splitlines()))
 
     def test_display_context_preserves_target_and_never_confirms_cause(self):
         from gui.presentation_context import presentation_context

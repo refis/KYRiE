@@ -505,10 +505,10 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 1. P2: イベントアイコン等の未対応通知の対象洗い出しと構造化保持（0446観測＋一覧docs着手済み。残りdisplay_onlyの個別配線は必要時）
 2. P1-A③: 確認済み対象・操作だけを命令候補へ切替（adoption_confirmed 着手）
-3. P1-B: 手動タイマー／共通イベント列の対応演出拡張
+3. P1-B: 手動タイマー／共通イベント列の対応演出拡張（overhead実行＋effect_value／event_marker／classchangeコメント採用）
 4. P1-C: MOBスキル候補の文字列VALと辞書版の扱い
 5. 文書: 本ロードマップ／restoration-plan と実装のズレ解消（#9 / PR #4 で反映済み）
-   P2 イベントアイコン一覧・0446保持は #5 / PR #11 で反映済み
+   P2 イベントアイコン一覧・0446保持は #5 / PR #11、P1-A③採用フラグは #6 / PR #12 で反映済み
 
 P0-BのGUI読み戻し・作業プロジェクト・複数ログは実装済み
 （[読み戻し](../guide/offline-replay.md) / [プロジェクト](../guide/offline-project.md) /
