@@ -133,6 +133,8 @@ class PlayerState:
     actor_id: int | None = None
     character_id: int | None = None
     character_name: str | None = None
+    party_name: str | None = None
+    guild_name: str | None = None
     base_exp: int | None = None
     job_exp: int | None = None
     sex: int | None = None

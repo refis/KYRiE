@@ -1,0 +1,19 @@
+{
+  "self_actor_label": "self",
+  "text_fields": [
+    "character_name",
+    "party_name",
+    "guild_name"
+  ],
+  "expressions": {
+    "character_name": "getstrcharinfo(0)",
+    "party_name": "getstrcharinfo(1)",
+    "guild_name": "getstrcharinfo(2)"
+  },
+  "actor_value_keys": [
+    "actor_id",
+    "target_id",
+    "source_actor_id",
+    "unit_actor_id"
+  ]
+}

@@ -228,6 +228,19 @@ class DialoguePanel(QWidget):
         index = self.selection.currentIndex()
         return self.store.sessions[index] if 0 <= index < len(self.store.sessions) else None
 
+    def renderer(self):
+        from reconstruction.identity_protection import identity_from_player
+        window = self.window()
+        players = getattr(window, 'players', None)
+        item = self.selected()
+        state = None
+        if players is not None and item is not None:
+            flow = item.flow_id
+            state = players.states.get((item.capture_session, flow))
+            if state is None:
+                state = players.states.get((0, flow))
+        return AurigaRenderer(identity=identity_from_player(state))
+
     def json_state(self):
         item=self.selected()
         return (self.store,self.store.revision,id(item),tuple(sorted(self.store.source_refs.items())),self.merge_checkbox.isChecked())
@@ -322,7 +335,7 @@ class DialoguePanel(QWidget):
                                                          self.store.source_refs, self.store.presentation_observations,
                 is_current=lambda store=self.store,revision=self.store.revision,sources=dict(self.store.source_refs):
                     self.store is store and store.revision==revision and store.source_refs==sources)
-            renderer = AurigaRenderer()
+            renderer = self.renderer()
             check = group.get('presentation_check') if group else None
             warning = (f'演出不一致 {check["conflicts"]}経路 / 他ユーザー操作等の混入可能性・原因未確定'
                        if check and check['conflicts'] else '')
@@ -383,7 +396,7 @@ class DialoguePanel(QWidget):
     def save_merged(self):
         try:
             report = deepcopy(self.merged_report())
-            renderer = AurigaRenderer()
+            renderer = self.renderer()
             result = dict(report, **renderer.render_groups(report['groups']),
                           source_sessions={str(key): value for key, value in self.store.source_refs.items()})
             protected = self.export_protected_paths()
@@ -458,7 +471,7 @@ class DialoguePanel(QWidget):
         if item is None and not as_json:
             return
         try:
-            renderer = AurigaRenderer() if not as_json else None
+            renderer = self.renderer() if not as_json else None
             result = (deepcopy(self.store.snapshot()) if as_json else
                       renderer.render_merged(self.selected_group()) if self.merge_checkbox.isChecked() else
                       renderer.render(item, presentation_check=(self.selected_group() or {}).get('presentation_check')))
@@ -481,7 +494,7 @@ class DialoguePanel(QWidget):
             group = self.selected_group()
             if self.merge_checkbox.isChecked() and group is None:
                 raise ValueError('統合対象の会話を選択してください。')
-            text = AurigaRenderer().render_npc_file(item, group if self.merge_checkbox.isChecked() else None,
+            text = self.renderer().render_npc_file(item, group if self.merge_checkbox.isChecked() else None,
                                                   (group or {}).get('presentation_check'))
             protected = self.export_protected_paths()
             path, _ = QFileDialog.getSaveFileName(self, '配置付きNPC編集用候補を保存',

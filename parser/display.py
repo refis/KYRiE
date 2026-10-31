@@ -64,7 +64,11 @@ def _render(template, values):
         result.append(literal)
         if name is not None:
             value = values[name]
-            result.append(json.dumps(str(value), ensure_ascii=False) if spec == 'q' else format(value, spec))
+            if spec == 'q' and values.get('_protect_text_' + name):
+                # Expression already includes quotes / getstrcharinfo concatenations.
+                result.append(str(value))
+            else:
+                result.append(json.dumps(str(value), ensure_ascii=False) if spec == 'q' else format(value, spec))
     return ''.join(result)
 
 
@@ -403,12 +407,19 @@ class ReceiveDisplay:
                     return DisplayResult(rule['name'],'','decoded',fields)
                 if values['has_changes'] and profile.actor_change_template is not None:
                     template=profile.actor_change_template
-            text = prefix + _render(template, values)
+            from reconstruction.identity_protection import apply_to_display_values, identity_from_player
+            player_state = self.players.states.get((0, event.flow_id or event.connection))
+            identity = identity_from_player(player_state)
+            render_values = apply_to_display_values(values, identity)
+            text = prefix + _render(template, render_values)
             if record and event.packet_id in (0x9ff,0x9fe,0x9fd,0x1b0):
                 if event.packet_id==0x1b0 and not record['changes']:
                     return DisplayResult(rule['name'],'','decoded',fields)
                 if event.packet_id==0x1b0 and profile.actor_change_template is not None:
-                    text=prefix+_render(profile.actor_change_template,dict(values,actor_kind=record['kind'],actor_id=record['actor_id'],changes_text=self._changes_text(record['changes'])))
+                    change_values = apply_to_display_values(
+                        dict(values, actor_kind=record['kind'], actor_id=record['actor_id'],
+                             changes_text=self._changes_text(record['changes'])), identity)
+                    text = prefix + _render(profile.actor_change_template, change_values)
                 if record['kind']=='NPC' and 'class_id' in record['changes']:
                     from reconstruction.actor_appearance import render_display
                     from reconstruction.auriga import AurigaRenderer

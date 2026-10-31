@@ -64,7 +64,8 @@ def analyze(path, definitions):
         raise ValueError('解析中に生ログが変更されました。取得停止後に再実行してください。')
     source_ref = str(path)
     merged = build_merged((source_ref, item) for item in dialogues.sessions)
-    generated = AurigaRenderer().render_groups(merged['groups'])
+    from reconstruction.identity_protection import identity_from_store
+    generated = AurigaRenderer(identity=identity_from_store(players)).render_groups(merged['groups'])
     if fingerprint(generation_profile('dialogue.json'), 2 * 1024 * 1024) != profile_hash:
         raise ValueError('解析中に会話生成書式が変更されました。再実行してください。')
     sections = dict(world=world.snapshot(), player=players.snapshot(), dialogues=dialogues.snapshot(source_ref),

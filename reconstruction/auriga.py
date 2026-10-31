@@ -16,6 +16,7 @@ from reconstruction.entity_metadata import append_initialization, render_npc_ini
 from reconstruction.menu_loops import fold_menu_loops, share_menu_continuations
 from reconstruction.announcements import template_values as announcement_values
 from reconstruction.npc_initial_state import visibility_state
+from reconstruction.identity_protection import quote_text
 
 DEFAULT_DIALOGUE_PROFILE = Path(__file__).resolve().parent.parent / 'config' / 'auriga' / 'dialogue.json'
 
@@ -119,9 +120,10 @@ def _quote(value):
 
 
 class AurigaRenderer:
-    def __init__(self, path=None):
+    def __init__(self, path=None, identity=None):
         from reconstruction.emulator_profiles import profile
         path, self._target = _dialogue_profile(path)
+        self.identity = dict(identity or {})
         self.status_ids = load_status_ids(profile('status_ids.json', self._target), target=self._target)
         self.templates = read_render_json(path)
         if not isinstance(self.templates, dict):
@@ -142,7 +144,12 @@ class AurigaRenderer:
         if not 1 <= len(indent) <= 16 or any(char not in ' \t' for char in indent):
             raise ValueError('Indent must contain 1..16 spaces or tabs')
 
-    def render(self, conversation, presentation_check=None, shop_call_name=None, *, include_initialization=True):
+    def _text(self, value):
+        return quote_text(value, self.identity)
+
+    def render(self, conversation, presentation_check=None, shop_call_name=None, *, include_initialization=True, identity=None):
+        if identity is not None:
+            self.identity = dict(identity)
         validate_resources(conversation)
         validate_external(conversation)
         preamble = [('header', dict(id=conversation.id, actor_id=conversation.actor_id))]
@@ -196,9 +203,10 @@ class AurigaRenderer:
             if '@' in (row['npc'].get('map_name') or ''):
                 target = self.templates['instance_npc_reference'].format(name=target)
             values = dict(row['fields'], target=target)
-            for key in ('text', 'sound'):
-                if key in values:
-                    values[key] = _quote(values[key])
+            if 'text' in values:
+                values['text'] = self._text(values['text'])
+            if 'sound' in values:
+                values['sound'] = _quote(values['sound'])
             kind = row['kind']
             adopted = row.get('adoption_confirmed') is True and kind in self.ADOPTABLE_EXTERNAL_KINDS
             if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
@@ -428,7 +436,7 @@ class AurigaRenderer:
                 options = fields['options']
                 choices = {nodes[child]['fields']['value']: child for child in node['children']
                            if nodes[child]['kind'] == 'choice'}
-                emit('menu', depth, options=f'{_quote(":".join(options))},-')
+                emit('menu', depth, options=f'{self._text(":".join(options))},-')
                 all_same = (allow_identical_menu and len(choices) == len(options) and len(node['children']) == len(choices)
                             and all(complete[child] for child in choices.values())
                             and len({tails[child] for child in choices.values()}) == 1)
@@ -462,7 +470,7 @@ class AurigaRenderer:
                     continue
                 tasks = []
                 for reply in replies:
-                    observed = reply['fields']['value'] if kind == 'number' else _quote(reply['fields']['text'])
+                    observed = reply['fields']['value'] if kind == 'number' else self._text(reply['fields']['text'])
                     key = 'input_number_observation' if kind == 'number' else 'input_text_observation'
                     tasks.extend([('emit', (key, {'value': observed}), cutin, window_closed, depth),
                                   ('emit', ('block_open', {}), cutin, window_closed, depth),
@@ -492,7 +500,7 @@ class AurigaRenderer:
                 continue
             if kind == 'mes':
                 window_closed = False
-                emit('mes', depth, text=_quote(fields['text']))
+                emit('mes', depth, text=self._text(fields['text']))
             elif kind in ('timeout_warning', 'aborted_wait'):
                 emit(kind, depth, prompt_kind=fields['prompt_kind'])
             elif kind in ('quest_set', 'quest_delete'):
@@ -507,11 +515,12 @@ class AurigaRenderer:
                 emit(kind, depth, map_name=_quote(base_map_name(fields['map_name'])),
                      x=fields['x'], y=fields['y'])
             elif kind == 'overhead':
-                emit('overhead', depth, text=_quote(fields['text']))
+                emit('overhead', depth, text=self._text(fields['text']))
             elif kind == 'unittalk':
-                emit('unittalk', depth, text=_quote(fields['text']))
+                emit('unittalk', depth, text=self._text(fields['text']))
             elif kind == 'announcement':
                 template, values = announcement_values(fields)
+                values = dict(values, text=self._text(fields['text']))
                 emit(template, depth, **values)
             elif kind in ('emotion', 'effect', 'effect_remove'):
                 emit(kind, depth, value=fields['value'])
@@ -550,7 +559,7 @@ class AurigaRenderer:
                 reference = _quote(base_npc_name(target['name'], target['map_name']))
                 if '@' in (target['map_name'] or ''):
                     reference = self.templates['instance_npc_reference'].format(name=reference)
-                emit('unittalk_target', depth, text=_quote(fields['text']), target=reference)
+                emit('unittalk_target', depth, text=self._text(fields['text']), target=reference)
             elif kind in ('dialogue_size','dialogue_position','dialogue_alignment'):
                 emit(kind, depth, **fields)
             elif kind == 'progress_action':

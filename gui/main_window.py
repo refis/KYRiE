@@ -300,12 +300,15 @@ class MainWindow(QMainWindow):
             sources=dict(self.world_sources)
             large=(len(entities)>100 or len(self.dialogues.sessions)>50 or
                    sum(len(item.steps) for item in self.dialogues.sessions)>1000 or len(self.shops.records)>100)
+            from reconstruction.identity_protection import identity_from_store
+            identity = identity_from_store(self.players)
             prepared=None
             if large:
                 from reconstruction.report_snapshot import freeze_npc_report
-                prepared=freeze_npc_report(entities,self.dialogues.sessions,sources,merge=merge,shops=self.shops.records)
+                prepared=freeze_npc_report(entities,self.dialogues.sessions,sources,merge=merge,
+                                          shops=self.shops.records,identity=identity)
             report=None if prepared is not None else build_npc_bundle(entities,self.dialogues.sessions,
-                sources,merge=merge,shops=self.shops.records)
+                sources,merge=merge,shops=self.shops.records,identity=identity)
             if report is not None and not report['entries'] and not report['excluded']:
                 raise ValueError('NPCの観測がありません。')
             mode = '統合' if merge else '個別'

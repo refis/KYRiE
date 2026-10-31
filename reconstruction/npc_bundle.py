@@ -15,10 +15,11 @@ from reconstruction.npc_initial_state import visibility_state
 from reconstruction.shop_export import ShopRenderer, shop_name_for
 
 
-def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=False, shops=(), max_chars=64 * 1024 * 1024):
+def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=False, shops=(),
+                     max_chars=64 * 1024 * 1024, identity=None):
     conversations = list(conversations)
     sources = dict(source_sessions or {})
-    renderer = AurigaRenderer()
+    renderer = AurigaRenderer(identity=identity)
     buckets, excluded = {}, []
     def source(item):
         return str(sources.get(item.capture_session, sources.get(str(item.capture_session), '')))
