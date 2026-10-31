@@ -34,7 +34,8 @@ def load_policy(path=None):
     if not isinstance(result.get('equip_slots'), dict) or any(not k.isdecimal() or type(v) is not int or not 1 <= v <= 22 for k,v in result['equip_slots'].items()):
         raise ValueError('Invalid equipment slot map')
     requests = result.get('request_ids')
-    if not isinstance(requests, dict) or set(requests) != {'unequip', 'posture', 'drop', 'walk'}:
+    required = {'unequip', 'posture', 'drop', 'walk', 'cart_from_body', 'cart_to_body'}
+    if not isinstance(requests, dict) or set(requests) != required:
         raise ValueError('Invalid request packet groups')
     for key, values in requests.items():
         if not isinstance(values, list) or len(values) > 64:
@@ -93,7 +94,8 @@ class ScriptCommandStore:
             if len(self.states) >= 64:
                 self.states.popitem(last=False)
             self.states[key] = dict(inventory={}, pending={}, recent=deque(maxlen=64), generation=None,
-                                    floor=set(), settled=False, storage=False, death=None, pending_incomplete=False)
+                                    floor=set(), settled=False, storage=False, death=None, pending_incomplete=False,
+                                    cart_to_body=deque(maxlen=64))
         return self.states[key]
 
     def link(self, record, action):
@@ -117,7 +119,8 @@ class ScriptCommandStore:
         scene = world.scenes.get((session, packet.connection)) if world else None
         generation = scene.generation if scene else state['generation']
         if generation != state['generation']:
-            state.update(generation=generation, pending={}, floor=set(), settled=False, storage=False, death=None, pending_incomplete=False)
+            state.update(generation=generation, pending={}, floor=set(), settled=False, storage=False, death=None,
+                         pending_incomplete=False, cart_to_body=deque(maxlen=64))
             state['recent'].clear()
         r, pid = Reader(packet.raw), packet.packet_id
         out = []
@@ -136,8 +139,8 @@ class ScriptCommandStore:
             return record
         if packet.direction == 'SEND':
             if pid in (0x72,0x436):
-                state.update(inventory={}, pending={}, pending_incomplete=False)
-            if len(state['pending']) >= 256:
+                state.update(inventory={}, pending={}, pending_incomplete=False, cart_to_body=deque(maxlen=64))
+            if len(state['pending']) >= 256 or len(state['cart_to_body']) >= 64:
                 state['pending_incomplete'] = True
                 raise ObservationError('Command request correlation capacity reached')
             requests = self.policy['request_ids']
@@ -148,6 +151,18 @@ class ScriptCommandStore:
             elif pid in requests['drop']:
                 state['pending']['drop'] = packet.timestamp
                 state['pending']['drop',r.number(2,'H')] = packet.timestamp
+            elif pid in requests['cart_from_body']:
+                if len(packet.raw) != 8:
+                    raise ObservationError('Unsupported cart move-from-body layout')
+                # Body index and amount; cart index is a different namespace.
+                state['pending']['cart_from_body', r.number(2, 'H'), r.number(4, 'I')] = dict(
+                    timestamp=packet.timestamp, packet_index=index)
+            elif pid in requests['cart_to_body']:
+                if len(packet.raw) != 8:
+                    raise ObservationError('Unsupported cart move-to-body layout')
+                # Cart index is not the inventory index of the eventual gain.
+                state['cart_to_body'].append(dict(cart_index=r.number(2, 'H'), amount=r.number(4, 'I'),
+                                                  timestamp=packet.timestamp, packet_index=index))
             elif pid in requests['walk'] or pid == 0x90:
                 state['settled'] = True
             return out
@@ -202,7 +217,27 @@ class ScriptCommandStore:
                 if previous.get('item_id') == fields['item_id']:
                     state['inventory'][inventory_index]['amount'] = previous.get('amount',0) + fields['amount']
                 if conversation and not state['storage']:
-                    if fields['plain_item']:
+                    cart_matches = [row for row in state['cart_to_body'] if row['amount'] == fields['amount']]
+                    cart_move = None
+                    if len(cart_matches) == 1:
+                        cart_move = cart_matches[0]
+                        state['cart_to_body'].remove(cart_move)
+                    elif len(cart_matches) > 1:
+                        state['pending_incomplete'] = True
+                    if cart_move is not None:
+                        pass  # Cart→inventory transfer is not an NPC reward.
+                    elif cart_matches:
+                        reason = 'カート取出し要求が複数あり報酬との対応が未確定'
+                        if fields['plain_item']:
+                            emit('getitem', dict(item_id=fields['item_id'], amount=fields['amount']),
+                                 review=True, reason=reason, slot_index=inventory_index, observed=fields)
+                        else:
+                            cards = list(map(int, fields['cards_summary'].split(',')))
+                            args = dict(item_id=fields['item_id'], amount=fields['amount'], identified=fields['identified'],
+                                        refine=fields['refine'], attribute=r.number(11,'B'))
+                            args.update({f'card{i+1}':value for i,value in enumerate(cards)})
+                            emit('getitem2', args, review=True, reason=reason, slot_index=inventory_index, observed=fields)
+                    elif fields['plain_item']:
                         emit('getitem', dict(item_id=fields['item_id'], amount=fields['amount']), slot_index=inventory_index, observed=fields)
                     else:
                         cards = list(map(int, fields['cards_summary'].split(',')))
@@ -239,19 +274,32 @@ class ScriptCommandStore:
             decoded=decode_player(packet); fields=decoded[1]; inventory_index=fields['index']
             item=state['inventory'].get(inventory_index,{})
             manual_drop = state['pending'].pop(('drop',inventory_index),None) is not None
-            if conversation and not state['storage'] and not manual_drop:
+            cart_key = ('cart_from_body', inventory_index, fields['amount'])
+            cart_move = state['pending'].pop(cart_key, None)
+            if cart_move is None:
+                # Same body index with a different requested amount stays unresolved.
+                for key in list(state['pending']):
+                    if isinstance(key, tuple) and len(key) == 3 and key[0] == 'cart_from_body' and key[1] == inventory_index:
+                        state['pending_incomplete'] = True
+                        break
+            if conversation and not state['storage'] and not manual_drop and cart_move is None:
+                index_cart_pending = any(isinstance(key, tuple) and len(key) == 3 and key[0] == 'cart_from_body'
+                                         and key[1] == inventory_index for key in state['pending'])
                 unequips=[old for old in state['recent'] if old['slot_index']==inventory_index and old['conversation_id']==conversation.id
                           and old['fields']['command']=='unequip' and not old['fields'].get('review_only') and nearby(old['timestamp'])]
                 mask=item.get('equip_mask',0) or (item.get('last_equip_mask',0) if unequips else 0)
                 slot=self.policy['equip_slots'].get(str(mask))
-                if slot and fields['amount']==1:
+                if slot and fields['amount']==1 and not index_cart_pending:
                     for old in unequips:
                         self._suppress(old,'delequipに包含される装備解除を重複抑止')
                     emit('delequip',dict(slot=slot),slot_index=inventory_index,observed=dict(fields,item=item))
                 else:
                     ambiguous_gear=item.get('list_family')=='equipment' or item.get('item_type') in (4,5,7)
-                    emit('delitem',dict(item_id=item.get('item_id'),amount=fields['amount']),review=not item.get('item_id') or ambiguous_gear,
-                         reason='装備個体・装備部位または消失アイテムIDが未確定' if not item.get('item_id') or ambiguous_gear else '',slot_index=inventory_index,observed=dict(fields,item=item))
+                    review = not item.get('item_id') or ambiguous_gear or index_cart_pending
+                    reason = ('カート格納要求と数量が一致せず消費との対応が未確定' if index_cart_pending else
+                              '装備個体・装備部位または消失アイテムIDが未確定' if not item.get('item_id') or ambiguous_gear else '')
+                    emit('delitem',dict(item_id=item.get('item_id'),amount=fields['amount']),review=review,
+                         reason=reason,slot_index=inventory_index,observed=dict(fields,item=item))
             item['amount']=max(0,item.get('amount',fields['amount'])-fields['amount'])
             item['equip_mask']=0
         if pid == 0x188:

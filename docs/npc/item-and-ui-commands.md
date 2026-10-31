@@ -19,7 +19,10 @@ cutincardはユーザー指定により実装対象外。既存のcutin（表示
 - delitem/delequip: 会話中の消失通知と、所持品Indexに対応する観測済みItemIDが必要。
   装備中の部位を特定できる場合はdelequip、それ以外はdelitem候補。
   装備個体・部位・IDが不足する場合は引数を補わずコメントへ残す。
-  倉庫移動や観測した捨て操作に対応する増減をNPC報酬・消費へ変換しない。
+  倉庫移動、カート移動（所持品⇔カート）、観測した捨て操作に対応する増減を
+  NPC報酬・消費へ変換しない。カートSEND（0x0126/0x0127）は取得世代・flow・MAP世代・
+  数量・確認できるIndexで応答と照合し、カートIndexと所持品Indexを同一視しない。
+  曖昧な対応は実行可能命令にせず未確定として残す。
 - successrefitem/failedrefitem/downrefitem: 会話中の0x0188と装備部位の対応が必要。
   downrefitemは観測した精錬前後の差分を使い、差分不明ならコメントとする。
   successrefitemも前値が分かる場合は+1との整合を確認する。
@@ -67,6 +70,7 @@ openstorageは既存のclose応答後2秒以内の帰属候補へ関連付ける
 - config/auriga/script_commands.json: 相関窓、操作PacketID、Aurigaの部位変換、総寿命・基本寿命。
   部位順はAuriga/src/map/buildin_item.cのequip_posに従い、pc.c内部の順番とは分ける。
   操作IDは既知の形式のみ登録する。位置が異なる新形式をID追加だけで対応済みにしない。
+  cart_from_body / cart_to_body にカート移動SENDを置き、倉庫open状態抑止とは別に照合する。
 - config/auriga/dialogue.json: script_getitem等と確認用コメントの書式。
 - config/auriga/entity_metadata.json: waitingroomとOnInitの書式。
 - config/auriga/status_ids.json / config/rathena/status_ids.json: 状態異常のクライアントアイコン→SC変換（エミュレータ切替で選択）。
