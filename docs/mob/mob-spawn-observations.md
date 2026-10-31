@@ -26,8 +26,13 @@ CLIのtools.analyze_entitiesにもmob_spawn_observationsを追加した。
 configured_spawn_count、configured_respawn_msは常にnull。
 server_spawn_settings_restored、configured_respawn_confirmedはfalse。
 有効なmonster配置行や再出現ディレイを自動生成する機能ではない。
-追跡数ピークを設定上の湧き数へ、最短再観測時間を設定上の湧き時間へ変換しない。
+追跡数ピークを設定上の湧き数（amount）へ、最短再観測時間を delay1／delay2 へ変換しない。
+amount・delay1・delay2・配置座標・xs/ys・event は観測自動補完の対象外であり、
+[手動編集](#配置設定の手動編集)と確認チェック後の保存でのみ埋める。
 通信で見えていない個体・死亡・移動が存在し得るため、真の同時存在数も保証しない。
+
+この方針は今後の機能追加でも維持する。観測ピークや間隔の統計表示を増やしても、
+それを設定湧き数・設定ディレイの確定値や自動入力の既定値にはしない（#25）。
 
 記録終了時に消滅していない個体はend=nullで、以後の生存を保証するものではない。
 配置マップは[同じフローのプレイヤー現在マップ](../observations/entity-map-context.md)を用いて補完する。
@@ -52,6 +57,7 @@ map_nameとclass_idに観測値を置く。他の設定項目は補完しない�
 class_idは観測クラスであり、対象mob_dbとの一致を別途確認する。
 初回座標はfirst_positionに根拠として残し、配置のx/yには置かない。
 配置範囲xs/ys、名称mob_name、湧き数amount、delay1/delay2、死亡時イベントeventもnullとする。
+追跡数ピークや再観測間隔の統計があっても amount／delay1／delay2 へコピーしない。
 空イベントや範囲0を暗黙に採用せず、要編集項目に残す。
 名称や初回出現通知が分かっても、元の常設湧き・召喚・イベント生成等を確定しない。
 server_spawn_settings_restored=falseに加え、候補のactive_placements_generated=falseを維持する。
