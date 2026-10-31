@@ -1645,9 +1645,17 @@
       "variants": [
         {
           "when": {
-            "flag": 0
+            "flag": 0,
+            "status_mapped": true
           },
-          "template": "sc_end {effect_id},{actor_id};"
+          "template": "sc_end {status_script_id},{actor_id};\t// icon {effect_id} {status_symbol}"
+        },
+        {
+          "when": {
+            "flag": 0,
+            "status_mapped": false
+          },
+          "template": "@status_end_unresolved icon: {effect_id}, aid: {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]"
         }
       ],
       "decoder": "status_icon_name",

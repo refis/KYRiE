@@ -12,7 +12,8 @@
     "icon_table_sha256": "e7079dcdeb8582153c43ce978cc79c1303bdab51f62a6dcfa6df86749647e58e",
     "argument_source": "db/re/status.yml:Flags.SendVal1 (SC_MONSTER_TRANSFORM/SC_ACTIVE_MONSTER_TRANSFORM only)",
     "argument_source_sha256": "e7079dcdeb8582153c43ce978cc79c1303bdab51f62a6dcfa6df86749647e58e",
-    "status_cpp_sha256": "4f940555e088eeed58933cd8bcb9b62822a5affa99465d1d48a496fdee600be1"
+    "status_cpp_sha256": "4f940555e088eeed58933cd8bcb9b62822a5affa99465d1d48a496fdee600be1",
+    "verification_note": "Re-verified 2026-10-31 against rAthena master SHA d4b8e7b8f16061cc2496d377ac8f777ce72a4f39 (same as frozen baseline). File SHA256 matched status.hpp / db/re/status.yml / status.cpp. Icons 12 and 50 adopted by user policy into entries; exclusion candidates retained."
   },
   "entries": {
     "0": {
@@ -86,6 +87,14 @@
       "script_id": 31,
       "source_symbol": "EFST_CRUCIS",
       "argument_policy": "review"
+    },
+    "12": {
+      "symbol": "SC_INCREASEAGI",
+      "script_id": 32,
+      "source_symbol": "EFST_INC_AGI",
+      "argument_policy": "review",
+      "adoption": "user_policy",
+      "adoption_note": "User-specified Renewal adoption for EFST_INC_AGI. Not uniquely determined from observation: Icon is also used by SC_EMERGENCY_MOVE (Status: Emergency_Move in db/re/status.yml)."
     },
     "13": {
       "symbol": "SC_DECREASEAGI",
@@ -278,6 +287,14 @@
       "script_id": 67,
       "source_symbol": "EFST_BARRIER",
       "argument_policy": "review"
+    },
+    "50": {
+      "symbol": "SC_STRIPWEAPON",
+      "script_id": 68,
+      "source_symbol": "EFST_NOEQUIPWEAPON",
+      "argument_policy": "review",
+      "adoption": "user_policy",
+      "adoption_note": "User-specified Renewal adoption for EFST_NOEQUIPWEAPON. Not uniquely determined from observation: Icon is also used by SC_HNNOWEAPON (Status: Hnnoweapon in db/re/status.yml)."
     },
     "51": {
       "symbol": "SC_STRIPSHIELD",
@@ -5333,30 +5350,6 @@
     }
   },
   "ambiguous": {
-    "12": [
-      {
-        "script_id": 32,
-        "symbol": "SC_INCREASEAGI",
-        "source_symbol": "EFST_INC_AGI"
-      },
-      {
-        "script_id": 816,
-        "symbol": "SC_EMERGENCY_MOVE",
-        "source_symbol": "EFST_INC_AGI"
-      }
-    ],
-    "50": [
-      {
-        "script_id": 68,
-        "symbol": "SC_STRIPWEAPON",
-        "source_symbol": "EFST_NOEQUIPWEAPON"
-      },
-      {
-        "script_id": 992,
-        "symbol": "SC_HNNOWEAPON",
-        "source_symbol": "EFST_NOEQUIPWEAPON"
-      }
-    ],
     "112": [
       {
         "script_id": 100,
@@ -5439,5 +5432,39 @@
         "source_symbol": "EFST_SHIELDSPELL"
       }
     ]
+  },
+  "excluded_candidates": {
+    "12": {
+      "adopted": {
+        "symbol": "SC_INCREASEAGI",
+        "script_id": 32,
+        "source_symbol": "EFST_INC_AGI"
+      },
+      "excluded": [
+        {
+          "script_id": 816,
+          "symbol": "SC_EMERGENCY_MOVE",
+          "source_symbol": "EFST_INC_AGI",
+          "reason": "Shares the same client Icon on Renewal status.yml; not selected by user policy."
+        }
+      ],
+      "policy": "user_specified_not_observation_unique"
+    },
+    "50": {
+      "adopted": {
+        "symbol": "SC_STRIPWEAPON",
+        "script_id": 68,
+        "source_symbol": "EFST_NOEQUIPWEAPON"
+      },
+      "excluded": [
+        {
+          "script_id": 992,
+          "symbol": "SC_HNNOWEAPON",
+          "source_symbol": "EFST_NOEQUIPWEAPON",
+          "reason": "Shares the same client Icon on Renewal status.yml; not selected by user policy."
+        }
+      ],
+      "policy": "user_specified_not_observation_unique"
+    }
   }
 }

@@ -172,12 +172,51 @@ class DisplayTests(unittest.TestCase):
         status = json.loads((root / 'config' / 'rathena' / 'status_ids.json').read_text(encoding='utf-8'))
         self.assertEqual(status['target'], 'rathena')
         self.assertEqual(status['source']['commit'], 'd4b8e7b8f16061cc2496d377ac8f777ce72a4f39')
-        self.assertGreater(len(status['entries']), 800)
-        self.assertIn('ambiguous', status)
+        self.assertEqual(len(status['entries']), 888)
+        self.assertEqual(set(status['ambiguous']), {'112', '149', '324', '438', '737', '1316'})
+        self.assertEqual(status['entries']['12']['symbol'], 'SC_INCREASEAGI')
+        self.assertEqual(status['entries']['12']['script_id'], 32)
+        self.assertEqual(status['entries']['12']['argument_policy'], 'review')
+        self.assertEqual(status['entries']['12']['adoption'], 'user_policy')
+        self.assertEqual(status['entries']['50']['symbol'], 'SC_STRIPWEAPON')
+        self.assertEqual(status['entries']['50']['script_id'], 68)
+        self.assertEqual(status['entries']['50']['argument_policy'], 'review')
+        self.assertIn('12', status['excluded_candidates'])
+        self.assertIn('50', status['excluded_candidates'])
+        self.assertEqual(status['entries']['621']['argument_policy'], 'val1_only')
+        self.assertEqual(status['entries']['665']['argument_policy'], 'val1_only')
         dialogue = json.loads((root / 'config' / 'rathena' / 'dialogue.json').read_text(encoding='utf-8'))
         self.assertNotIn('getmdmapname', json.dumps(dialogue))
         self.assertIn('instance_mapname', dialogue['instance_map_reference'])
         self.assertEqual(dialogue['number'], 'input .@gpa_number;')
         self.assertEqual(dialogue['text'], 'input .@gpa_text$;')
         self.assertNotIn("'@", json.dumps(dialogue))
+
+    def test_rathena_display_sc_end_converts_icon_ids_and_keeps_unresolved_as_comments(self):
+        from pathlib import Path
+        rathena_path = Path(__file__).resolve().parents[2] / 'config' / 'rathena' / 'display.json'
+        display = ReceiveDisplay(DisplayProfile.load(rathena_path))
+        # Adopted icons 12/50 must emit converted SC IDs, never raw icons.
+        for icon, script_id, symbol in ((12, 32, 'SC_INCREASEAGI'), (50, 68, 'SC_STRIPWEAPON')):
+            result = display.decode(event(0x196, struct.pack('<HIB', icon, 42, 0)))
+            self.assertEqual(result.status, 'decoded')
+            self.assertEqual(result.fields['effect_id'], icon)
+            self.assertEqual(result.fields['status_script_id'], script_id)
+            self.assertTrue(result.fields['status_mapped'])
+            self.assertEqual(result.text, f'sc_end {script_id},42;\t// icon {icon} {symbol}')
+            self.assertNotIn(f'sc_end {icon},', result.text)
+        # Existing non-identity mapping (icon != script_id).
+        status = json.loads((Path(__file__).resolve().parents[2] / 'config' / 'rathena' / 'status_ids.json').read_text(encoding='utf-8'))
+        icon, row = next((int(key), value) for key, value in status['entries'].items()
+                         if int(key) != value['script_id'] and int(key) not in (12, 50))
+        result = display.decode(event(0x196, struct.pack('<HIB', icon, 7, 0)))
+        self.assertEqual(result.text, f'sc_end {row["script_id"]},7;\t// icon {icon} {row["symbol"]}')
+        self.assertNotIn(f'sc_end {icon},', result.text)
+        # Remaining ambiguous / unknown icons must not become executable sc_end.
+        for icon in (112, 149, 324, 438, 737, 1316, 65535):
+            result = display.decode(event(0x196, struct.pack('<HIB', icon, 9, 0)))
+            self.assertTrue(result.text.startswith('@status_end_unresolved'))
+            self.assertNotIn('sc_end ', result.text)
+            self.assertEqual(result.fields['effect_id'], icon)
+            self.assertFalse(result.fields['status_mapped'])
 

@@ -21,7 +21,11 @@ ACTOR_FIELDS = dict(actor_id=0, actor_type=0, class_id=0, speed=0, options=0,
                     first_seen=False, name_valid=True, map_name='不明', reobserved=False, has_changes=False, actor_kind='', changes_text='')
 QUEST_COUNTER_FIELDS = dict(quest_layout='', quest_objective_kind='', quest_entry_count=0, quest_entries='[]')
 SCRIPT_FIELDS = dict(command_text='', command_kind='')
-DECODERS = {'visual_effect_name':REFERENCE_FIELDS, 'status_icon_name':REFERENCE_FIELDS, 'skill_unit': UNIT_FIELDS, 'script_command': SCRIPT_FIELDS, 'actor': ACTOR_FIELDS, 'player': DISPLAY_DEFAULTS, 'quest_counter': QUEST_COUNTER_FIELDS}
+STATUS_CONVERT_FIELDS = dict(status_script_id=0, status_symbol='', status_mapped=False)
+DECODERS = {'visual_effect_name':REFERENCE_FIELDS,
+            'status_icon_name':dict(REFERENCE_FIELDS, **STATUS_CONVERT_FIELDS),
+            'skill_unit': UNIT_FIELDS, 'script_command': SCRIPT_FIELDS, 'actor': ACTOR_FIELDS,
+            'player': DISPLAY_DEFAULTS, 'quest_counter': QUEST_COUNTER_FIELDS}
 
 CONFIG_ROOT = Path(__file__).resolve().parent.parent / 'config'
 DEFAULT_PROFILE = CONFIG_ROOT / 'auriga' / 'display.json'
@@ -149,6 +153,7 @@ class DisplayProfile:
                              for rule in self.rules.values()) else None)
         self.reference_names = (load_reference_names() if any(rule.get('decoder') in
             ('visual_effect_name','status_icon_name') for rule in self.rules.values()) else None)
+        self.status_ids = None
 
     @classmethod
     def load(cls, path=DEFAULT_PROFILE):
@@ -156,9 +161,19 @@ class DisplayProfile:
         if path.stat().st_size > 2 * 1024 * 1024:
             raise ProfileError('Display profile exceeds 2 MiB')
         try:
-            return cls(json.loads(path.read_text(encoding='utf-8-sig'), object_pairs_hook=_unique_object))
+            profile = cls(json.loads(path.read_text(encoding='utf-8-sig'), object_pairs_hook=_unique_object))
         except (KeyError, TypeError) as exc:
             raise ProfileError(f'Missing or invalid profile field: {exc}') from exc
+        if any(rule.get('decoder') == 'status_icon_name' for rule in profile.rules.values()):
+            from reconstruction.emulator_profiles import target_for_path
+            from reconstruction.conversation_actions import load_status_ids
+            target = target_for_path(path)
+            if target is not None:
+                try:
+                    profile.status_ids = load_status_ids(target=target)
+                except (OSError, ValueError):
+                    profile.status_ids = None
+        return profile
 
     def _validate_rule(self, rule, samples):
         _keys(rule, {'ids', 'name', 'fields', 'template', 'variants', 'remember', 'min_length', 'decoder'}, 'packet')
@@ -420,6 +435,13 @@ class ReceiveDisplay:
                 offset, number_type = (6, '<I') if namespace == 'visual_effect' else (2, '<H')
                 number = struct.unpack_from(number_type,event.raw,offset)[0]
                 derived = reference_labels(profile.reference_names,namespace,number)
+                if decoder == 'status_icon_name':
+                    entry = (profile.status_ids or {}).get(str(number))
+                    if entry:
+                        derived.update(status_script_id=entry['script_id'], status_symbol=entry['symbol'],
+                                       status_mapped=True)
+                    else:
+                        derived.update(status_script_id=0, status_symbol='', status_mapped=False)
                 fields.update(derived)
                 values.update(derived)
             template = rule['template']

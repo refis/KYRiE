@@ -1,5 +1,17 @@
 # Development baseline and plan
 
+## rAthena status Icon 12/50 adoption and display sc_end conversion (2026-10-31)
+
+Re-verified frozen baseline commit d4b8e7b8 against current rAthena master (same SHA).
+status.hpp / db/re/status.yml / status.cpp SHA256 matched the recorded values.
+Adopted EFST_INC_AGI (12)→SC_INCREASEAGI (32) and EFST_NOEQUIPWEAPON (50)→SC_STRIPWEAPON (68)
+by user policy (not observation-unique); exclusion candidates kept under excluded_candidates.
+entries 888 / ambiguous 6 remain. argument_policy stays review for both; transform val1_only
+unchanged. rAthena display 0196 flag=0 now emits sc_end with converted SC only; unresolved
+icons become @status_end_unresolved. Generation path already used script_id. No CLI emulator
+flag and no ongoing upstream tracking in this change.
+Selected: display + conversation_actions + gui-display. Not full discover.
+
 ## rAthena input scope prefix .@ (2026-10-30)
 
 rAthena dialogue/display input templates now use `.@gpa_*` / `.@num` / `.@str$`
