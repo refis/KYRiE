@@ -2265,3 +2265,13 @@ timeout normalization, progress, quests, status notifications and unanswered clo
 Synthetic 5000 observations, 20 hidden updates: JSON matches all 918306 characters; zero hidden serializations, one on access.
 Schedule ~0.18ms, first materialization ~86ms, cached access ~3.2ms. No capture/end-to-end speed claim.
 Report: logs/deferred-dialogue-json-review.json. Frozen snapshots unchanged.
+
+### 2026-10-31: v0.0.6 source snapshot
+
+Advanced version.py to 0.0.6 / 2026-10-31. Captures post-v0.0.5 GitHub workflow, adoption gates,
+timer/VAL/dict layers, identity protection, cart-move attribution guard, touch-trial comparison,
+and spawn amount/delay manual-only docs. Frozen v0.0.4/v0.0.5 ZIPs unchanged.
+Selected verification: release+catalog+commands+npc+player+presentation+events+mob+display+dialogue+shop (426)
+and gui-restoration+gui-display+offline+storage (153); total 579. Not full discover.
+Artifacts: dist/KYRiE-v0.0.6-source.zip (+.sha256, verification.json; gitignored).
+See docs/releases/v0.0.6.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.

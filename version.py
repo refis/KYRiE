@@ -1,2 +1,2 @@
-__version__ = "0.0.5"
-SNAPSHOT_DATE = "2026-10-30"
+__version__ = "0.0.6"
+SNAPSHOT_DATE = "2026-10-31"

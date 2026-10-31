@@ -9,6 +9,7 @@
 ## スナップショット
 
 - [手順・タグ前チェック](releases/README.md)
+- [v0.0.6: GitHub運用・NPC/MOB復元・辞書・接触比較の到達点](releases/v0.0.6.md)
 - [v0.0.5: 参照資料対応・検証・保存物・残作業](releases/v0.0.5.md)
 - [v0.0.4: 対応範囲・検証・保存物・残作業](releases/v0.0.4.md)
 
