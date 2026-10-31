@@ -7,8 +7,10 @@ from pathlib import Path
 from events import PacketEvent
 from parser.display import DEFAULT_PROFILE, DisplayProfile, ReceiveDisplay
 from parser.packet_overlay import (
-    INDEX_TAGS, OverlayError, format_indexed_value, load_overlay, load_profile_with_overlay,
-    merge_display_document, merge_lengths, resolve_index_label, validate_overlay,
+    INDEX_TAGS, OverlayError, build_packet_entry, fields_from_display_rule,
+    find_overlay_packet, format_indexed_value, length_check, load_overlay,
+    load_profile_with_overlay, merge_display_document, merge_lengths,
+    resolve_index_label, save_overlay, upsert_overlay_packet, validate_overlay,
 )
 from reconstruction.client_names import empty_client_names
 from reconstruction.world import WorldStore
@@ -146,6 +148,33 @@ class PacketOverlayTests(unittest.TestCase):
         result = display.decode(PacketEvent(1.0, 'RECV', 0xb4, raw, 'NPCAP', 'c'))
         self.assertEqual(result.text, 'OVERLAY 9: hi')
         self.assertEqual(result.fields['actor_id_index'], '未観測')
+
+    def test_editor_helpers_upsert_save_and_length_check(self):
+        entry = build_packet_entry(
+            0xF001, 10, 'edited',
+            {'actor_id': {'offset': 2, 'type': 'u32', 'index': 'actor_id'},
+             'item_id': {'offset': 6, 'type': 'u16', 'index': 'item_id'}},
+            template='@overlay actor={actor_id} item={item_id};',
+            min_length=10,
+        )
+        notes = length_check(10, 10, entry['fields'])
+        self.assertTrue(any('一致' in note for note in notes))
+        notes_mismatch = length_check(8, 10, entry['fields'])
+        self.assertTrue(any('不一致' in note for note in notes_mismatch))
+        base = validate_overlay(_overlay_doc())
+        updated = upsert_overlay_packet(base, entry)
+        self.assertEqual(len(updated['packets']), 1)
+        self.assertEqual(find_overlay_packet(updated, 0xF001)['name'], 'edited')
+        second = build_packet_entry(0xF002, 4, 'other', {'flag': {'offset': 2, 'type': 'u16'}},
+                                    template='@overlay other={flag};')
+        updated = upsert_overlay_packet(updated, second)
+        self.assertEqual(len(updated['packets']), 2)
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'overlay.json'
+            saved = save_overlay(path, updated)
+            self.assertEqual(saved['_sha256'], load_overlay(path)['_sha256'])
+            rule = dict(name='from_display', fields={'actor_id': {'offset': 4, 'type': 'u32', 'index': 'actor_id'}})
+            self.assertEqual(fields_from_display_rule(rule)['actor_id']['index'], 'actor_id')
 
 
 if __name__ == '__main__':

@@ -168,6 +168,10 @@ def build_workspace(window):
     w.ignore_packet_selection.setCheckable(True)
     w.ignore_packet_selection.setEnabled(False)
     filters.addWidget(w.ignore_packet_selection)
+    w.overlay_edit = QPushButton('構造オーバーレイを編集…')
+    w.overlay_edit.setEnabled(False)
+    w.overlay_edit.setToolTip('選択パケットの長さ・フィールド・indexをオーバーレイJSONへ保存し、表示を再解析します。')
+    filters.addWidget(w.overlay_edit)
     inspector.addLayout(filters)
     w.packet_pager=IntervalPager(noun='パケット',ordering='取得順')
     w.packet_pager.rows=w.packet_indices

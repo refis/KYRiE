@@ -2284,3 +2284,9 @@ wire values and SQLite raw stay unchanged. Session evidence writes PacketOverlay
 overlay_sha256 beside PacketLength.used.txt. GUI settings expose the overlay path; packet detail
 shows `値（注釈）`. Example: config/packet_overlay.example.json. No unknown-ID resync.
 Selected: display + test_packet_overlay + session_log + gui-display + gui-capture (90). Not full discover.
+
+### 2026-10-31: Packet-detail overlay editor (#35 P1)
+
+「パケット詳細」から選択パケットの長さ・フィールド・indexを編集し、オーバーレイJSONへ
+upsert保存→表示再解析。長さ確認は定義長と観測raw・フィールド被覆のみ（再同期なし）。
+Selected: display + gui-display（overlay editor含む）. Not full discover.

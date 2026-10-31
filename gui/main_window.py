@@ -119,6 +119,7 @@ class MainWindow(QMainWindow):
         self.ignore_settings.clicked.connect(self.edit_ignorepacket)
         self.ignore_packet_selection.toggled.connect(self.toggle_selected_packet_ignore)
         self.ignore_npc_selection.toggled.connect(self.toggle_selected_npc_ignore)
+        self.overlay_edit.clicked.connect(self.edit_overlay_structure)
         self.table.itemSelectionChanged.connect(self.sync_ignore_selection)
         self.npc_panel.table.selectionModel().currentRowChanged.connect(self.sync_ignore_selection)
         self.npc_panel.model.modelReset.connect(self.sync_ignore_selection)
@@ -187,6 +188,7 @@ class MainWindow(QMainWindow):
             button.setEnabled(value is not None)
             button.setChecked(value is not None and value in excluded)
             button.blockSignals(False)
+        self.overlay_edit.setEnabled(packet_id is not None)
 
     def toggle_selected_packet_ignore(self, checked):
         row = self.selected_packet_index()
@@ -268,6 +270,34 @@ class MainWindow(QMainWindow):
         path, _ = QFileDialog.getOpenFileName(self, '構造オーバーレイを選択', start, 'JSON (*.json);;All files (*)')
         if path:
             self.overlay_path.setText(path)
+
+    def edit_overlay_structure(self):
+        row = self.selected_packet_index()
+        if row is None:
+            return
+        from gui.overlay_editor import OverlayEditorDialog
+        from parser.packet_overlay import find_overlay_packet
+        event = self.events[row]
+        overlay = None
+        try:
+            overlay = self._load_optional_overlay()
+        except (OSError, ValueError) as exc:
+            self.statusBar().showMessage(f'既存オーバーレイを読めません（新規として編集）: {exc}')
+        seed = find_overlay_packet(overlay, event.packet_id)
+        renderer = self.presenter if event.direction == 'RECV' else self.send_presenter
+        rule = renderer.profile.rules.get(event.packet_id) if renderer else None
+        default_path = self.overlay_path.text().strip() or str(
+            Path(self.path.text()).resolve().parent / 'packet_overlay.json')
+        dialog = OverlayEditorDialog(
+            event.packet_id, len(event.raw), seed_entry=seed, display_rule=rule,
+            overlay_path=default_path, parent=self)
+        if dialog.exec():
+            saved = dialog.saved_path()
+            if saved:
+                self.overlay_path.setText(saved)
+                self.reload_display()
+                self.show_selected()
+                self.statusBar().showMessage(f'構造オーバーレイを保存し再解析しました: {saved}')
 
     def _load_optional_overlay(self):
         path = self.overlay_path.text().strip()

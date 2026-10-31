@@ -69,6 +69,14 @@ GUI基本データの仕様は[基本データガイド](../observations/player-
 セッション開始時は適用後の長さを `PacketLength.used.txt` に残し、オーバーレイ利用時は
 `PacketOverlay.used.json` と `session_start.overlay_sha256` も残す。
 
+### パケット詳細での編集（#35 P1）
+
+「パケット詳細」で行を選び「構造オーバーレイを編集…」を開く。
+フィールド追加・offset/type/length・index（actor_id / item_id 等）・パケット長を編集し、
+長さ確認（定義長と観測raw・フィールド被覆）のあとオーバーレイJSONへ保存する。
+保存後は設定のオーバーレイパスを更新し、表示を再解析する。
+既存のdisplay規則があれば初期値として読み、同一IDはオーバーレイ内で置換する。
+
 ## 文面を変える例
 
 会話パケット00B4の既定値は `"template": "mes {text:q};"`。

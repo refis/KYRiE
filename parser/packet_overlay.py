@@ -310,3 +310,111 @@ def write_overlay_snapshot(directory, overlay):
     path = Path(directory) / 'PacketOverlay.used.json'
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     return path
+
+
+def field_width(spec):
+    """Byte width of one field, or None when the string/bytes length is open-ended."""
+    kind = spec.get('type')
+    if kind in TYPES:
+        import struct
+        return struct.calcsize('<' + TYPES[kind])
+    if 'length' in spec:
+        return spec['length']
+    return None
+
+
+def length_check(raw_length, declared_length, fields):
+    """Compare observed raw size to overlay length and field coverage (no resync)."""
+    notes = []
+    if declared_length == -1:
+        notes.append(f'可変長(-1); 観測raw={raw_length} B')
+    elif declared_length != raw_length:
+        notes.append(f'長さ不一致: 定義={declared_length} B / 観測raw={raw_length} B')
+    else:
+        notes.append(f'長さ一致: {raw_length} B')
+    end = 0
+    for name, spec in fields.items():
+        width = field_width(spec)
+        if width is None:
+            notes.append(f'{name}: 末尾まで（offset={spec.get("offset")}）')
+            continue
+        stop = spec['offset'] + width
+        end = max(end, stop)
+        if stop > raw_length:
+            notes.append(f'{name}: フィールドがrawを超過（{stop} > {raw_length}）')
+    if declared_length != -1 and end and end > declared_length:
+        notes.append(f'フィールド末尾 {end} B が定義長 {declared_length} B を超過')
+    elif end:
+        notes.append(f'フィールド被覆末尾: {end} B')
+    return notes
+
+
+def build_packet_entry(packet_id, length, name, fields, template=None, min_length=None, note=None):
+    """Build one overlay packet object from editor values; validates before return."""
+    entry = dict(
+        id=f'{_parse_id(packet_id, "id"):04X}',
+        length=length,
+        name=name,
+        fields=fields,
+    )
+    if template is not None:
+        entry['template'] = template
+    if min_length is not None:
+        entry['min_length'] = min_length
+    if note is not None:
+        entry['note'] = note
+    validate_overlay(dict(version=1, packets=[entry]))
+    return entry
+
+
+def find_overlay_packet(overlay, packet_id):
+    if overlay is None:
+        return None
+    target = _parse_id(packet_id, 'id')
+    for row in overlay.get('packets') or ():
+        if _parse_id(row.get('id'), 'id') == target:
+            return deepcopy(row)
+    return None
+
+
+def upsert_overlay_packet(overlay, entry):
+    """Return a new overlay document with entry replacing the same id (or appended)."""
+    document = dict(version=1, packets=[])
+    if overlay is not None and isinstance(overlay.get('note'), str):
+        document['note'] = overlay['note']
+    target = _parse_id(entry['id'], 'id')
+    kept = []
+    for row in (overlay or {}).get('packets') or ():
+        if _parse_id(row.get('id'), 'id') != target:
+            kept.append(deepcopy(row))
+    kept.append(deepcopy(entry))
+    document['packets'] = kept
+    validate_overlay(document)
+    return document
+
+
+def fields_from_display_rule(rule):
+    """Copy display-profile field specs suitable for overlay editing."""
+    if not rule:
+        return {}
+    result = {}
+    for name, spec in (rule.get('fields') or {}).items():
+        if not isinstance(spec, dict):
+            continue
+        cleaned = {key: value for key, value in spec.items()
+                   if key in {'offset', 'type', 'length', 'encoding', 'scale', 'add', 'mask', 'index'}}
+        result[name] = cleaned
+    return result
+
+
+def save_overlay(path, overlay):
+    """Write a validated overlay JSON without private keys; return reloaded document."""
+    path = Path(path)
+    payload = {key: value for key, value in overlay.items() if not str(key).startswith('_')}
+    validate_overlay(payload)
+    text = json.dumps(payload, ensure_ascii=False, indent=2) + '\n'
+    if len(text.encode('utf-8')) > MAX_OVERLAY_BYTES:
+        raise OverlayError('Packet overlay exceeds size limit')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding='utf-8')
+    return load_overlay(path)
