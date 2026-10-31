@@ -1,9 +1,10 @@
 """Observed dialogue paths. No inference of unseen conditions or timer commands."""
-from reconstruction.touch import context as touch_context, is_touch, TOUCH_CLASSES, can_trigger, MAX_TOUCH_RADIUS, priority
 from collections import deque
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 
+from reconstruction.touch import (context as touch_context, is_touch, TOUCH_CLASSES, can_trigger,
+                                  MAX_TOUCH_RADIUS, priority, compare_conversation_trials)
 from reconstruction.decoder import ObservationError, Reader, decode_world_event
 from reconstruction.quests import decode_quest, QUEST_PACKET_IDS
 from reconstruction.conversation_actions import status_event, STATUS_IDS
@@ -12,6 +13,7 @@ from reconstruction.progress import ProgressTrace
 from reconstruction.script_commands import ScriptCommandStore
 from reconstruction.actor_appearance import declaration_class
 
+WALK_SEND_IDS = {0x85, 0x35f}
 PRESENTATION_ACTOR_OFFSETS = {0xc0: 2, 0x19b: 2, 0x1f3: 2, 0x1d3: 31,
                               0x1b0: 2, 0x9d1: 2, 0x144: 2, 0x8b3: 4, 0x8d: 4, 0xb0d: 2, 0x284: 2,
                               0x446: 2, 0xa3b: 4}
@@ -195,6 +197,7 @@ class DialogueStore:
         self.touch_warp_inferences = deque(maxlen=2000)
         self.touch_inference_dropped = 0
         self.touch_positions = {}
+        self.pending_walk_sends = {}
         self.shop_recent = {}
         self.close_pending, self.after_close = {}, {}
         self.timeout_closed = {}
@@ -443,6 +446,7 @@ class DialogueStore:
         self.progress.begin_capture()
         self.visibility_states.clear()
         self.touch_positions.clear()
+        self.pending_walk_sends.clear()
         self.shop_recent.clear()
         self.close_pending.clear()
         self.after_close.clear()
@@ -516,6 +520,10 @@ class DialogueStore:
                         self.revision += 1
             except ObservationError:
                 pass  # Existing world/dialogue diagnostics retain the malformed packet.
+        if packet.direction == 'SEND' and packet.packet_id in WALK_SEND_IDS:
+            if key not in self.pending_walk_sends and len(self.pending_walk_sends) >= 64:
+                self.pending_walk_sends.pop(next(iter(self.pending_walk_sends)))
+            self.pending_walk_sends[key] = index
         previous_position = self.touch_positions.get(key)
         if player_observation and player_observation.get('event_kind') in ('position', 'fix_position', 'walk'):
             if (isinstance(player_observation.get('map_name'), str)
@@ -528,6 +536,11 @@ class DialogueStore:
                     dx, dy = player_observation.get('destination_x'), player_observation.get('destination_y')
                     if all(type(v) is int and 0 <= v <= 1023 for v in (dx, dy)):
                         self.touch_positions[key].update(x=dx, y=dy, position_basis='observed_walk_destination')
+                        send_index = player_observation.get('walk_send_packet_index')
+                        if send_index is None:
+                            send_index = self.pending_walk_sends.pop(key, None)
+                        if type(send_index) is int and send_index >= 0:
+                            self.touch_positions[key]['walk_send_packet_index'] = send_index
         conversation = self.active.get(key)
         action_conversation = conversation
         recent = self.after_close.get(key)
@@ -792,6 +805,7 @@ class DialogueStore:
                         conversation.npc['touch'] = touch_context(conversation.npc, previous_position, index)
                         self.sessions.append(conversation)
             self.touch_positions.pop(key, None)
+            self.pending_walk_sends.pop(key, None)
             if conversation:
                 conversation.status = 'map_changed'
                 conversation.termination = dict(timestamp=packet.timestamp, packet_index=index,
@@ -1013,6 +1027,38 @@ class DialogueStore:
             self.active.pop(key, None)
         self.revision += 1
 
+    def touch_trial_comparisons(self):
+        """Group OnTouch candidates by existing NPC identity; never invent range from walks."""
+        import json
+        from reconstruction.branches import npc_identity
+        buckets = {}
+        for item in self.sessions:
+            if not is_touch(item.npc):
+                continue
+            identity = npc_identity(item, self.source_refs.get(item.capture_session, ''))
+            if identity is None:
+                continue
+            key = json.dumps(identity, sort_keys=True, ensure_ascii=False)
+            buckets.setdefault(key, []).append(item)
+            if len(buckets) >= 64:
+                break
+        inferences = list(self.touch_warp_inferences)
+        from reconstruction.touch import format_trial_comparison
+        comparisons = []
+        for key in sorted(buckets):
+            rows = compare_conversation_trials(buckets[key], inferences, self.source_refs)
+            if not rows:
+                continue
+            npc = buckets[key][0].npc
+            comparisons.append(dict(
+                npc={name: npc.get(name) for name in ('map_name', 'name', 'class_id', 'x', 'y', 'direction')},
+                trials=rows,
+                caption=format_trial_comparison(rows),
+            ))
+            if len(comparisons) >= 64:
+                break
+        return comparisons
+
     def snapshot(self, source_ref=''):
         from reconstruction.timing import build_timeline, summarize_timings
         notifications = index_player_notifications(self.presentation_observations)
@@ -1028,4 +1074,5 @@ class DialogueStore:
                     late_reply_dropped=self.late_reply_dropped, action_dropped=self.action_dropped,
                     script_command_observations=deepcopy(self.commands.observations), script_command_dropped=self.commands.dropped,
                     touch_warp_inferences=deepcopy(list(self.touch_warp_inferences)), touch_inference_dropped=self.touch_inference_dropped,
+                    touch_trial_comparisons=self.touch_trial_comparisons(),
                     source_sessions={str(key): value for key, value in self.source_refs.items()})

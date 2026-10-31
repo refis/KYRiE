@@ -82,6 +82,12 @@ class 139→111→844→45→その他の順に優先し、その順位内でチ
 位置不明では割り当てない。歩行通知の移動先による選択も推定であり、到達・起因の確定ではない。
 解析JSONのdialogues.touch_warp_inferencesへ候補・距離・順位・選択／未確定理由を残す。
 最大2000推定、1推定の候補詳細64件とし、切詰め・古い記録の脱落件数を明記する。
+
+同一NPC識別の複数試行は、dialogues.touch_trial_comparisonsと統合群の
+touch_trial_comparisonへ並べる。NPC座標・観測位置・position_basis・符号付きdx/dy・
+歩行SEND／受信歩行／転送のPacket番号・候補数／選定理由・出典（session/flow/MAP世代）を残す。
+歩行先が2方向でも半径2や5×5、OnTouch確定へ自動拡大しない。暫定半径1は既定の仮値であり、
+実測3×3ではない。GUIの時間経過欄とNPC一括出力JSONのtouch_trial_captionにも同じ注意を出す。
 hideon／cloakonの個体は接触に反応しないため、近傍候補の選別時は現在のoptionsを確認し、
 hide／cloak中の個体を除く。同一セルの複数個体でも適用する。初回状態は配置宣言用に保持し、
 現在のhideoff／cloakoffによる再反応と混同しない。同順位・同距離の反応可能候補が残る場合は割り当てない。

@@ -11,9 +11,9 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPu
 from reconstruction.auriga import AurigaRenderer
 from reconstruction.dialogue_review import build_review_queue
 from reconstruction.timing import build_timeline
-from reconstruction.touch import is_touch
+from reconstruction.touch import is_touch, compare_conversation_trials, format_trial_comparison
 from reconstruction.speech_origin import index_player_notifications
-from reconstruction.branches import build_merged, observation_key
+from reconstruction.branches import build_merged, observation_key, npc_identity
 from gui.timing_comparison import TimingComparisonPanel
 from gui.event_trials import EventTrialPanel
 from gui.external_presentations import ExternalPresentationPanel
@@ -324,13 +324,29 @@ class DialoguePanel(QWidget):
             flags += '範囲は暫定。' if touch.get('range_provisional') else '両軸の観測根拠あり（実装範囲の確定ではありません）。'
             if touch.get('range_basis') == 'walk_minimum_3x3':
                 flags += '歩行先は到着を保証しないため、最小3×3セルを使用します。'
+        group = self.selected_group()
+        touch_trials = []
+        if touch:
+            if self.merge_checkbox.isChecked() and group and group.get('touch_trial_comparison'):
+                touch_trials = group['touch_trial_comparison']
+            else:
+                identity = npc_identity(item, self.store.source_refs.get(item.capture_session, ''))
+                if identity is None:
+                    peers = [item]
+                else:
+                    peers = [peer for peer in self.store.sessions if is_touch(peer.npc)
+                             and npc_identity(peer, self.store.source_refs.get(peer.capture_session, '')) == identity]
+                touch_trials = compare_conversation_trials(
+                    peers, list(self.store.touch_warp_inferences), self.store.source_refs)
+            if touch_trials:
+                flags += '\n' + format_trial_comparison(touch_trials)
         self.timing_caption.setText(f'入力なし100ms以上: 比較対象 {len(timing["candidates"])}件 / '
                                    f'品質理由で除外 {len(timing["excluded_gaps"])}件。'
                                    f'サーバーのタイマー設定は未確定。通信欠落は未検証。\n{flags}')
         if timing['player_notification_count']:
             self.timing_caption.setText(self.timing_caption.text()+f'\n本人関連通知 {timing["player_notification_count"]}件（観測専用・詳細省略 {timing["player_notification_omitted"]}件）。待ち時間・反復集計には使用しません。')
+        evidence_document=lambda:dict(conversation=asdict(item),timeline=timing,touch_trial_comparison=touch_trials)
         try:
-            group = self.selected_group()
             self.external_presentations.set_conversation(item, group if self.merge_checkbox.isChecked() else None,
                                                          self.store.source_refs, self.store.presentation_observations,
                 is_current=lambda store=self.store,revision=self.store.revision,sources=dict(self.store.source_refs):
@@ -354,7 +370,8 @@ class DialoguePanel(QWidget):
                     if excluded and excluded['reason'] in ('node_capacity', 'semantic_capacity', 'step_capacity'):
                         self.merge_status.setText('統合データの保持上限に到達。根拠JSONを確認してください')
                 excluded_rows=self.merged_report()['excluded']
-                evidence_document=lambda:dict(conversation=asdict(item),timeline=timing,merged_group=group,excluded=excluded_rows)
+                evidence_document=lambda:dict(conversation=asdict(item),timeline=timing,merged_group=group,
+                                              excluded=excluded_rows,touch_trial_comparison=touch_trials)
             else:
                 code = renderer.render(item, presentation_check=check)
                 self.merge_status.clear()
@@ -372,8 +389,10 @@ class DialoguePanel(QWidget):
     def merged_report(self):
         key = (self.store,self.store.revision, tuple(sorted(self.store.source_refs.items())))
         if key != self._merge_key:
-            self._merge_report = build_merged((self.store.source_refs.get(item.capture_session, ''), item)
-                                               for item in self.store.sessions)
+            self._merge_report = build_merged(
+                ((self.store.source_refs.get(item.capture_session, ''), item)
+                 for item in self.store.sessions),
+                touch_inferences=list(self.store.touch_warp_inferences))
             self._merge_key = key
         return self._merge_report
 

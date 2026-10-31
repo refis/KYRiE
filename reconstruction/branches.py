@@ -1,5 +1,5 @@
 """Observed-path tries retaining contradictions and input response evidence."""
-from reconstruction.touch import is_touch
+from reconstruction.touch import is_touch, compare_conversation_trials, format_trial_comparison
 from reconstruction.actor_appearance import declaration_class
 from reconstruction.conversation_actions import validate_actions
 import hashlib
@@ -489,6 +489,7 @@ def _resource_prefix_hashes(tokens, resources):
 
 
 def build_merged(observations, max_nodes=100000, max_observations=2000,
+                 touch_inferences=None,
                  max_semantic_bytes=32 * 1024 * 1024, max_total_steps=100000):
     """Input is (source_ref, Conversation). Never combine unidentified NPCs."""
     groups, excluded, seen = {}, [], set()
@@ -641,7 +642,16 @@ def build_merged(observations, max_nodes=100000, max_observations=2000,
                     if group['nodes'][child]['kind'] in ('number_reply', 'text_reply')]))
             elif len(children) > 1:
                 conflicts.append(dict(node_id=node['id'], children=children, reason='divergence_without_observed_choice'))
+        touch_conversations = [row['conversation'] for row in group['contributions']
+                               if is_touch(row['conversation'].get('npc', {}))]
+        touch_trials = compare_conversation_trials(
+            touch_conversations,
+            touch_inferences,
+            source_refs={row['conversation']['capture_session']: row['source_ref']
+                         for row in group['contributions']})
         group.update(conflicts=conflicts, menus=menus, inputs=inputs,
+                     touch_trial_comparison=touch_trials,
+                     touch_trial_caption=format_trial_comparison(touch_trials) if touch_trials else '',
                      condition_generation='excluded', server_conditions_restored=False, timers_restored=False)
         result.append(group)
     excluded.sort(key=lambda row: (row['source_ref'], row['capture_session'], row['conversation_id'], row['reason']))
