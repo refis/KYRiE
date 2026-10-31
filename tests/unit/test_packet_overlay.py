@@ -7,10 +7,12 @@ from pathlib import Path
 from events import PacketEvent
 from parser.display import DEFAULT_PROFILE, DisplayProfile, ReceiveDisplay
 from parser.packet_overlay import (
-    INDEX_TAGS, OverlayError, build_packet_entry, fields_from_display_rule,
-    find_overlay_packet, format_indexed_value, length_check, load_overlay,
-    load_profile_with_overlay, merge_display_document, merge_lengths,
+    INDEX_TAGS, OverlayError, build_packet_entry, compare_same_id_instances,
+    export_display_fragment, export_lengths_text, fields_from_display_rule,
+    find_overlay_packet, format_indexed_value, format_instance_diff, length_check,
+    load_overlay, load_profile_with_overlay, merge_display_document, merge_lengths,
     resolve_index_label, save_overlay, upsert_overlay_packet, validate_overlay,
+    write_overlay_exports,
 )
 from reconstruction.client_names import empty_client_names
 from reconstruction.world import WorldStore
@@ -175,6 +177,34 @@ class PacketOverlayTests(unittest.TestCase):
             self.assertEqual(saved['_sha256'], load_overlay(path)['_sha256'])
             rule = dict(name='from_display', fields={'actor_id': {'offset': 4, 'type': 'u32', 'index': 'actor_id'}})
             self.assertEqual(fields_from_display_rule(rule)['actor_id']['index'], 'actor_id')
+
+    def test_same_id_instance_diff_and_exports(self):
+        raw_a = struct.pack('<HIH', 0xF001, 0x11111111, 501)
+        raw_b = struct.pack('<HIH', 0xF001, 0x22222222, 501)
+        fields = {
+            'actor_id': {'offset': 2, 'type': 'u32', 'index': 'actor_id'},
+            'item_id': {'offset': 6, 'type': 'u16', 'index': 'item_id'},
+        }
+        report = compare_same_id_instances(raw_a, raw_b, fields=fields)
+        self.assertFalse(report['equal'])
+        self.assertEqual(report['packet_id'], 0xF001)
+        self.assertTrue(any(hit['name'] == 'actor_id' for hit in report['field_differences']))
+        self.assertFalse(any(hit['name'] == 'item_id' for hit in report['field_differences']))
+        text = format_instance_diff(report)
+        self.assertIn('0xF001', text)
+        self.assertIn('actor_id', text)
+        with self.assertRaises(OverlayError):
+            compare_same_id_instances(raw_a, struct.pack('<HIH', 0xF002, 1, 2), fields=fields)
+        overlay = validate_overlay(_overlay_doc())
+        lengths = export_lengths_text(overlay)
+        self.assertEqual(lengths, 'F001 10\n')
+        fragment = export_display_fragment(overlay, [0xF001])
+        self.assertEqual(fragment['packets'][0]['ids'], ['F001'])
+        with tempfile.TemporaryDirectory() as folder:
+            result = write_overlay_exports(folder, overlay)
+            self.assertTrue(Path(result['lengths']).is_file())
+            self.assertTrue(Path(result['display']).is_file())
+            self.assertEqual(Path(result['lengths']).read_text(encoding='utf-8'), 'F001 10\n')
 
 
 if __name__ == '__main__':

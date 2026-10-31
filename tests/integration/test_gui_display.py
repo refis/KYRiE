@@ -686,6 +686,35 @@ class DisplayGuiTests(WindowTestCase):
             self.assertTrue(path.is_file())
             dialog.close()
 
+    def test_same_id_diff_and_overlay_export(self):
+        w = self.window
+        first = variable(0xB4, struct.pack('<I', 42) + b'hello\0')
+        second = variable(0xB4, struct.pack('<I', 99) + b'hello\0')
+        w.add_packet(first)
+        w.add_packet(second)
+        w.table.selectRow(0)
+        w.table.selectRow(1)  # ExtendedSelection keeps both when using Ctrl; force multi-select
+        from PySide6.QtCore import QItemSelectionModel
+        model = w.table.selectionModel()
+        model.select(w.table.model().index(0, 0), QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        model.select(w.table.model().index(1, 0), QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        self.assertTrue(w.overlay_diff.isEnabled())
+        w.diff_same_id_instances()
+        self.assertIn('同一ID差分: 0x00B4', w.hex.toPlainText())
+        self.assertIn('actor_id', w.hex.toPlainText())
+        with tempfile.TemporaryDirectory() as folder:
+            from parser.packet_overlay import load_overlay, write_overlay_exports
+            example = Path('config/packet_overlay.example.json')
+            w.overlay_path.setText(str(example.resolve()))
+            w.sync_ignore_selection()
+            self.assertTrue(w.overlay_export.isEnabled())
+            with patch('gui.main_window.QFileDialog.getExistingDirectory', return_value=folder), \
+                    patch('gui.main_window.QMessageBox.information'):
+                w.export_confirmed_overlay()
+            self.assertTrue((Path(folder) / 'PacketLength.overlay-export.txt').is_file())
+            self.assertTrue((Path(folder) / 'display.overlay-export.json').is_file())
+            self.assertIn('F001', (Path(folder) / 'PacketLength.overlay-export.txt').read_text(encoding='utf-8'))
+
     def test_display_filter_detail_save_and_raw_storage(self):
         w = self.window
         packet = variable(0xB4, struct.pack('<I', 42) + b'hello\0')

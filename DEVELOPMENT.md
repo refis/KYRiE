@@ -2290,3 +2290,9 @@ Selected: display + test_packet_overlay + session_log + gui-display + gui-captur
 「パケット詳細」から選択パケットの長さ・フィールド・indexを編集し、オーバーレイJSONへ
 upsert保存→表示再解析。長さ確認は定義長と観測raw・フィールド被覆のみ（再同期なし）。
 Selected: display + gui-display（overlay editor含む）. Not full discover.
+
+### 2026-10-31: Same-ID instance diff and overlay export (#35 P2)
+
+同一PacketIDの2インスタンスraw差分（フィールド注釈付き）と、確定オーバーレイの
+PacketLength／display断片エクスポート（本体定義は非上書き）。
+Selected: display + gui-display. Not full discover.

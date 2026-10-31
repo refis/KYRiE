@@ -418,3 +418,120 @@ def save_overlay(path, overlay):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding='utf-8')
     return load_overlay(path)
+
+
+def _select_packets(overlay, packet_ids=None):
+    if overlay is None:
+        raise OverlayError('Overlay is required')
+    rows = list(overlay.get('packets') or ())
+    if packet_ids is None:
+        return rows
+    wanted = {_parse_id(value, 'id') for value in packet_ids}
+    selected = [row for row in rows if _parse_id(row.get('id'), 'id') in wanted]
+    if not selected:
+        raise OverlayError('No matching overlay packets to export')
+    missing = wanted - {_parse_id(row.get('id'), 'id') for row in selected}
+    if missing:
+        raise OverlayError('Overlay missing packet ids: ' + ', '.join(f'0x{pid:04X}' for pid in sorted(missing)))
+    return selected
+
+
+def compare_same_id_instances(raw_a, raw_b, fields=None, packet_id=None):
+    """Byte-level diff of two framed packets; optional field-region annotation. No resync."""
+    if not isinstance(raw_a, (bytes, bytearray)) or not isinstance(raw_b, (bytes, bytearray)):
+        raise OverlayError('Both instances require raw bytes')
+    if len(raw_a) < 2 or len(raw_b) < 2:
+        raise OverlayError('Raw packets must include an ID header')
+    id_a = int.from_bytes(raw_a[:2], 'little')
+    id_b = int.from_bytes(raw_b[:2], 'little')
+    if id_a != id_b:
+        raise OverlayError(f'Packet IDs differ: 0x{id_a:04X} vs 0x{id_b:04X}')
+    if packet_id is not None and _parse_id(packet_id, 'id') != id_a:
+        raise OverlayError('Declared packet_id does not match raw headers')
+    limit = max(len(raw_a), len(raw_b))
+    differing = []
+    for offset in range(limit):
+        left = raw_a[offset] if offset < len(raw_a) else None
+        right = raw_b[offset] if offset < len(raw_b) else None
+        if left != right:
+            differing.append(dict(offset=offset, a=left, b=right))
+            if len(differing) >= 4096:
+                break
+    field_hits = []
+    for name, spec in (fields or {}).items():
+        if not isinstance(spec, dict) or 'offset' not in spec:
+            continue
+        width = field_width(spec)
+        start = spec['offset']
+        stop = None if width is None else start + width
+        region = [row for row in differing
+                  if row['offset'] >= start and (stop is None or row['offset'] < stop)]
+        if region:
+            field_hits.append(dict(name=name, offset=start, width=width, differences=len(region)))
+    return dict(
+        packet_id=id_a,
+        length_a=len(raw_a),
+        length_b=len(raw_b),
+        equal=not differing and len(raw_a) == len(raw_b),
+        difference_count=len(differing),
+        truncated=len(differing) >= 4096,
+        differences=differing,
+        field_differences=field_hits,
+    )
+
+
+def format_instance_diff(report, limit=64):
+    """Human-readable same-ID instance diff for the packet-detail pane."""
+    lines = [
+        f'同一ID差分: 0x{report["packet_id"]:04X}',
+        f'長さ A={report["length_a"]} B / B={report["length_b"]} B',
+        '一致' if report['equal'] else f'差分 {report["difference_count"]} 箇所'
+        + ('（上限で打ち切り）' if report.get('truncated') else ''),
+    ]
+    for hit in report.get('field_differences') or ():
+        width = '末尾' if hit['width'] is None else f'{hit["width"]} B'
+        lines.append(f'  フィールド {hit["name"]} @ {hit["offset"]} ({width}): 差分 {hit["differences"]}')
+    for row in (report.get('differences') or ())[:limit]:
+        left = '--' if row['a'] is None else f'{row["a"]:02X}'
+        right = '--' if row['b'] is None else f'{row["b"]:02X}'
+        lines.append(f'  +{row["offset"]:04X}: {left} → {right}')
+    remaining = report['difference_count'] - min(limit, report['difference_count'])
+    if remaining > 0:
+        lines.append(f'  …他 {remaining} 箇所')
+    return '\n'.join(lines)
+
+
+def export_lengths_text(overlay, packet_ids=None):
+    """PacketLength-style lines for confirmed overlay entries (last-wins ready)."""
+    rows = _select_packets(overlay, packet_ids)
+    lines = []
+    for row in sorted(rows, key=lambda item: _parse_id(item['id'], 'id')):
+        pid = _parse_id(row['id'], 'id')
+        lines.append(f'{pid:04X} {row["length"]}')
+    return '\n'.join(lines) + ('\n' if lines else '')
+
+
+def export_display_fragment(overlay, packet_ids=None):
+    """Minimal display JSON fragment containing only exported overlay rules."""
+    subset = dict(version=1, packets=_select_packets(overlay, packet_ids))
+    # Reuse overlay→display conversion on a temporary overlay document.
+    rules = overlay_display_rules(subset)
+    return dict(
+        version=1,
+        note='Exported overlay display fragment; merge into a full display profile explicitly.',
+        packets=rules,
+    )
+
+
+def write_overlay_exports(directory, overlay, packet_ids=None, lengths_name='PacketLength.overlay-export.txt',
+                          display_name='display.overlay-export.json'):
+    """Write confirmed overlay exports beside each other; never touches live definitions."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    lengths_path = directory / lengths_name
+    display_path = directory / display_name
+    lengths_path.write_text(export_lengths_text(overlay, packet_ids), encoding='utf-8')
+    fragment = export_display_fragment(overlay, packet_ids)
+    display_path.write_text(json.dumps(fragment, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    return dict(lengths=str(lengths_path.resolve()), display=str(display_path.resolve()),
+                packet_count=len(_select_packets(overlay, packet_ids)))

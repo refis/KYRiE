@@ -77,6 +77,16 @@ GUI基本データの仕様は[基本データガイド](../observations/player-
 保存後は設定のオーバーレイパスを更新し、表示を再解析する。
 既存のdisplay規則があれば初期値として読み、同一IDはオーバーレイ内で置換する。
 
+### 同一ID差分と確定エクスポート（#35 P2）
+
+同じPacketIDの行を2件選び「同一ID差分」でrawバイト差分を表示する。
+オーバーレイまたはdisplayのフィールド範囲があれば差分箇所をフィールド名で注釈する。
+長さが違っても境界再同期はせず、欠けた側は `--` と示す。
+
+「オーバーレイ確定をエクスポート…」は設定中のオーバーレイから
+`PacketLength.overlay-export.txt` と `display.overlay-export.json` を書き出す。
+プロジェクト本体の PacketLength.txt / display.json は上書きしない。
+
 ## 文面を変える例
 
 会話パケット00B4の既定値は `"template": "mes {text:q};"`。

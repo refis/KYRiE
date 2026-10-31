@@ -120,6 +120,9 @@ class MainWindow(QMainWindow):
         self.ignore_packet_selection.toggled.connect(self.toggle_selected_packet_ignore)
         self.ignore_npc_selection.toggled.connect(self.toggle_selected_npc_ignore)
         self.overlay_edit.clicked.connect(self.edit_overlay_structure)
+        self.overlay_diff.clicked.connect(self.diff_same_id_instances)
+        self.overlay_export.clicked.connect(self.export_confirmed_overlay)
+        self.overlay_path.editingFinished.connect(self.sync_ignore_selection)
         self.table.itemSelectionChanged.connect(self.sync_ignore_selection)
         self.npc_panel.table.selectionModel().currentRowChanged.connect(self.sync_ignore_selection)
         self.npc_panel.model.modelReset.connect(self.sync_ignore_selection)
@@ -189,6 +192,11 @@ class MainWindow(QMainWindow):
             button.setChecked(value is not None and value in excluded)
             button.blockSignals(False)
         self.overlay_edit.setEnabled(packet_id is not None)
+        selected = self.selected_packet_indices()
+        self.overlay_diff.setEnabled(
+            len(selected) == 2
+            and self.events[selected[0]].packet_id == self.events[selected[1]].packet_id)
+        self.overlay_export.setEnabled(bool(self.overlay_path.text().strip()))
 
     def toggle_selected_packet_ignore(self, checked):
         row = self.selected_packet_index()
@@ -270,6 +278,7 @@ class MainWindow(QMainWindow):
         path, _ = QFileDialog.getOpenFileName(self, '構造オーバーレイを選択', start, 'JSON (*.json);;All files (*)')
         if path:
             self.overlay_path.setText(path)
+            self.sync_ignore_selection()
 
     def edit_overlay_structure(self):
         row = self.selected_packet_index()
@@ -297,7 +306,85 @@ class MainWindow(QMainWindow):
                 self.overlay_path.setText(saved)
                 self.reload_display()
                 self.show_selected()
+                self.sync_ignore_selection()
                 self.statusBar().showMessage(f'構造オーバーレイを保存し再解析しました: {saved}')
+
+    def selected_packet_indices(self):
+        indices = []
+        seen = set()
+        for item in self.table.selectedItems():
+            if item.column() != 0:
+                continue
+            index = item.data(Qt.UserRole)
+            if type(index) is int and 0 <= index < len(self.events) and index not in seen:
+                seen.add(index)
+                indices.append(index)
+        return indices
+
+    def diff_same_id_instances(self):
+        selected = self.selected_packet_indices()
+        if len(selected) != 2:
+            self.statusBar().showMessage('同一PacketIDのパケットを2件選択してください。')
+            return
+        left, right = self.events[selected[0]], self.events[selected[1]]
+        if left.packet_id != right.packet_id:
+            self.statusBar().showMessage('選択した2件のPacketIDが一致しません。')
+            return
+        from parser.packet_overlay import (
+            compare_same_id_instances, fields_from_display_rule, find_overlay_packet,
+            format_instance_diff,
+        )
+        fields = {}
+        try:
+            overlay = self._load_optional_overlay()
+            entry = find_overlay_packet(overlay, left.packet_id)
+            if entry:
+                fields = entry.get('fields') or {}
+        except (OSError, ValueError):
+            overlay = None
+        if not fields:
+            renderer = self.presenter if left.direction == 'RECV' else self.send_presenter
+            rule = renderer.profile.rules.get(left.packet_id) if renderer else None
+            fields = fields_from_display_rule(rule)
+        try:
+            report = compare_same_id_instances(left.raw, right.raw, fields=fields, packet_id=left.packet_id)
+        except ValueError as exc:
+            self.statusBar().showMessage(f'同一ID差分に失敗: {exc}')
+            return
+        text = format_instance_diff(report)
+        self.hex.setPlainText(
+            f'{text}\n\n--- A index={selected[0]} {left.connection} ---\n'
+            f'--- B index={selected[1]} {right.connection} ---')
+        self.statusBar().showMessage(
+            f'同一ID差分 0x{left.packet_id:04X}: '
+            + ('一致' if report['equal'] else f'{report["difference_count"]} 箇所'))
+
+    def export_confirmed_overlay(self):
+        try:
+            overlay = self._load_optional_overlay()
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, 'オーバーレイを読めません', str(exc))
+            return
+        if overlay is None:
+            QMessageBox.information(self, 'エクスポート', '設定で構造オーバーレイのパスを指定してください。')
+            return
+        start = str(Path(self.overlay_path.text().strip()).resolve().parent)
+        directory = QFileDialog.getExistingDirectory(self, 'オーバーレイ確定のエクスポート先', start)
+        if not directory:
+            return
+        from parser.packet_overlay import write_overlay_exports
+        try:
+            result = write_overlay_exports(directory, overlay)
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, 'エクスポートできません', str(exc))
+            return
+        self.statusBar().showMessage(
+            f'オーバーレイ確定を書き出しました（{result["packet_count"]} ID）: '
+            f'{result["lengths"]} / {result["display"]}')
+        QMessageBox.information(
+            self, 'エクスポート完了',
+            'PacketLength／displayの本体は上書きしていません。\n'
+            f'長さ: {result["lengths"]}\n表示断片: {result["display"]}')
 
     def _load_optional_overlay(self):
         path = self.overlay_path.text().strip()
