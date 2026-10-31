@@ -117,6 +117,19 @@ class DialoguePanel(QWidget):
         self.timeline.setColumnWidth(4, 130)
         self.timeline.itemDoubleClicked.connect(lambda _: self.jump())
         timeline_layout.addWidget(self.timeline)
+        timeline_layout.addWidget(QLabel(
+            '資源変化の命令採用（Zeny／アイテム／マップ）。起因は未確定のまま。未確認行はコメントのみ。'))
+        self.resource_adoption = QTableWidget(0, 4)
+        self.resource_adoption.setHorizontalHeaderLabels(['採用', '種別', '要約', 'Packet'])
+        self.resource_adoption.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.resource_adoption.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.resource_adoption.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.resource_adoption.setMaximumHeight(140)
+        self.resource_adoption.setColumnWidth(0, 50)
+        self.resource_adoption.setColumnWidth(1, 110)
+        self.resource_adoption.setColumnWidth(2, 280)
+        self.resource_adoption.itemChanged.connect(self.toggle_resource_adoption)
+        timeline_layout.addWidget(self.resource_adoption)
         details.addTab(timeline_page, '時間経過')
         self.timing_comparison = TimingComparisonPanel(store, show_source)
         details.addTab(self.timing_comparison, '反復比較')
@@ -243,12 +256,16 @@ class DialoguePanel(QWidget):
             self.code.clear()
             self.evidence.clear()
             self.timeline.setRowCount(0)
+            self.resource_adoption.blockSignals(True)
+            self.resource_adoption.setRowCount(0)
+            self.resource_adoption.blockSignals(False)
             self.merge_status.clear()
             return
         timing = build_timeline(item, self.store.source_refs.get(item.capture_session, ''),
             player_notifications=index_player_notifications(self.store.presentation_observations))
         evidence_key=(self.store,self.store.revision,id(item),tuple(sorted(self.store.source_refs.items())),self.merge_checkbox.isChecked())
         evidence_document=lambda:dict(conversation=asdict(item),timeline=timing)
+        self._fill_resource_adoption(item)
         self.timeline.setRowCount(len(timing['rows']))
         quest_fields = {record['packet_index']: record for record in item.resource_observations
                         if record['kind'].startswith('quest_')}
@@ -376,6 +393,51 @@ class DialoguePanel(QWidget):
                     self.merge_status.setText(f'統合JSON保存済み / コード生成を停止した候補 {len(result["generation_errors"])}件')
         except (OSError, ValueError) as exc:
             QMessageBox.critical(self, '統合観測を保存できません', str(exc))
+
+    def _fill_resource_adoption(self, item):
+        labels = {'zeny': 'Zeny', 'item_gain': '所持品増加', 'item_loss': '所持品減少', 'map': 'マップ移動'}
+        rows = [row for row in item.resource_observations if row['kind'] in labels]
+        self.resource_adoption.blockSignals(True)
+        self.resource_adoption.setRowCount(len(rows))
+        for index, row in enumerate(rows):
+            fields = row['fields']
+            if row['kind'] == 'zeny':
+                summary = (f"残高 {fields['value']} / 差分 {fields['delta']}" if fields['delta_known']
+                           else f"残高 {fields['value']} / 差分不明（命令化不可）")
+            elif row['kind'] == 'map':
+                summary = f"{fields['map_name']} ({fields['x']},{fields['y']})"
+            else:
+                summary = f"ID={fields['item_id']} / 数量={fields['amount']} / Index {fields['index']}"
+            check = QTableWidgetItem()
+            check.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            check.setCheckState(Qt.Checked if row.get('adoption_confirmed') else Qt.Unchecked)
+            check.setData(Qt.UserRole, row['packet_index'])
+            if row['kind'] == 'zeny' and not fields.get('delta_known'):
+                check.setFlags(Qt.ItemIsSelectable)
+                check.setToolTip('差分不明のZenyは命令候補へ採用できません。')
+            self.resource_adoption.setItem(index, 0, check)
+            self.resource_adoption.setItem(index, 1, QTableWidgetItem(labels[row['kind']]))
+            self.resource_adoption.setItem(index, 2, QTableWidgetItem(summary))
+            self.resource_adoption.setItem(index, 3, QTableWidgetItem(f"0x{row['packet_id']:04X}"))
+        self.resource_adoption.blockSignals(False)
+
+    def toggle_resource_adoption(self, cell):
+        if cell is None or cell.column() != 0:
+            return
+        item = self.selected()
+        packet_index = cell.data(Qt.UserRole)
+        if item is None or packet_index is None:
+            return
+        try:
+            self.store.set_resource_adoption(item, packet_index, cell.checkState() == Qt.Checked)
+        except ValueError as exc:
+            self.resource_adoption.blockSignals(True)
+            cell.setCheckState(Qt.Unchecked)
+            self.resource_adoption.blockSignals(False)
+            QMessageBox.warning(self, '命令採用を変更できません', str(exc))
+            return
+        self.revision = -1
+        self.refresh_selected()
 
     def jump(self):
         item = self.selected()

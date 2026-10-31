@@ -73,7 +73,19 @@ GUIの時間経過表には「同一接続の変化・起因未確定」の行�
 配置付きNPCファイルにも同じメモが含まれる。
 文面はconfig/auriga/dialogue.jsonのresource_*で変更でき、旧プロファイルには既定値を補う。
 
-getitem、delitem、set Zeny、warp、起因・条件式は自動生成しない。
+getitem／delitemは所持品命令経路（script_commands）でも候補化するが、資源コメント行自体の
+命令化は利用者が行ごとに `adoption_confirmed` を付けた場合に限る。
+GUIの時間経過タブ「資源変化の命令採用」で切替できる。cause_confirmedは常にfalseのまま。
+
+確認済みのときだけ本文へ出す候補:
+
+- Zeny（差分既知）: `set Zeny, Zeny {delta:+d};`
+- マップ（非インスタンス名）: `warp`。`@` を含むMAPは実行せず確認用コメント
+- アイテム増減: 同一Packetの script_command が無い場合のみ getitem／delitem。ある場合は重複させない
+
+未確認行・差分不明Zenyは従来どおりコメント／未生成。起因・報酬条件式は生成しない。
+書式は dialogue.json の `zeny_set`／`map_warp`／`map_warp_review`／`resource_adoption_review`。
+
 複数選択肢の本文が同一でも、関連する増減観測や位置が異なる場合は応答同一と断定せずswitchを維持する。
 全観測が一致し本文も完全に一致する場合は従来どおりラベルなしmenuへまとめられる。
 単一選択肢はラベルなしmenuを維持する。

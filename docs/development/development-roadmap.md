@@ -350,6 +350,7 @@ P0の再生基盤を使い、機能ごとに小さく実装する。
 2. 会話中のアイテム・Zeny増減、マップ遷移を根拠付きの観測コメントへ関連付ける。
    初期実装済み。[会話中の状態変化](../npc/dialogue-resource-observations.md)を参照。命令化・起因判定は行わない。
 3. 確認された対象・操作だけを命令候補へ切り替えられる形にする。
+   資源行の `adoption_confirmed` と GUI 切替を追加（Zeny／マップ／重複しないアイテム）。起因は未確定のまま。
 4. 通常ショップの商品台帳と出力、続いて交換・バルター系を追加。
    [通常ショップの観測台帳・JSON保存](../npc/shop-observations.md)と
    [shop/callshop編集用出力](../npc/shop-export.md)を追加済み。実機での生成コード確認・交換系は未対応。
@@ -503,10 +504,11 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 2026-10-31時点の優先候補（生データ採取必須を除く）:
 
 1. P2: イベントアイコン等の未対応通知の対象洗い出しと構造化保持（0446観測＋一覧docs着手済み。残りdisplay_onlyの個別配線は必要時）
-2. P1-A③: 確認済み対象・操作だけを命令候補へ切替
+2. P1-A③: 確認済み対象・操作だけを命令候補へ切替（adoption_confirmed 着手）
 3. P1-B: 手動タイマー／共通イベント列の対応演出拡張
 4. P1-C: MOBスキル候補の文字列VALと辞書版の扱い
 5. 文書: 本ロードマップ／restoration-plan と実装のズレ解消（#9 / PR #4 で反映済み）
+   P2 イベントアイコン一覧・0446保持は #5 / PR #11 で反映済み
 
 P0-BのGUI読み戻し・作業プロジェクト・複数ログは実装済み
 （[読み戻し](../guide/offline-replay.md) / [プロジェクト](../guide/offline-project.md) /

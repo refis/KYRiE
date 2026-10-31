@@ -54,8 +54,11 @@ def validate_resources(conversation):
         raise ValueError('Resource observation capacity exceeded')
     for row in conversation.resource_observations:
         fields, kind = row['fields'], row['kind']
+        if 'adoption_confirmed' not in row:
+            row['adoption_confirmed'] = False
         if (row['direction'] != 'RECV' or row['capture_session'] != conversation.capture_session
                 or row['flow_id'] != conversation.flow_id or row['cause_confirmed'] is not False
+                or row['adoption_confirmed'] is not True and row['adoption_confirmed'] is not False
                 or not math.isfinite(row['timestamp']) or row['timestamp'] < conversation.started
                 or type(row['packet_index']) is not int or row['packet_index'] < 0):
             raise ValueError('Invalid resource observation scope')
@@ -236,11 +239,53 @@ def conversation_path(source_ref, conversation, strict=True):
                 continue
             anchor = reply
         quests.setdefault(anchor, []).append((row, deferred))
+    scripted_packets = {row['packet_index'] for row in conversation.actions
+                        if row.get('fields', {}).get('command') in ('getitem', 'getitem2', 'delitem', 'delequip')}
+    adopted = {}
+    for row in conversation.resource_observations:
+        if row.get('adoption_confirmed') is not True or row['kind'] not in ('zeny', 'item_gain', 'item_loss', 'map'):
+            continue
+        if row['kind'] in ('item_gain', 'item_loss') and row['packet_index'] in scripted_packets:
+            continue
+        if row['kind'] == 'zeny' and not row['fields'].get('delta_known'):
+            continue
+        anchor = row.get('after_step_index')
+        if type(anchor) is not int or not 0 <= anchor < len(steps):
+            continue
+        deferred = steps[anchor]['kind'] in ('next', 'menu', 'number', 'text')
+        if deferred:
+            reply = steps[anchor].get('reply')
+            if type(reply) is not int or not anchor < reply < len(steps) or steps[reply].get('reply_to') != anchor:
+                continue
+            anchor = reply
+        adopted.setdefault(anchor, []).append((row, deferred))
     def append_quests(anchor):
         events = [(row['packet_index'], kind, fields, row, False) for kind, fields, row in scheduled.get(anchor, [])]
         events.extend((row['packet_index'], 'quest', {}, row, deferred) for row, deferred in quests.get(anchor, []))
+        events.extend((row['packet_index'], 'adopted', {}, row, deferred) for row, deferred in adopted.get(anchor, []))
         for _, kind, fields, row, deferred in sorted(events, key=lambda event: event[0]):
             reference = _reference(source_ref, conversation, row, None)
+            if kind == 'adopted':
+                if deferred:
+                    tokens.append(dict(kind='resource_adoption_review', fields={}, evidence=reference))
+                if row['kind'] == 'zeny':
+                    tokens.append(dict(kind='zeny_set', fields={'delta_signed': f"{row['fields']['delta']:+d}"},
+                                       evidence=reference))
+                elif row['kind'] == 'map':
+                    values = dict(map_name=row['fields']['map_name'], x=row['fields']['x'], y=row['fields']['y'])
+                    tokens.append(dict(kind='map_warp_review' if '@' in values['map_name'] else 'map_warp',
+                                       fields=values, evidence=reference))
+                elif row['kind'] == 'item_gain':
+                    tokens.append(dict(kind='script_command',
+                        fields=dict(command='getitem', arguments=dict(item_id=row['fields']['item_id'],
+                                                                      amount=row['fields']['amount']),
+                                    review_only=False, review_reason=''), evidence=reference))
+                else:
+                    tokens.append(dict(kind='script_command',
+                        fields=dict(command='delitem', arguments=dict(item_id=row['fields']['item_id'],
+                                                                     amount=row['fields']['amount']),
+                                    review_only=False, review_reason=''), evidence=reference))
+                continue
             if kind != 'quest':
                 tokens.append(dict(kind=kind, fields=deepcopy(fields), evidence=reference))
                 continue
