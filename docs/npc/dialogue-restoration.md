@@ -2,6 +2,12 @@
 
 [資料一覧へ](../README.md) · [プロジェクトREADME](../../README.md)
 
+## イベントアイコン（0446）
+
+0x0446は14バイト固定。ActorID・座標・state・kindを `event_marker` として構造化保持する。
+実行の showevent 命令は出さず、手動タイマー採用も未対応として拒否する。
+対照表と display_only の他IDは[未対応通知](unsupported-notifications.md)。
+
 ## 値付きエフェクト
 
 0x0284は14バイト固定で、ActorID（offset 2）、エフェクトID（offset 6）、追加値（offset 10）を保持する。

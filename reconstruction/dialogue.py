@@ -13,8 +13,9 @@ from reconstruction.script_commands import ScriptCommandStore
 from reconstruction.actor_appearance import declaration_class
 
 PRESENTATION_ACTOR_OFFSETS = {0xc0: 2, 0x19b: 2, 0x1f3: 2, 0x1d3: 31,
-                              0x1b0: 2, 0x9d1: 2, 0x144: 2, 0x8b3: 4, 0x8d: 4, 0xb0d: 2, 0x284: 2}
-EXTERNAL_PRESENTATION_IDS = {0xc0, 0x19b, 0x1f3, 0x1d3, 0x8b3, 0x8d, 0xb0d, 0x284}
+                              0x1b0: 2, 0x9d1: 2, 0x144: 2, 0x8b3: 4, 0x8d: 4, 0xb0d: 2, 0x284: 2,
+                              0x446: 2}
+EXTERNAL_PRESENTATION_IDS = {0xc0, 0x19b, 0x1f3, 0x1d3, 0x8b3, 0x8d, 0xb0d, 0x284, 0x446}
 DIALOGUE_LAYOUT_IDS = {0xba1, 0xba2, 0xba3, 0xbb5}
 DIALOGUE_LAYOUT_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment'}
 
@@ -30,7 +31,8 @@ def decode_dialogue(packet):
                  0x142: 'number', 0x1d4: 'text', 0x1b3: 'cutin',
                  0xc0: 'emotion', 0x1d3: 'sound', 0x19b: 'effect', 0x1f3: 'effect', 0x1b0: 'classchange',
                  0x2f0: 'progressbar', 0x9d1: 'progressbar', 0x7fe: 'music', 0xb8c: 'music',
-                 0x144: 'viewpoint', 0x8b3: 'overhead', 0x8d: 'unittalk', 0xb0d: 'effect_remove', 0x284: 'effect_value'}
+                 0x144: 'viewpoint', 0x8b3: 'overhead', 0x8d: 'unittalk', 0xb0d: 'effect_remove', 0x284: 'effect_value',
+                 0x446: 'event_marker'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
         expected = 3 if pid == 0xba1 else 10
@@ -53,6 +55,11 @@ def decode_dialogue(packet):
         if len(packet.raw) != 14:
             raise ObservationError('Valued effect length does not match supported layout')
         return kind, r.number(2, 'I'), dict(effect_id=r.number(6, 'I'), value=r.number(10, 'I'))
+    if kind == 'event_marker':
+        if len(packet.raw) != 14:
+            raise ObservationError('Event marker length does not match supported layout')
+        return kind, r.number(2, 'I'), dict(x=r.number(6, 'H'), y=r.number(8, 'H'),
+                                           state=r.number(10, 'H'), kind=r.number(12, 'H'))
     if kind == 'announcement':
         offset = 4 if pid == 0x9a else 16
         if (not offset + 1 <= len(packet.raw) <= 65535

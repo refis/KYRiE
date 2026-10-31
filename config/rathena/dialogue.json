@@ -14,6 +14,8 @@
   "resource_quest_state": "// パケット {packet_index}: クエスト状態 ID={quest_id}, state={state}。起因・完了条件は未確定。",
   "effect_value": "// 値付きエフェクト観測: effect={effect_id}, value={value}。対応するrAthena命令は未確認のため未生成。",
   "external_effect_value": "// 値付きエフェクトの外部候補: effect={effect_id}, value={value}, target={target}。呼出し元・命令対応は未確定。",
+  "event_marker": "// イベントアイコン観測: state={state}, kind={kind}, x={x}, y={y}。showevent相当の実行命令は未生成。",
+  "external_event_marker": "// イベントアイコンの外部候補: state={state}, kind={kind}, x={x}, y={y}, target={target}。呼出し元・命令対応は未確定。",
   "effect_remove": "// delmisceffect相当はrAthena未確認。観測値 value={value} を確認用コメントとして保持。",
   "external_effect_remove": "// delmisceffect相当はrAthena未確認。value={value}, target={target}。外部NPC呼出し候補・未採用",
   "npc_file_header_hidden": "// NPC初回観測状態: HIDDEN\n{map_name},{x},{y},{direction}\tscript(HIDDEN)\t{npc_name}\t{class_id},{{",

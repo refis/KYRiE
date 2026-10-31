@@ -32,6 +32,10 @@ def presentation_context(row):
             summary=('0x0284は対象ID・エフェクトID・付加値を保持します。付加値の意味と再現命令が未確定のためコメントで残し、通常のmisceffectへ置き換えません。'
                      if kind=='effect_value' else
                      '0x0B0Dは指定個体のエフェクト解除です。会話元自身への既存delmisceffectと、外部NPCへの未採用候補を区別します。対象IDは呼出元や他ユーザーの関与を確定せず、会話外のタイマー採用には既存の手動確認が必要です。'))
+    elif kind=='event_marker':
+        result.update(actor_role='event_marker_target',
+            short='イベントアイコンの対象IDです。起因NPC・OnTimer・表示条件は未確定です。',
+            summary='0x0446は対象ActorIDと座標・state・kindを保持します。表示JSONの@showevent雛形とは別で、会話命令やNPCタイマーへは変換しません。起因・他ユーザー操作の混入は確定せず、手動確認前の実行命令も生成しません。')
     elif kind=='mapcell':
         result.update(actor_role='map_cell',observed_actor_id=None,
             short='マップセル変更の観測です。呼出元NPCのIDは含まれていません。',

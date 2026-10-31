@@ -31,6 +31,8 @@ STYLE_FIELDS = {'indent': set(), 'block_open': set(), 'block_close': set(), 'swi
 PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'dialogue_position': {'x', 'y'}, 'dialogue_alignment': {'alignment'}, 'emotion': {'value'}, 'effect': {'value'}, 'effect_remove': {'value'}, 'sound': {'sound', 'mode', 'interval'},
                        'effect_value': {'effect_id', 'value'}, 'external_effect_value': {'effect_id', 'value', 'target'},
+                       'event_marker': {'x', 'y', 'state', 'kind'},
+                       'external_event_marker': {'x', 'y', 'state', 'kind', 'target'},
                        'external_effect_remove': {'value', 'target'},
                        'classchange': {'class_id', 'kind'},
                        'progressbar': {'seconds', 'color'},
@@ -484,6 +486,9 @@ class AurigaRenderer:
                 emit(kind, depth, value=fields['value'])
             elif kind == 'effect_value':
                 emit('effect_value', depth, effect_id=fields['effect_id'], value=fields['value'])
+            elif kind == 'event_marker':
+                emit('event_marker', depth, x=fields['x'], y=fields['y'],
+                     state=fields['state'], kind=fields['kind'])
             elif kind == 'classchange':
                 if npc_name:
                     emit('script_rendered',depth,text=render_display(dict(name=npc_name,map_name=map_name),{'class_id':fields['class_id']},self.templates))
