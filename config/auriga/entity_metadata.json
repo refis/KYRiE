@@ -4,6 +4,8 @@
   "oninit": "OnInit:",
   "npc_group": "setnpcgroup {group_id};",
   "npc_title": "setnpctitle {title};",
+  "npc_group_log": "setnpcgroup {group_id};\t// NPC {actor_id} {actor_name}",
+  "npc_title_log": "setnpctitle {title};\t// NPC {actor_id} {actor_name}",
   "mob_group": "setunitgroup {group_id},{actor_id};",
   "mob_title": "setunittitle {title},{actor_id};",
   "end": "end;",

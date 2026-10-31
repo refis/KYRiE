@@ -107,6 +107,41 @@ class EntityMetadataTests(unittest.TestCase):
         self.assertNotIn('setnpctitle', render_npc_initialization([values]))
         self.assertIn('setnpcgroup 7;', render_npc_initialization([values]))
 
+    def test_npc_observation_log_uses_trailing_actor_comment_without_oninit(self):
+        display = ReceiveDisplay(DisplayProfile.load(DEFAULT_PROFILE))
+        display.decode(map_packet())
+        display.decode(actor_packet())
+        result = display.decode(name_packet(
+            name='ヘッドハンター#hallo01', title='[イベント会場入口]', group_id=1039))
+        self.assertEqual(
+            result.text,
+            'setnpcgroup 1039;\t// NPC 42 "ヘッドハンター#hallo01"\n'
+            'setnpctitle "[イベント会場入口]";\t// NPC 42 "ヘッドハンター#hallo01"')
+        self.assertNotIn('OnInit:', result.text)
+        self.assertNotIn('\nend;', result.text)
+        title_only = display.decode(name_packet(
+            actor_id=42, name='ヘッドハンター#hallo01', title='別称号', group_id=0, timestamp=3))
+        self.assertEqual(
+            title_only.text,
+            'setnpctitle "別称号";\t// NPC 42 "ヘッドハンター#hallo01"')
+        from reconstruction.entity_metadata import render_entity_metadata
+        detail, values = render_entity_metadata(dict(
+            kind='NPC', actor_id=42, name='案内人', group_id=9, title='案内役',
+            metadata_evidence={'group_id': {}, 'title': {}}, field_issues={}))
+        self.assertEqual(
+            detail,
+            'setnpcgroup 9;\t// NPC 42 "案内人"\n'
+            'setnpctitle "案内役";\t// NPC 42 "案内人"')
+        self.assertEqual(values['group_id'], 9)
+        world = WorldStore()
+        for event in (map_packet(), actor_packet(),
+                      name_packet(name='案内人', title='案内役', group_id=9)):
+            world.apply(event)
+        code = AurigaRenderer().render_npc_metadata_file(asdict(world.records('NPC')[0]))
+        self.assertEqual(code.count('OnInit:'), 1)
+        self.assertIn('    setnpcgroup 9;', code)
+        self.assertNotIn('\t// NPC 42', code)
+
     def test_deferred_mob_metadata_is_logged_on_appearance_and_cannot_leak_to_reused_actor(self):
         display = ReceiveDisplay(DisplayProfile.load(DEFAULT_PROFILE))
         first = display.decode(name_packet(actor_id=43, title='BOSS'))
@@ -123,3 +158,4 @@ class EntityMetadataTests(unittest.TestCase):
         rathena = ReceiveDisplay(DisplayProfile.load(Path(DEFAULT_PROFILE).parent.parent / 'rathena' / 'display.json'))
         rathena.decode(actor_packet())
         self.assertNotIn('OnInit:', rathena.decode(name_packet()).text)
+        self.assertNotIn('setnpcgroup', rathena.decode(name_packet(timestamp=3)).text)

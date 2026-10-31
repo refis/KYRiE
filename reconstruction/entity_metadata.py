@@ -9,6 +9,8 @@ from reconstruction.actor_appearance import player_class, render_display, VISUAL
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'entity_metadata.json'
 FIELDS = {'npc_context': {'actor_id', 'actor_name'}, 'mob_context': {'actor_id', 'actor_name'},
           'oninit': set(), 'npc_group': {'group_id'}, 'npc_title': {'title'},
+          'npc_group_log': {'group_id', 'actor_id', 'actor_name'},
+          'npc_title_log': {'title', 'actor_id', 'actor_name'},
           'mob_group': {'group_id', 'actor_id'}, 'mob_title': {'title', 'actor_id'},
           'npc_display_class': {'target','class_id'}, 'npc_display_full': {'target','class_id',*VISUAL_FIELDS},
           'npc_display_unknown': set(), 'npc_display_outside': {'code'}, 'instance_npc_reference': {'name'},
@@ -135,16 +137,28 @@ def append_initialization(body, npcs, profile=None):
     return result
 
 
+def observation_commands(values, kind, actor_id, actor_name, style):
+    values = display_values(values)
+    args = dict(values, actor_id=actor_id, actor_name=json.dumps(actor_name or '', ensure_ascii=False))
+    if 'title' in args:
+        args['title'] = json.dumps(args['title'], ensure_ascii=False)
+    return [style[kind + '_' + field + '_log'].format_map(args) for field in ('group', 'title')
+            if ('group_id' if field == 'group' else field) in values]
+
+
 def render_entity_metadata(data, profile=None):
     values = display_values(metadata_values(data))
     kind, actor = data['kind'], data['actor_id']
     if not values or kind not in ('NPC', 'MOB'):
         return '', {}
     style = templates(profile)
-    context = style['npc_context' if kind == 'NPC' else 'mob_context'].format(
+    if kind == 'NPC':
+        # Observation log keeps flat setnpc* lines; OnInit wrapping is code-gen only.
+        body = '\n'.join(observation_commands(values, 'npc', actor, data.get('name', ''), style))
+        return body, dict(actor_id=actor, entity_kind=kind, **values)
+    context = style['mob_context'].format(
         actor_id=actor, actor_name=json.dumps(data.get('name', ''), ensure_ascii=False))
-    body = (style['end'] + '\n\n' + render_npc_initialization([data], profile) if kind == 'NPC' else
-            '\n'.join(commands(values, 'mob', actor, style)) + '\n')
+    body = '\n'.join(commands(values, 'mob', actor, style)) + '\n'
     return context + '\n' + body.rstrip(), dict(actor_id=actor, entity_kind=kind, **values)
 
 
