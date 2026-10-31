@@ -320,6 +320,11 @@ rAthena表は本家 master（commit d4b8e7b8）の EFST→SC 一意対応を一�
 Auriga番号は流用しない。曖昧アイコンはambiguousへ分離。argument_policyはreviewを基本とし、
 status.yml Flags.SendVal1が確認できた SC_MONSTER_TRANSFORM / SC_ACTIVE_MONSTER_TRANSFORM のみ
 val1_only。GUIのエミュレータ切替で生成プロファイルごと切り替える（sendは共有）。
+Icon 12（EFST_INC_AGI）と50（EFST_NOEQUIPWEAPON）は観測一意ではなくユーザー採用方針で
+SC_INCREASEAGI / SC_STRIPWEAPON を通常変換へ入れ、除外候補はexcluded_candidatesに残す。
+残る曖昧6件（112/149/324/438/737/1316）は根拠なく一意化しない。
+表示側0196 flag=0の`sc_end`も変換後SCのみを使い、未解決は確認用コメントにする。
+CLIのエミュレータ指定と上流の継続追従は別対応。
 
 生成書式はconfig/auriga/dialogue.jsonのprogress_action、hideonnpc等、unittalk_target、
 status_start/status_end/status_review等で変更できる。GUIのタイムラインから元Packetへ移動できる。
