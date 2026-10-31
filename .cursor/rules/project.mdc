@@ -25,3 +25,4 @@ alwaysApply: true
 - Preserve evidence for inferred timing, branches and skill statistics; never invent unseen server logic.
 - Compute MOB skill intervals per individual before aggregating by class.
 - Recognized initial HTTP traffic is PASS, not a game framing error; never scan unknown game bytes for synchronization.
+- Persist GUI preferences in local `config/user_settings.json` only; never commit, snapshot, or ship that profile.

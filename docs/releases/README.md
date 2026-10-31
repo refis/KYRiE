@@ -20,8 +20,9 @@ python -m tools.build_snapshot --output-dir dist
 
 - 既存ZIPは上書きしない。別の出力先を使う。
 - ZIP内 `SNAPSHOT.json` にファイルごとのサイズとSHA-256、ZIP横に全体のSHA-256を残す。
-- `logs/`、DB、クライアントEXE、`.reference`、生成コード、キャッシュは含めない。
+- `logs/`、DB、クライアントEXE、`.reference`、生成コード、キャッシュ、`config/user_settings.json`は含めない。
 - ZIP内の `ignorepacket.json` だけ空の既定値へ戻す（作業側の設定は変えない）。
+- `config/user_settings.json`はローカル専用のためZIPへ入れない（作業側のファイルも変更しない）。
 
 検証の目安:
 

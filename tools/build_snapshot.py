@@ -39,6 +39,8 @@ def build_snapshot(root, output_dir):
         name = path.relative_to(root).as_posix()
         if name == 'config/ignorepacket.json':
             continue  # Local NPC names/IDs and packet exclusions are personal preferences.
+        if name == 'config/user_settings.json':
+            continue  # Local GUI preference profile; never ship machine-specific settings.
         size = path.stat().st_size
         if size > 16*1024*1024 or total + size > 64*1024*1024:
             raise ValueError('Source snapshot size limit reached')
@@ -51,7 +53,7 @@ def build_snapshot(root, output_dir):
     manifest = dict(kind='source_snapshot',version=__version__,snapshot_date=SNAPSHOT_DATE,
         includes_private_capture_data=False, local_ignore_preferences_reset=True,
         excluded=['logs/','client EXE and extracted definitions','.reference/','packets.sqlite3*',
-                  'root generated NPC code','caches','dist/'],
+                  'root generated NPC code','caches','dist/','config/user_settings.json'],
         files=[dict(path=name,size=len(data),sha256=hashlib.sha256(data).hexdigest()) for name,data in sorted(files.items())])
     files['SNAPSHOT.json'] = (json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
     output_dir = Path(output_dir).resolve()

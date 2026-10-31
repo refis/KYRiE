@@ -107,6 +107,7 @@ class MainWindow(QMainWindow):
         self.workspace_closed=False
         self.render_timestamps=False
         self.history_view_stale=False
+        settings_error = self.apply_user_settings()
         self.history_tasks=HistoryTasks(self)
         self.history_tasks.changed.connect(self.history_update_state)
         self.history_tasks.failed.connect(self.history_update_failed)
@@ -143,15 +144,42 @@ class MainWindow(QMainWindow):
         self.display_timestamps.toggled.connect(self.reformat_display)
         self.display_unmapped.toggled.connect(self.rebuild_display_log)
         self.display_save.clicked.connect(self.save_display)
+        self.settings_dialog.finished.connect(lambda *_: self.persist_user_settings())
         self.reload_display()
         try:
-            self.send_presenter = self._make_display(self._load_display_profile(DEFAULT_SEND_PROFILE), direction='SEND')
+            send_path = self.display_input_paths.get('SEND') or str(DEFAULT_SEND_PROFILE)
+            self.send_presenter = self._make_display(self._load_display_profile(send_path), direction='SEND')
         except (OSError, ValueError) as exc:
             self.show_capture_status(f'SEND display profile load failed: {exc}')
         self.process.currentIndexChanged.connect(self.update_capture_controls)
         self.update_capture_controls()
         if ignore_error:
             self.show_capture_status(ignore_error)
+        if settings_error:
+            self.show_capture_status(settings_error)
+
+    def apply_user_settings(self):
+        from storage import user_settings
+        from reconstruction.emulator_profiles import set_target
+        try:
+            document = user_settings.load()
+        except (OSError, user_settings.UserSettingsError) as exc:
+            return f'ユーザー設定を読み込めません（既定値を使用）: {exc}'
+        user_settings.apply_to_window(self, document)
+        try:
+            set_target(document['emulator'])
+        except ValueError as exc:
+            return f'ユーザー設定の出力形式を適用できません（既定値を維持）: {exc}'
+        return ''
+
+    def persist_user_settings(self):
+        if self.workspace_closed:
+            return
+        from storage import user_settings
+        try:
+            user_settings.save(user_settings.collect_from_window(self))
+        except (OSError, user_settings.UserSettingsError) as exc:
+            self.show_capture_status(f'ユーザー設定を保存できません: {exc}')
 
     def edit_ignorepacket(self):
         dialog = IgnorePacketDialog(self.ignorepacket, self)
@@ -1266,6 +1294,7 @@ class MainWindow(QMainWindow):
         self.settings_dialog.close()
         self.diagnostics_dialog.close()
         self.player_panel.dialog.close()
+        self.persist_user_settings()
         if self.session_log:
             self.session_log.write('packet_delivery_shutdown',counts_at_close=self.packet_progress())
             self.session_log.close()

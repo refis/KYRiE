@@ -57,9 +57,10 @@ python -m venv .venv
 - `config/auriga/status_ids.json`: 状態異常ID変換。未確認の引数は自動補完しません。
 - `config/auriga/script_commands.json`: 命令候補の条件。床アイテムの総寿命は60000ms。
 - `config/ignorepacket.json`: 観測ログ非表示。パケット保存・意味解析・コード生成は継続します。
+- `config/user_settings.json`: 設定画面などのGUI設定（ローカル専用。Git/スナップショット対象外）。
 
 表示書式はGUIから再読込できます。低優先のrAthena書式は`config/rathena/`に分離しています。
-[表示JSON](docs/capture/receive-display.md) / [非表示設定](docs/guide/ignorepacket.md)
+[表示JSON](docs/capture/receive-display.md) / [非表示設定](docs/guide/ignorepacket.md) / [GUI操作](docs/guide/gui-workspace.md)
 
 ## パケット分割と観測の限界
 

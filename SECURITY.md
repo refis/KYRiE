@@ -8,6 +8,7 @@ KYRiEはゲーム通信の観測・保存を扱います。リポジトリやIss
 - パケットDB（`*.sqlite3` と `-wal`/`-shm`）
 - クライアントEXE・抽出バイナリ・`.reference` 原資料
 - 生成したNPCコードや作業用エクスポート（ルートの生成物）
+- ローカルGUI設定（`config/user_settings.json`）
 - アカウント、パスワード、個人を特定しうる会話全文のサンプルをIssue/PRに貼ること
 
 `.gitignore` とソーススナップショットの除外方針が正です。ローカルの `client/` は [client/README.md](client/README.md) を参照。
