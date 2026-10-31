@@ -1,5 +1,14 @@
 # Development baseline and plan
 
+## MARiA gap docs refresh (2026-11-01)
+
+Reconfirmed MARiA vs KYRiE claims against current code (local `.reference/MARiA`
+absent in this environment; no fresh upstream re-fetch). Updated
+docs/capture/receive-display.md: replaced stale “未移植” / “追加提案（未実装）”
+with implemented vs intentional-gap lists and remaining display/load work.
+Tightened development-roadmap.md §2 into a per-kind table (observe / comment /
+conditional command). Docs only; no runtime change. Not full discover.
+
 ## rAthena status Icon 12/50 adoption and display sc_end conversion (2026-10-31)
 
 Re-verified frozen baseline commit d4b8e7b8 against current rAthena master (same SHA).
