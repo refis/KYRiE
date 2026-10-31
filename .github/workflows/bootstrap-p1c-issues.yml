@@ -1,0 +1,103 @@
+# One-shot: register P1-C residual follow-ups after #15–#18, then no-op on rerun.
+name: Bootstrap P1-C residual issues
+
+on:
+  push:
+    branches: [cursor/bootstrap-p1c-issues-d40d]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Create P1-C residual issues if missing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issues = [
+              {
+                title: '[enhancement] 状態／エフェクト辞書の日本語説明と版・出典の明示（P1-C継続）',
+                labels: ['enhancement', 'config-dict'],
+                body: `## 目的
+            reference_names の状態アイコン／視覚エフェクトについて、シンボル表示に加え
+            stateiconinfo 等から確認できた日本語説明を版・出典付きで外部化する。
+            名称変更で集計・SC変換を変えない。
+
+            ## 観測境界
+            - 観測する: 既存 reference_names・表示テンプレート・（あれば）クライアント参照の説明文字列
+            - 推測しない / 自動補完しない: EFST→SC の新規対応、発生元スキルの断定、設定ディレイ／湧き数
+            - 生データ採取は必須としない（合成表示と辞書読込で足りる範囲）
+
+            ## 領域
+            config-dict / display / documentation
+
+            ## 完了条件
+            - 日本語説明（または明示的な未登録）を辞書メタと分離して保持／表示できる
+            - version／source（または同等の出典）方針を docs に記載
+            - presentation／display 関連の選択テスト
+            - SC変換表・観測集計の意味を変えない
+
+            ## 優先
+            P1
+
+            ## 根拠
+            development-roadmap.md「P1-C継続: 状態／エフェクト辞書の版・出典外部化」 /
+            receive-display.md「stateiconinfoの日本語説明は別作業」`
+              },
+              {
+                title: '[documentation] P1-C残の湧き数・ディレイ方針と着手単位の再同期（#15–#18後）',
+                labels: ['documentation', 'mob'],
+                body: `## 目的
+            #15–#18 完了後の roadmap「次の着手単位」を更新し、MOB配置の湧き数・ディレイは
+            観測から自動補完しない（手動編集のみ）方針を docs に明示する。
+
+            ## 観測境界
+            - 観測する: development-roadmap.md、mob-spawn-observations.md、関連着手単位
+            - 推測しない / 自動補完しない: 観測ピークを設定湧き数へ、最短再観測を設定ディレイへ変換しない
+            - 生データ採取は不要
+
+            ## 領域
+            documentation / mob
+
+            ## 完了条件
+            - 「次の着手単位」から完了済み #15–#18 を外し、残作業を現状に合わせる
+            - 湧き数／delay1／delay2 が手動確認入力であり観測自動補完対象外であることを docs で明示
+            - docs/README.md リンク整合を確認
+
+            ## 優先
+            P2
+
+            ## 根拠
+            development-roadmap.md「P1-C継続: …MOB配置の湧き数・ディレイ未補完」 /
+            mob-spawn-observations.md（位置・湧き数・ディレイは未確定のまま保持）`
+              },
+            ];
+
+            function normalizeBody(text) {
+              return text.replace(/^[ \t]+/gm, '').trim() + '\n';
+            }
+
+            for (const issue of issues) {
+              const q = `repo:${owner}/${repo} is:issue in:title "${issue.title.replace(/"/g, '')}"`;
+              const search = await github.rest.search.issuesAndPullRequests({ q });
+              const hit = (search.data.items || []).find((it) => it.title === issue.title);
+              if (hit) {
+                core.info(`exists #${hit.number}: ${issue.title}`);
+                continue;
+              }
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title: issue.title,
+                labels: issue.labels,
+                body: normalizeBody(issue.body),
+              });
+              core.info(`created #${created.data.number}: ${created.data.html_url}`);
+            }
