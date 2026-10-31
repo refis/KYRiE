@@ -7,7 +7,7 @@ from reconstruction.world import WorldStore
 from reconstruction.skills import SkillStore
 from reconstruction.mob_skill_export import (build_candidates, render_candidates, DEFAULT_PROFILE,
     COLUMNS, configure_candidate, STATUS_CONDITIONS, STATUS_VALUES, NUMERIC_CONDITIONS,
-    load_configured, MAX_CONFIGURED_BYTES, render_configured)
+    load_configured, MAX_CONFIGURED_BYTES, render_configured, valid_val_token)
 from tests.support.skills import mob, damage, cast
 
 
@@ -193,6 +193,29 @@ class MobSkillExportTests(unittest.TestCase):
         del fields['VAL6']
         with self.assertRaises(ValueError):
             configure_candidate(candidate, fields, confirmed=True)
+
+    def test_string_val_tokens_are_explicit_and_keep_integers(self):
+        candidate = build_candidates(self.observed([65535]).snapshot())['candidates'][0]
+        original = json.dumps(candidate, sort_keys=True)
+        fields = dict.fromkeys(COLUMNS, 0)
+        fields.update(MOB_ID=1005, NAME='val_token', STATE='attack', SKILL_ID=177,
+                      SKILL_LV=5, RATE=1000, CANCEL='no', TARGET='target', CONDITION='always',
+                      VAL1='SC_STONE', VAL2=-3, VAL3='skill_name', VAL4=0)
+        document = configure_candidate(candidate, fields, confirmed=True)
+        self.assertEqual(document['db_fields']['VAL1'], 'SC_STONE')
+        self.assertEqual(document['db_fields']['VAL2'], -3)
+        self.assertEqual(document['db_fields']['VAL3'], 'skill_name')
+        self.assertEqual(document['db_row'].split(',')[12:16], ['SC_STONE', '-3', 'skill_name', '0'])
+        self.assertIsNone(document['observation']['db_fields']['VAL1'])
+        self.assertTrue(valid_val_token('SC_STONE'))
+        for invalid in ('', ' spaced', 'a b', 'a,b', 'a//b', 'x' * 65, 'line\nbreak', True):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError) as raised:
+                configure_candidate(candidate, dict(fields, VAL1=invalid), confirmed=True)
+            self.assertNotIn('整数を入力してください', str(raised.exception))
+        with self.assertRaises(ValueError) as emotion:
+            configure_candidate(candidate, dict(fields, EMOTION='SC_STONE'), confirmed=True)
+        self.assertIn('整数を入力してください', str(emotion.exception))
+        self.assertEqual(json.dumps(candidate, sort_keys=True), original)
 
     def observed(self, levels):
         world = WorldStore()

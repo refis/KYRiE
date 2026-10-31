@@ -24,9 +24,27 @@ def load_skill_names_with_hash(path=DEFAULT_NAMES):
 
 
 def validate_skill_names(document):
+    """Validate the name map. version/source/name_resolution stay provenance, not names."""
     if (not isinstance(document, dict) or type(document.get('version')) is not int
             or document.get('version') != 1 or not isinstance(document.get('skills'), dict)):
         raise ValueError('Invalid skill dictionary')
+    source = document.get('source', None)
+    if source is not None and (not isinstance(source, str) or not 1 <= len(source) <= 1024):
+        raise ValueError('Invalid skill dictionary source')
+    resolution = document.get('name_resolution', None)
+    if resolution is not None:
+        if not isinstance(resolution, dict) or len(json.dumps(resolution, ensure_ascii=True)) > 65536:
+            raise ValueError('Invalid skill dictionary name_resolution')
+        for key in ('policy', 'encoding'):
+            value = resolution.get(key, None)
+            if value is not None and (not isinstance(value, str) or not 1 <= len(value) <= 256):
+                raise ValueError('Invalid skill dictionary name_resolution')
+        catalog_version = resolution.get('catalog_version', None)
+        if catalog_version is not None and type(catalog_version) is not int:
+            raise ValueError('Invalid skill dictionary name_resolution')
+        sources = resolution.get('sources', None)
+        if sources is not None and not isinstance(sources, list):
+            raise ValueError('Invalid skill dictionary name_resolution')
     result = {}
     for key, value in document['skills'].items():
         if (not key.isascii() or not key.isdecimal() or str(int(key)) != key or not 0 < int(key) <= 65535

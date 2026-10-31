@@ -160,9 +160,10 @@ tickは32bitの周回に対応する。逆行または半周以上の曖昧な�
 ## 外部辞書と保存
 
 config/skill_names.jsonに10進数ID→表示名を置き、「名前辞書を再読込」で変更できる。
-初期辞書は追加ログで観測した177／190／347の3名称のみ。
-未登録IDは数値と未登録表示で保持する。辞書の変更は解析結果を変えない。
-不正辞書は直前の正常な辞書を維持する。
+`version`はスキーマ版、`skills`は名称マップ、`source`／`name_resolution`は出典メタとして分離する。
+名称変更は集計やPacketIDを変えない。プロジェクト保存時のカタログSHAで版を照合する。
+詳細は[mob_skill_db編集用候補](mob-skill-export.md#スキル名辞書の版と出典)を参照。
+未登録IDは数値と未登録表示で保持する。不正辞書は直前の正常な辞書を維持する。
 
 ```powershell
 python -m tools.analyze_skills logs/SESSION/capture.jsonl --definitions client/PacketLength.extracted.txt --output logs/SESSION/mob-skills.json
