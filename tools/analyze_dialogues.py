@@ -10,6 +10,7 @@ from reconstruction.dialogue import DialogueStore
 from reconstruction.world import WorldStore
 from reconstruction.player import PlayerStore
 from tools.replay_capture import replay
+from tools.cli_emulator import add_emulator_argument, apply_emulator, active_emulator
 from storage.project import fingerprint
 from storage.observation_export import save_observations,validate_export_destination
 
@@ -28,7 +29,8 @@ def analyze(path, definitions):
                        max_line_chars=2*1024*1024,max_input_chars=128*1024*1024)
     result = store.snapshot(source_ref=str(Path(path).resolve()))
     definition_text = ''.join(f'{pid:04X} {size}\n' for pid, size in sorted(definitions.items()))
-    result.update(source_log=str(path), source_sha256=source_hash, replay=transport,
+    result.update(emulator=active_emulator(), source_log=str(path), source_sha256=source_hash,
+                  replay=transport,
                   definitions_sha256=hashlib.sha256(definition_text.encode('utf-8')).hexdigest())
     from reconstruction.identity_protection import identity_for_connection
     source = str(Path(path).resolve())
@@ -57,15 +59,18 @@ def main():
     cli.add_argument('log', type=Path)
     cli.add_argument('--definitions', type=Path, required=True)
     cli.add_argument('--output', type=Path, required=True)
+    add_emulator_argument(cli)
     args = cli.parse_args()
     validate_export_destination(args.output,[args.log,args.definitions])
+    apply_emulator(args.emulator)
     definition_hash=fingerprint(args.definitions,2*1024*1024)
     result = analyze(args.log, load_lengths(args.definitions))
     if fingerprint(args.definitions,2*1024*1024)!=definition_hash:
         raise ValueError('Length definitions changed during analysis')
     result.update(definitions_path=str(args.definitions.resolve()),definitions_file_sha256=definition_hash)
     save_report(args.output,result,args.definitions)
-    print(f'Conversations {len(result["conversations"])}, issues {result["issue_count"]} -> {args.output}')
+    print(f'Emulator {result["emulator"]}; conversations {len(result["conversations"])}, '
+          f'issues {result["issue_count"]} -> {args.output}')
 
 
 if __name__ == '__main__':

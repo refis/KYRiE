@@ -51,6 +51,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
              'tests.unit.test_session_quality',
              'tests.unit.test_project',
              'tests.unit.test_user_settings'],
+ 'cli-emulator': ['tests.unit.test_cli_emulator'],
  'gui-capture': ['tests.integration.test_gui_capture'],
  'gui-display': ['tests.integration.test_gui_display'],
  'gui-restoration': ['tests.integration.test_gui_restoration'],

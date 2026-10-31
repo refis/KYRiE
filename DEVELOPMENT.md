@@ -8,9 +8,18 @@ Adopted EFST_INC_AGI (12)→SC_INCREASEAGI (32) and EFST_NOEQUIPWEAPON (50)→SC
 by user policy (not observation-unique); exclusion candidates kept under excluded_candidates.
 entries 888 / ambiguous 6 remain. argument_policy stays review for both; transform val1_only
 unchanged. rAthena display 0196 flag=0 now emits sc_end with converted SC only; unresolved
-icons become @status_end_unresolved. Generation path already used script_id. No CLI emulator
-flag and no ongoing upstream tracking in this change.
+icons become @status_end_unresolved. Generation path already used script_id. CLI emulator
+flag was deferred then; see following section. No ongoing upstream tracking in this change.
 Selected: display + conversation_actions + gui-display. Not full discover.
+
+## CLI --emulator for generation profiles (2026-10-31)
+
+Analysis CLIs that load generation profiles accept `--emulator auriga|rathena`
+(default auriga): analyze_session, analyze_dialogues, merge_dialogues,
+analyze_entities, analyze_skills, compare_dialogue_timing. Shared helper
+tools/cli_emulator.py calls set_target before analysis. Reports record
+`emulator` and profile paths under config/<emulator>/. Receive-display JSON
+CLI switching remains out of scope. Selected: cli-emulator + offline sample.
 
 ## rAthena input scope prefix .@ (2026-10-30)
 

@@ -7,6 +7,7 @@ from reconstruction.auriga import AurigaRenderer
 from reconstruction.branches import build_merged
 from reconstruction.dialogue import Conversation
 from tools.analyze_dialogues import analyze
+from tools.cli_emulator import add_emulator_argument, apply_emulator, active_emulator
 
 
 def merge(paths, definitions):
@@ -20,7 +21,8 @@ def merge(paths, definitions):
                 yield str(path), Conversation(**row)
     result = build_merged(observations())
     renderer = AurigaRenderer()
-    return dict(result, sources=sources, **renderer.render_groups(result['groups']))
+    return dict(result, emulator=active_emulator(), sources=sources,
+                **renderer.render_groups(result['groups']))
 
 
 def main():
@@ -28,12 +30,15 @@ def main():
     cli.add_argument('logs', nargs='+', type=Path)
     cli.add_argument('--definitions', required=True, type=Path)
     cli.add_argument('--output', required=True, type=Path)
+    add_emulator_argument(cli)
     args = cli.parse_args()
     if args.output.resolve() in {path.resolve() for path in [*args.logs, args.definitions]}:
         cli.error('Output must differ from input logs and definitions')
+    apply_emulator(args.emulator)
     report = merge(args.logs, load_lengths(args.definitions))
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'NPC groups {len(report["groups"])}, excluded conversations {len(report["excluded"])}, '
+    print(f'Emulator {report["emulator"]}; NPC groups {len(report["groups"])}, '
+          f'excluded conversations {len(report["excluded"])}, '
           f'input capacity reached {report["input_capacity_reached"]} -> {args.output}')
     if report['generation_errors']:
         print(f'Code generation stopped for {len(report["generation_errors"])} groups; observation JSON was saved')

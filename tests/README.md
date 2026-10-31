@@ -29,6 +29,7 @@ python -m tools.run_tests shop --dry-run
 - `display`: 表示変換・ignorepacket
 - `events`: 時間経過、観測窓、反復比較、手動タイマー候補
 - `storage`: ログ、観測保存、品質、作業プロジェクト、GUIユーザー設定プロファイル
+- `cli-emulator`: 解析CLIの `--emulator` 指定
 - `gui-capture` / `gui-display` / `gui-restoration` / `gui-timing`: GUI責務別
 - `offline`: 再解析・参照ファイル連携
 - `selection`: テスト実行対象の選択機構

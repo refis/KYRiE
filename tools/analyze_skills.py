@@ -7,6 +7,7 @@ from parser.definitions import load_lengths
 from reconstruction.world import WorldStore
 from reconstruction.skills import SkillStore, load_skill_names
 from tools.replay_capture import replay
+from tools.cli_emulator import add_emulator_argument, apply_emulator, active_emulator
 from reconstruction.mob_skill_export import build_candidates, render_candidates
 
 
@@ -22,7 +23,7 @@ def analyze(path, definitions):
     transport = replay(path, definitions, consume)
     report = store.snapshot()
     definition_text = ''.join(f'{pid:04X} {size}\n' for pid, size in sorted(definitions.items()))
-    report.update(source_log=str(Path(path).resolve()), replay=transport,
+    report.update(emulator=active_emulator(), source_log=str(Path(path).resolve()), replay=transport,
                   definitions_sha256=hashlib.sha256(definition_text.encode()).hexdigest())
     try:
         report['skill_names'] = {str(key): value for key, value in load_skill_names().items()}
@@ -38,12 +39,15 @@ def main():
     cli.add_argument('log', type=Path)
     cli.add_argument('--definitions', required=True, type=Path)
     cli.add_argument('--output', required=True, type=Path)
+    add_emulator_argument(cli)
     args = cli.parse_args()
     if args.output.resolve() in (args.log.resolve(), args.definitions.resolve()):
         cli.error('Output must differ from log and definitions')
+    apply_emulator(args.emulator)
     report = analyze(args.log, load_lengths(args.definitions))
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'MOB skill notifications {len(report["observations"])}, class skills {len(report["class_skills"])}, '
+    print(f'Emulator {report["emulator"]}; MOB skill notifications {len(report["observations"])}, '
+          f'class skills {len(report["class_skills"])}, '
           f'issues {report["issue_count"]} -> {args.output}')
 
 
