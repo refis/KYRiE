@@ -97,11 +97,42 @@ comparisonにmodeと真偽値include_actionsを保存する。会話アクショ
 未観測は欠落の確定ではなく、観測窓・別操作・他ユーザー由来などの可能性を残す。
 除外試行は「比較対象外」とし、未観測分岐やタイマー値の補完に利用しない。
 
-試行行を選ぶと、その試行の各演出について基準からのms・種別・観測内容・Packet番号・対象・参照との差を表示する。
+試行行を選ぶと、その試行の各演出について基準からのms・種別・観測内容・Packet番号・対象・
+タイマー扱い・参照との差を表示する。
 演出を選び「結果の演出の根拠パケット」で、基準点以外の後続演出にも移動できる。
 除外試行の生の観測も確認可能だが、採否は変わらない。
 「結果JSON」タブと保存JSONには従来通り全比較結果を保持する。
 基準点・観測窓・観測データの更新では両一覧も消去し、古い結果からの根拠移動を防ぐ。
+
+### 共通イベント列に載せる／載せない種別（#17）
+
+共通イベント列（試行内の演出一覧）は、比較窓内で採否に残った観測の照合表示である。
+手動タイマー採用の可否とは別のレイヤで扱う。
+
+載せる（比較列の候補）:
+
+- 通常の演出基準・マップ到着: `outside_dialogue` の会話外演出。announce／BGM／mapcell 等の
+  対象未特定関連観測も、取得・フロー・MAP世代の条件を満たせば列に含める。
+- 会話開始基準: 上記に加え `during_dialogue` の関連演出。会話アクション追加時は投影した
+  5種アクションも対象になる（入力待ち・close待ち等は除外）。
+
+載せない（除外理由として別タブ）:
+
+- `input_wait` / `close_wait`、演出基準時の `during_dialogue`
+- `external_candidate`、`outside_visibility`、`review_only`、`after_close_reply`
+- 作用先の別MAP／省略名／配置不足、基準と異なる対象・MAP世代、次境界以降
+- 時刻不正・逆行、1試行1000件の保持上限
+
+タイマー扱い列は手動採用側の区分だけを示す（OnTimer値は生成しない）:
+
+- 実行命令候補（command）: emotion／effect／effect_remove／announcement／unittalk／overhead
+- コメント採用のみ（comment）: effect_value／event_marker／classchange
+- タイマー拒否（rejected）: sound／music／viewpoint／progressbar／mapcell／会話レイアウト／
+  status_action／script_command など。比較列には載せられても採用入口で拒否する
+
+相違・除外理由の表示は `日本語（code）` 形式（例: `対象が異なる（target_changed）`、
+`close応答待ち中（close_wait）`）。未知の code は生値のまま出し、KeyErrorで画面を止めない。
+ツールチップにも安定な code を残す。比較JSONの構造・採否・時間集計は変更しない。
 
 ### 対象差・参照側と除外した観測（v0.0.4保存後の開発）
 

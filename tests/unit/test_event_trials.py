@@ -344,3 +344,25 @@ class EventTrialTests(unittest.TestCase):
         self.assertEqual(review['omitted_details'],1)
         self.assertEqual(trial_review(report,2,rows)['differences'][1]['status'],'unobserved')
         self.assertEqual(report,before)
+
+    def test_difference_exclusion_and_timer_role_labels_keep_codes_readable(self):
+        from gui.event_trials import (
+            difference_label, exclusion_label, timer_role_code, timer_role_label)
+
+        self.assertEqual(difference_label('target_changed'), '対象が異なる（target_changed）')
+        self.assertEqual(difference_label('same'), '内容一致（same）')
+        self.assertEqual(difference_label('unknown_status'), 'unknown_status')
+        self.assertEqual(exclusion_label('close_wait'), 'close応答待ち中（close_wait）')
+        self.assertEqual(exclusion_label('target_different_map'),
+                         '作用先が別MAP・別インスタンス（target_different_map）')
+        self.assertEqual(exclusion_label('novel_reason'), 'novel_reason')
+        self.assertEqual(timer_role_code('emotion'), 'command')
+        self.assertEqual(timer_role_code('effect_value'), 'comment')
+        self.assertEqual(timer_role_code('sound'), 'rejected')
+        self.assertEqual(timer_role_code('music'), 'rejected')
+        self.assertEqual(timer_role_code('viewpoint'), 'rejected')
+        self.assertIsNone(timer_role_code(None))
+        self.assertEqual(timer_role_label('unittalk'), '実行命令候補（command）')
+        self.assertEqual(timer_role_label('event_marker'), 'コメント採用のみ（comment）')
+        self.assertEqual(timer_role_label('progressbar'), 'タイマー拒否（rejected）')
+        self.assertEqual(timer_role_label(None), '—')

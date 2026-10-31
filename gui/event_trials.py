@@ -8,7 +8,8 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushB
     QSpinBox, QComboBox, QCheckBox, QTableWidget, QTableWidgetItem, QPlainTextEdit, QFileDialog, QMessageBox, QTabWidget, QMenu, QSplitter)
 from reconstruction.event_trials import compare_event_trials, event_semantics, trial_review
 from reconstruction.comparison_anchors import comparison_rows
-from reconstruction.event_timer_export import validate_timer_trial
+from reconstruction.event_timer_export import (
+    COMMENT_TIMER_KINDS, TIMER_PRESENTATION_KINDS, validate_timer_trial)
 from gui.presentation_context import presentation_context
 from storage.event_trial_selection import save_selection, load_selection
 from storage.observation_export import save_observation_text
@@ -26,6 +27,7 @@ EXCLUSIONS = {'target_different_map':'作用先が別MAP・別インスタンス
     'invalid_time':'時刻不正・経過時間を算出不可', 'time_reversed':'時刻が逆行',
     'event_limit':'1試行1000演出の保持上限',
     'different_map':'基準と異なるMAP・世代', 'next_boundary':'次の会話開始・MAP移動以降', 'other_context':'対象外の記録状況'}
+TIMER_ROLES = {'command': '実行命令候補', 'comment': 'コメント採用のみ', 'rejected': 'タイマー拒否'}
 
 QUALITY = {'overlapping_windows': '観測窓が重複', 'invalid_time': '時刻不正・逆行',
            'event_limit': '演出保持上限', 'assumed_boundary': '途中取得'}
@@ -38,8 +40,41 @@ KINDS = {'visibility_action':'NPC表示状態', 'status_action':'状態変化（
          'dialogue_size':'会話サイズ', 'dialogue_position':'会話位置', 'dialogue_alignment':'会話整列',
     'classchange': '外見変更', 'progressbar': 'プログレスバー',
          'viewpoint': 'マップマーカー', 'overhead': '頭上メッセージ', 'announcement': 'アナウンス（起因未確定）',
-         'player_chat': '本人向け発言通知', 'unittalk': 'ユニット発言'}
+         'player_chat': '本人向け発言通知', 'unittalk': 'ユニット発言',
+         'event_marker': 'イベントアイコン'}
 
+
+def labeled(mapping, code):
+    """Show Japanese text with the stable reason/status code for discrimination."""
+    text = mapping.get(code)
+    if text is None:
+        return str(code)
+    return f'{text}（{code}）'
+
+
+def difference_label(status):
+    return labeled(DIFFERENCES, status)
+
+
+def exclusion_label(reason):
+    return labeled(EXCLUSIONS, reason)
+
+
+def timer_role_code(kind):
+    if kind in COMMENT_TIMER_KINDS:
+        return 'comment'
+    if kind in TIMER_PRESENTATION_KINDS:
+        return 'command'
+    if kind is None:
+        return None
+    return 'rejected'
+
+
+def timer_role_label(kind):
+    code = timer_role_code(kind)
+    if code is None:
+        return '—'
+    return labeled(TIMER_ROLES, code)
 
 def speech_description(row):
     evidence = row.get('speech_origin')
@@ -184,9 +219,12 @@ class EventTrialPanel(QWidget):
         self.result_splitter.setStretchFactor(0,1)
         self.result_splitter.setStretchFactor(1,2)
         result_layout.addWidget(self.result_splitter,1)
-        self.events = QTableWidget(0, 6)
-        self.events.setHorizontalHeaderLabels(['基準からms', '種別', '観測内容', 'Packet', '対象', '参照との差'])
-        self.events.setColumnWidth(2, 320)
+        self.events = QTableWidget(0, 7)
+        self.events.setHorizontalHeaderLabels(
+            ['基準からms', '種別', '観測内容', 'Packet', '対象', 'タイマー扱い', '参照との差'])
+        self.events.setColumnWidth(2, 280)
+        self.events.setColumnWidth(5, 150)
+        self.events.setColumnWidth(6, 180)
         self.events.setSelectionBehavior(QTableWidget.SelectRows)
         self.events.setSelectionMode(QTableWidget.SingleSelection)
         self.events.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -551,15 +589,21 @@ class EventTrialPanel(QWidget):
                 event = events[index]
                 row = event['observation']
                 values = [event['offset_ms'], KINDS.get(row['kind'],row['kind']),
-                          json.dumps(row['fields'],ensure_ascii=False),row['packet_index'],self.target_text(row)]
+                          json.dumps(row['fields'],ensure_ascii=False),row['packet_index'],self.target_text(row),
+                          timer_role_label(row.get('kind'))]
             else:
                 row = reference['events'][index]['observation']
-                values = ['—','未観測','参照側に観測あり（欠落とは未確定）','—','参照: '+self.target_text(row)]
-            values.append(DIFFERENCES[difference['status']])
+                values = ['—','未観測','参照側に観測あり（欠落とは未確定）','—','参照: '+self.target_text(row),
+                          '—']
+            values.append(difference_label(difference['status']))
             for column,value in enumerate(values):
                 item = QTableWidgetItem(str(value))
                 if column == 3:
                     item.setToolTip(('参照側: ' if index >= len(events) else '')+self.evidence_source(row))
+                if column == 5 and index < len(events):
+                    item.setToolTip('手動タイマー採用の扱い。比較列への掲載可否とは別です。')
+                if column == 6:
+                    item.setToolTip(str(difference['status']))
                 self.events.setItem(index,column,item)
         self.exclusion_rows = self.current_review['excluded'] if self.current_review else []
         self.exclusions.setRowCount(0)
@@ -567,14 +611,16 @@ class EventTrialPanel(QWidget):
         for index, excluded in enumerate(self.exclusion_rows):
             row = dict(excluded['observation'],npc=excluded['npc'])
             values = [excluded['offset_ms'] if excluded['offset_ms'] is not None else '算出不可',self.target_text(row),KINDS.get(row['kind'],row['kind']),
-                      EXCLUSIONS[excluded['reason']],row['packet_index']]
+                      exclusion_label(excluded['reason']),row['packet_index']]
             for column,value in enumerate(values):
                 item=QTableWidgetItem(str(value))
                 if column==1:item.setToolTip(str(value))
+                if column==3:item.setToolTip(str(excluded['reason']))
                 if column==4:item.setToolTip(self.evidence_source(row))
                 self.exclusions.setItem(index,column,item)
         if self.current_review:
-            counts = ' / '.join(EXCLUSIONS.get(key,key)+': '+str(value) for key,value in self.current_review['excluded_counts'].items())
+            counts = ' / '.join(exclusion_label(key)+': '+str(value)
+                                for key,value in self.current_review['excluded_counts'].items())
             self.exclusion_note.setText('同じ取得・フローの窓内候補／時刻問題の観測。'+(counts or '除外した観測なし')
                 + f'。詳細省略 {self.current_review["omitted_details"]}件。採否・起因の判定は変更しません。')
         if differences:
