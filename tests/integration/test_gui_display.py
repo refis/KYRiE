@@ -703,7 +703,6 @@ class DisplayGuiTests(WindowTestCase):
         self.assertIn('同一ID差分: 0x00B4', w.hex.toPlainText())
         self.assertIn('actor_id', w.hex.toPlainText())
         with tempfile.TemporaryDirectory() as folder:
-            from parser.packet_overlay import load_overlay, write_overlay_exports
             example = Path('config/packet_overlay.example.json')
             w.overlay_path.setText(str(example.resolve()))
             w.sync_ignore_selection()
