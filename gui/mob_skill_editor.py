@@ -20,7 +20,8 @@ class MobSkillEditor(QDialog):
         self.resize(720, 720)
         layout = QVBoxLayout(self)
         note = QLabel('未知値は空欄です。全列を確認して入力してください。\n'
-                      'RATEは万分率、時間はms。条件は手動指定、VALは整数のみ対応。\n'
+                      'RATEは万分率、時間はms。条件は手動指定。\n'
+                      'VAL1〜6は符号付き32bit整数、またはカンマ・空白・//なしの64文字以内の文字列。\n'
                       'JSON保存／根拠コメント付きDB行出力に対応。観測値は変更しません。\n'
                       '根拠は画面を開いた時点で固定。追加観測を使う場合は開き直してください。')
         note.setWordWrap(True)
@@ -44,6 +45,9 @@ class MobSkillEditor(QDialog):
                 widget.setMaxLength(256 if key == 'NAME' else 64)
                 if key == 'NAME':
                     widget.setToolTip('モンスター名＠スキル名。日本語可。カンマ・改行・//・clearは禁止。')
+                elif key.startswith('VAL'):
+                    widget.setPlaceholderText('整数または文字列トークン')
+                    widget.setToolTip('符号付き32bit整数、またはカンマ・空白・//を含まない64文字以内。観測からは補完しない。')
             self.fields[key] = widget
             form.addRow(key, widget)
         scroll.setWidget(body)

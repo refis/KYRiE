@@ -44,10 +44,20 @@ MANUAL_CHOICES = {
 }
 
 
+VAL_KEYS = frozenset(f'VAL{i}' for i in range(1, 7))
+
+
 def valid_db_name(value):
     return (isinstance(value,str) and 1 <= len(value) <= 256 and bool(value.strip())
             and value != 'clear' and ',' not in value and '//' not in value
             and all(char.isprintable() for char in value))
+
+
+def valid_val_token(value):
+    """CSV-safe Auriga-style VAL token: explicit string, never inferred from observations."""
+    return (isinstance(value, str) and 1 <= len(value) <= 64 and value == value.strip()
+            and ',' not in value and '//' not in value
+            and all(char.isprintable() and not char.isspace() for char in value))
 
 
 def load_templates(profile=None):
@@ -89,6 +99,9 @@ def configure_candidate(candidate, fields, *, confirmed=False, source_sessions=N
         elif key == 'CONDITION_VALUE' and fields['CONDITION'] in STATUS_CONDITIONS:
             if value not in STATUS_VALUES:
                 raise ValueError('CONDITION_VALUE: 状態条件には対応する状態名を指定してください。')
+        elif key in VAL_KEYS and not re.fullmatch(r'-?[0-9]{1,10}', value):
+            if not valid_val_token(value):
+                raise ValueError(f'{key}: 整数、またはカンマ・空白・//を含まない64文字以内の文字列を入力してください。')
         else:
             if not re.fullmatch(r'-?[0-9]{1,10}', value):
                 raise ValueError(f'{key}: 整数を入力してください。')

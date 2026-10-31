@@ -269,6 +269,16 @@ class SkillTests(unittest.TestCase):
             path.write_text(json.dumps(dict(version=1, skills={'0177': 'ambiguous'})), encoding='utf-8')
             with self.assertRaises(ValueError):
                 load_skill_names(path)
+            path.write_text(json.dumps(dict(
+                version=1, source='fixture', name_resolution={'policy': 'lua_wins', 'catalog_version': 1},
+                skills={'177': 'named'})), encoding='utf-8')
+            self.assertEqual(load_skill_names(path), {177: 'named'})
+            for bad in (dict(version=1, source=['x'], skills={'177': 'x'}),
+                        dict(version=1, name_resolution='x', skills={'177': 'x'}),
+                        dict(version=1, name_resolution={'catalog_version': '1'}, skills={'177': 'x'})):
+                path.write_text(json.dumps(bad), encoding='utf-8')
+                with self.assertRaises(ValueError):
+                    load_skill_names(path)
 
     def test_raw_log_replay_preserves_actor_and_packet_evidence(self):
         with tempfile.TemporaryDirectory() as folder:

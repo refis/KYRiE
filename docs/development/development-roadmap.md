@@ -394,7 +394,8 @@ P0のログ再生・品質連携の後、P1-A/Bと独立して進める。
   [monster配置の全行コメント候補](../mob/mob-spawn-observations.md)も追加済み。位置・湧き数・ディレイは未補完。
   monster配置の手動編集・確認後の配置行付きJSON保存も追加済み。
   手動配置JSONの再編集・根拠付きtxt出力も追加済み。同じ観測・出典を照合し、再確認後に保存する。
-  条件の自動推定、文字列VALパラメータは未対応。
+  条件の自動推定はしない。VAL1〜6は整数に加え、明示入力の文字列トークン契約を追加済み。
+  観測からのVAL自動補完はしない。辞書はversion／skillsとsource／name_resolutionを分離して記載。
 - 不明レベル、詠唱キャンセル可否の未観測、対象不明、確率・条件未確定を出力前に検出する。
   推測値を黙って有効なDB行へ埋めない。
 - スキル／状態／エフェクトの辞書を版・出典付きで外部化し、名称変更で集計を変えない。
@@ -506,9 +507,10 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 1. P2: イベントアイコン等の未対応通知の対象洗い出しと構造化保持（0446観測＋一覧docs着手済み。残りdisplay_onlyの個別配線は必要時）
 2. P1-A③: 確認済み対象・操作だけを命令候補へ切替（adoption_confirmed 着手）
 3. P1-B: 手動タイマー／共通イベント列の対応演出拡張（overhead実行＋effect_value／event_marker／classchangeコメント採用）
-4. P1-C: MOBスキル候補の文字列VALと辞書版の扱い
+4. P1-C: MOBスキル候補の文字列VALと辞書版の扱い（文字列VALトークン契約＋辞書版／出典docs着手）
 5. 文書: 本ロードマップ／restoration-plan と実装のズレ解消（#9 / PR #4 で反映済み）
-   P2 イベントアイコン一覧・0446保持は #5 / PR #11、P1-A③採用フラグは #6 / PR #12 で反映済み
+   P2 イベントアイコン一覧・0446保持は #5 / PR #11、P1-A③採用フラグは #6 / PR #12、
+   P1-Bタイマー演出拡張は #7 / PR #13 で反映済み
 
 P0-BのGUI読み戻し・作業プロジェクト・複数ログは実装済み
 （[読み戻し](../guide/offline-replay.md) / [プロジェクト](../guide/offline-project.md) /
