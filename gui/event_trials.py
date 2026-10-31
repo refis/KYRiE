@@ -41,7 +41,7 @@ KINDS = {'visibility_action':'NPC表示状態', 'status_action':'状態変化（
     'classchange': '外見変更', 'progressbar': 'プログレスバー',
          'viewpoint': 'マップマーカー', 'overhead': '頭上メッセージ', 'announcement': 'アナウンス（起因未確定）',
          'player_chat': '本人向け発言通知', 'unittalk': 'ユニット発言',
-         'event_marker': 'イベントアイコン'}
+         'event_marker': 'イベントアイコン', 'hat_effect': '帽子エフェクト'}
 
 
 def labeled(mapping, code):

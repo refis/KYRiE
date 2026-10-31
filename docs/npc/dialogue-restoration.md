@@ -8,6 +8,13 @@
 実行の showevent 命令は出さない。手動タイマーではコメント採用のみ
 （[タイマー候補](event-timer-candidates.md)）。対照表は[未対応通知](unsupported-notifications.md)。
 
+## 帽子エフェクト（0A3B）
+
+0x0A3Bは PacketLength `-1` だが、表示定義どおり全長11バイト（length@2=11、actor_id@4、
+enabled@8、effect_id@9）だけを `hat_effect` として構造化保持する。
+実行の hateffect 命令は出さない。手動タイマーではコメント採用のみ。
+未知長・追加フィールドは推測せず拒否する。対照表は[未対応通知](unsupported-notifications.md)。
+
 ## 値付きエフェクト
 
 0x0284は14バイト固定で、ActorID（offset 2）、エフェクトID（offset 6）、追加値（offset 10）を保持する。
