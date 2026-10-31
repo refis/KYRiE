@@ -1,0 +1,149 @@
+# One-shot: register complementary follow-ups after #5–#8, then no-op on rerun.
+name: Bootstrap follow-up issues
+
+on:
+  push:
+    branches: [cursor/bootstrap-followup-issues-d40d]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Create follow-up issues if missing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issues = [
+              {
+                title: '[documentation] #5–#8完了後の着手単位・P1-B記載の再同期',
+                labels: ['documentation'],
+                body: `## 目的
+            #5–#8 / PR #11–#14 完了後も残る roadmap「次の着手単位」と P1-B タイマー範囲の古い記述を現状へ合わせる。
+
+            ## 観測境界
+            - 観測する: development-roadmap.md の着手単位・P1-B/P1-C 節、関連 docs
+            - 推測しない / 自動補完しない: 未実装を完了扱いしない
+            - 生データ採取は不要
+
+            ## 領域
+            documentation
+
+            ## 完了条件
+            - 「次の着手単位」を完了済みと残作業に分けて更新
+            - P1-B のタイマー採用範囲（overhead／コメント種別）を現状に合わせる
+            - docs/README.md リンク整合を確認
+
+            ## 優先
+            P2
+
+            ## 根拠
+            #9 補完 / #7 #8 完了後の文書ずれ`
+              },
+              {
+                title: '[enhancement] 外部候補(external_*)の明示採用切替（#6分離）',
+                labels: ['enhancement'],
+                body: `## 目的
+            会話中の別NPC宛 external_presentations は現状コメント固定。資源行の adoption_confirmed と同様、利用者が明示確認した行だけ実行命令候補へ切り替えられるようにする。
+
+            ## 観測境界
+            - 観測する: external_presentations・既存 dialogue テンプレート・GUI
+            - 推測しない / 自動補完しない: 呼出し元NPC、起因、未確認行の自動命令化
+            - 生データ採取は必須としない
+
+            ## 領域
+            npc / gui
+
+            ## 完了条件
+            - external_* 行ごとの確認フラグと命令／コメント切替契約
+            - 未確認は従来どおりコメント／未生成
+            - dialogue 関連の選択テストと docs（unsupported-notifications / dialogue-restoration）更新
+
+            ## 優先
+            P1
+
+            ## 根拠
+            #6 完了後の分離残 / docs/npc/unsupported-notifications.md「採用切替は別Issue」`
+              },
+              {
+                title: '[enhancement] 共通イベント列の相違・除外理由の表示改善（#7分離）',
+                labels: ['enhancement'],
+                body: `## 目的
+            手動基準点比較で、対応済み以外の演出を共通イベント列へ載せる範囲の整理と、相違・除外理由の表示を改善する。OnTimer値・開始条件の自動生成はしない。
+
+            ## 観測境界
+            - 観測する: event-trials GUI・比較JSON・除外理由
+            - 推測しない / 自動補完しない: OnTimer値、sleep、イベントラベル、欠落原因の断定
+            - 生データ採取は必須としない
+
+            ## 領域
+            npc / gui
+
+            ## 完了条件
+            - 共通イベント列に載せる／載せない種別の方針を docs に明示
+            - 相違・除外理由の表示が利用者に判別可能
+            - events / 関連 GUI の選択テスト
+            - sound／music／viewpoint 等のタイマー拒否は維持
+
+            ## 優先
+            P1
+
+            ## 根拠
+            #7 完了後の P1-B 残作業 / development-roadmap.md「相違・除外理由の表示改善は残る」`
+              },
+              {
+                title: '[enhancement] display_only通知の個別構造化配線（#5残・必要時）',
+                labels: ['enhancement', 'documentation'],
+                body: `## 目的
+            unsupported-notifications.md の display_only 一覧（0A3B 等）について、実ログまたは合成で必要になった ID から個別に decode／構造化保持する。一覧化自体は #5 で完了済み。
+
+            ## 観測境界
+            - 観測する: 表示定義・合成パケット・必要になった ID のフィールド
+            - 推測しない / 自動補完しない: 起因NPC、実行命令の発明、未確認 ID の一括配線
+            - 生データ採取は ID により任意（合成で足りるもの優先）
+
+            ## 領域
+            npc / config-dict / documentation
+
+            ## 完了条件
+            - 対象 ID を1件以上、observed / not_adopted / display_only の方針付きで配線または明示見送り
+            - unsupported-notifications.md を更新
+            - presentation 関連の選択テスト
+            - 実行命令化は別途確認があるまでコメント／未生成
+
+            ## 優先
+            P2
+
+            ## 根拠
+            #5 残「display_onlyの個別配線は必要時」`
+              },
+            ];
+
+            function normalizeBody(text) {
+              return text.replace(/^[ \t]+/gm, '').trim() + '\n';
+            }
+
+            for (const issue of issues) {
+              const q = `repo:${owner}/${repo} is:issue in:title "${issue.title.replace(/"/g, '')}"`;
+              const search = await github.rest.search.issuesAndPullRequests({ q });
+              const hit = (search.data.items || []).find((it) => it.title === issue.title);
+              if (hit) {
+                core.info(`exists #${hit.number}: ${issue.title}`);
+                continue;
+              }
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title: issue.title,
+                labels: issue.labels,
+                body: normalizeBody(issue.body),
+              });
+              core.info(`created #${created.data.number}: ${created.data.html_url}`);
+            }
