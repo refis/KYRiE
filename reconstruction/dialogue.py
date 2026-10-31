@@ -239,6 +239,8 @@ class DialogueStore:
         self.resource_count += 1
         self.revision += 1
 
+    ADOPTABLE_EXTERNAL_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk'))
+
     def set_resource_adoption(self, conversation, packet_index, confirmed):
         """Explicit per-row adoption for command candidates. Never flips cause_confirmed."""
         if confirmed is not True and confirmed is not False:
@@ -254,6 +256,24 @@ class DialogueStore:
             self.revision += 1
             return row
         raise ValueError('Resource observation not found')
+
+    def set_external_adoption(self, conversation, packet_index, confirmed):
+        """Explicit per-row adoption for external NPC candidates. Never flips cause_confirmed."""
+        if confirmed is not True and confirmed is not False:
+            raise ValueError('External adoption confirmation must be a boolean')
+        for row in conversation.external_presentations:
+            if row['packet_index'] != packet_index:
+                continue
+            if row.get('context') != 'external_candidate' or row.get('entity_kind') != 'NPC':
+                raise ValueError('Only NPC external candidates can be adopted')
+            if row['kind'] not in self.ADOPTABLE_EXTERNAL_KINDS:
+                raise ValueError('Unsupported external kind for adoption')
+            if not row['npc'].get('name'):
+                raise ValueError('External candidate without NPC name cannot be adopted')
+            row['adoption_confirmed'] = confirmed
+            self.revision += 1
+            return row
+        raise ValueError('External presentation not found')
 
     def _self_actor(self, packet, session):
         state = self.world.player_maps.states.get((session, packet.flow_id or packet.connection)) if self.world else None
@@ -316,7 +336,8 @@ class DialogueStore:
             record.update(association_basis='same_flow_active_dialogue_external_target',
                 conversation_id=conversation.id, conversation_actor_id=conversation.actor_id,
                 conversation_entity_key=list(origin.key), target_entity_key=list(entity.key),
-                cause_confirmed=False, after_step_index=len(conversation.steps) - 1)
+                cause_confirmed=False, adoption_confirmed=False,
+                after_step_index=len(conversation.steps) - 1)
         self.presentation_observations.append(record)
         if conversation:
             if context == 'external_candidate':

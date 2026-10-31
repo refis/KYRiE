@@ -103,14 +103,43 @@ class ExternalPresentationTests(unittest.TestCase):
                             for row in item.external_presentations))
         before = deepcopy(item)
         text = AurigaRenderer().render(item)
+        self.assertTrue(all(row.get('adoption_confirmed') is False for row in item.external_presentations))
         self.assertIn('// emotion 7,getmdnpcname("Target");', text)
         self.assertIn('// misceffect 99,getmdnpcname("Target");', text)
         self.assertIn('// showmessage "overhead",getmdnpcname("Target");', text)
-        self.assertIn('unittalk getnpcid(0,getmdnpcname("Target")),"unit words";', text)
+        self.assertIn('// unittalk getnpcid(0,getmdnpcname("Target")),"unit words";', text)
         self.assertIn('soundeffectにはNPC対象引数がない', text)
-        self.assertTrue(all(not line.strip().startswith(('emotion ', 'misceffect ', 'showmessage ', 'soundeffect '))
+        self.assertTrue(all(not line.strip().startswith(('emotion ', 'misceffect ', 'showmessage ', 'soundeffect ', 'unittalk '))
                             for line in text.splitlines()))
         self.assertEqual(item, before)
+
+    def test_confirmed_external_candidates_emit_commands_while_cause_stays_false(self):
+        store, consume = self.setup_store()
+        consume(packet(0x90, struct.pack('<IB', 42, 1), direction='SEND'))
+        consume(packet(0xb5, struct.pack('<I', 42)))
+        consume(packet(0xc0, struct.pack('<IB', 43, 7)))
+        consume(variable(0x8d, struct.pack('<I', 43) + b'unit words\0', 'flow-a'))
+        consume(packet(0xb6, struct.pack('<I', 42)))
+        item = store.sessions[0]
+        emotion = next(row for row in item.external_presentations if row['kind'] == 'emotion')
+        talk = next(row for row in item.external_presentations if row['kind'] == 'unittalk')
+        store.set_external_adoption(item, emotion['packet_index'], True)
+        store.set_external_adoption(item, talk['packet_index'], True)
+        self.assertTrue(emotion['adoption_confirmed'])
+        self.assertFalse(emotion['cause_confirmed'])
+        text = AurigaRenderer().render(item)
+        self.assertIn('確認採用した外部演出候補', text)
+        self.assertTrue(any(line.strip().startswith('emotion 7,') for line in text.splitlines()))
+        self.assertTrue(any(line.strip().startswith('unittalk getnpcid(0,') for line in text.splitlines()))
+        store.set_external_adoption(item, emotion['packet_index'], False)
+        text = AurigaRenderer().render(item)
+        self.assertTrue(all(not line.strip().startswith('emotion ') for line in text.splitlines()))
+        self.assertTrue(any(line.strip().startswith('unittalk getnpcid(0,') for line in text.splitlines()))
+        with self.assertRaises(ValueError):
+            store.set_external_adoption(item, 999999, True)
+        talk['kind'] = 'sound'
+        with self.assertRaises(ValueError):
+            store.set_external_adoption(item, talk['packet_index'], True)
 
     def test_external_presence_values_and_target_conflicts_participate_in_repeated_review(self):
         for change in ('missing', 'value', 'target'):

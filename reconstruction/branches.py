@@ -21,6 +21,8 @@ def validate_external(conversation):
     if end_index is None and conversation.status in ('closed', 'cancelled') and conversation.steps:
         end_index = conversation.steps[-1]['packet_index']
     for row in conversation.external_presentations:
+        if 'adoption_confirmed' not in row:
+            row['adoption_confirmed'] = False
         anchor = row.get('after_step_index')
         if (row.get('context') != 'external_candidate' or row.get('cause_confirmed') is not False
                 or row.get('association_basis') != 'same_flow_active_dialogue_external_target'
@@ -30,6 +32,7 @@ def validate_external(conversation):
                 or row.get('entity_kind') != 'NPC' or row.get('target_observed') is not True
                 or row.get('kind') not in ('emotion', 'effect', 'effect_value', 'effect_remove', 'event_marker',
                                            'sound', 'overhead', 'unittalk')
+                or row['adoption_confirmed'] is not True and row['adoption_confirmed'] is not False
                 or type(anchor) is not int or not 0 <= anchor < len(conversation.steps)
                 or row['packet_index'] in seen or not math.isfinite(row['timestamp'])
                 or not conversation.steps[anchor]['packet_index'] < row['packet_index']
@@ -212,10 +215,6 @@ def conversation_path(source_ref, conversation, strict=True):
         if row['kind'] == 'visibility_action':
             fields = {key: fields[key] for key in ('commands', 'target')}
         scheduled.setdefault(row['after_step_index'], []).append((row['kind'], fields, row))
-    for row in conversation.external_presentations:
-        if row['kind'] == 'unittalk':
-            fields = dict(text=row['fields']['text'], target=dict(name=row['npc']['name'], map_name=row['npc']['map_name']))
-            scheduled.setdefault(row['after_step_index'], []).append(('unittalk_target', fields, row))
     for anchor in list(scheduled):
         if steps[anchor]['kind'] in ('next', 'menu', 'number', 'text'):
             reply = steps[anchor].get('reply')

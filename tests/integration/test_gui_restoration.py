@@ -545,7 +545,7 @@ class RestorationGuiTests(WindowTestCase):
         self.assertIn('出典不一致の寄与 1件',panel.caption.text())
         for number,session in enumerate((1,2,3)):
             panel.table.selectRow(number)
-            self.assertEqual(panel.table.item(number,0).toolTip(),sources[session])
+            self.assertEqual(panel.table.item(number,1).toolTip(),sources[session])
             with patch.object(panel,'on_source') as navigate:
                 panel.jump('packet_index');panel.jump('anchor_packet_index')
             self.assertEqual([call.args[0] for call in navigate.call_args_list],[session*100+5,session*100+4])
@@ -587,9 +587,9 @@ class RestorationGuiTests(WindowTestCase):
         panel=w.dialogue_panel.external_presentations
         self.assertEqual(panel.table.rowCount(),2)
         self.assertIn('本人宛て関連通知 2件',panel.caption.text())
-        self.assertIn('本人プレイヤー',panel.table.item(0,2).text())
-        self.assertIn('会話中',panel.table.item(0,1).text())
-        self.assertIn('入力待ち中',panel.table.item(1,1).text())
+        self.assertIn('本人プレイヤー',panel.table.item(0,3).text())
+        self.assertIn('会話中',panel.table.item(0,2).text())
+        self.assertIn('入力待ち中',panel.table.item(1,2).text())
         panel.table.selectRow(0);panel.jump('packet_index')
         self.assertEqual(w.selected_packet_index(),5)
         panel.jump('anchor_packet_index');self.assertEqual(w.selected_packet_index(),4)
@@ -906,8 +906,14 @@ class RestorationGuiTests(WindowTestCase):
         self.assertEqual(rows[0]['actor_id'], 43)
         self.assertEqual(rows[0]['conversation_actor_id'], 42)
         self.assertFalse(rows[0]['cause_confirmed'])
-        self.assertIn('unittalk getnpcid(0,getmdnpcname("Target")),"outside words";',
-                      w.dialogue_panel.code.toPlainText())
+        self.assertFalse(rows[0].get('adoption_confirmed'))
+        code = w.dialogue_panel.code.toPlainText()
+        self.assertIn('// unittalk getnpcid(0,getmdnpcname("Target")),"outside words";', code)
+        self.assertTrue(all(not line.strip().startswith('unittalk getnpcid(0,') for line in code.splitlines()))
+        w.dialogues.set_external_adoption(w.dialogues.sessions[0], rows[0]['packet_index'], True)
+        w.refresh_entity_views()
+        adopted = w.dialogue_panel.code.toPlainText()
+        self.assertTrue(any(line.strip().startswith('unittalk getnpcid(0,') for line in adopted.splitlines()))
 
     def test_announcement_is_displayed_retained_and_included_in_active_dialogue(self):
         from tests.support.display import variable

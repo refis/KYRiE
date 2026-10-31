@@ -57,9 +57,11 @@ cause_confirmed=falseとし、他ユーザー操作の混入可能性を残す�
 別NPCの通知は外部候補とする。既存の0x08B3はshowmessageの候補として区別する。
 
 Aurigaと同梱MARiAを照合し、emotion/misceffect/showmessageのNPC名指定、unittalkのunit_id指定を候補へ反映する。
-既定の出力は全てコメントで、unittalkには実行時ActorIDを固定せずgetnpcid(0,NPC名)の候補を示す。
-インスタンスMAPでは名前参照にgetmdnpcnameを使う。soundeffectにはNPC対象引数がないため、対象と内容の観測メモまで。
-入力応答の順序・会話終了判定は変更しない。書式と注意文はconfig/auriga/dialogue.jsonのexternal_*に置く。
+既定の出力はコメント。GUIの対象別通知で emotion／effect／effect_remove／overhead／unittalk を
+行ごとに `adoption_confirmed` したときだけ実行命令候補へ切り替える（cause_confirmedは常にfalse）。
+unittalkの採用時は実行時ActorIDを固定せず getnpcid(0,NPC名) の候補を前置コメント欄へ出す。
+sound／effect_value／event_marker は採用不可。インスタンスMAPでは名前参照にgetmdnpcnameを使う。
+入力応答の順序・会話終了判定は変更しない。書式はconfig/auriga/dialogue.jsonのexternal_*／adopted_external_*。
 
 ## アナウンスの観測（2026-10-28追加）
 
