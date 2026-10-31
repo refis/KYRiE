@@ -4,17 +4,23 @@
 
 ```powershell
 python -m tools.analyze_session logs/20261027-193248-fcdc039c/capture.jsonl --definitions logs/20261027-193248-fcdc039c/PacketLength.used.txt --output logs/20261027-193248-fcdc039c/session-analysis.json
+python -m tools.analyze_session logs/SESSION/capture.jsonl --definitions logs/SESSION/PacketLength.used.txt --output logs/SESSION/session-rathena.json --emulator rathena
 ```
 
 GUIと同じ順序でWorld、MOB配置、ショップ、戦闘、スキル、プレイヤー、会話を更新する。
 生ログの再生は1回。全分野で共通のパケット番号を使い、既存の分野別解析コマンドも利用できる。
+
+`--emulator auriga|rathena`（既定`auriga`）で生成プロファイル根（`config/<emulator>/`）を切り替える。
+`analyze_dialogues` / `merge_dialogues` / `analyze_entities` / `analyze_skills` /
+`compare_dialogue_timing` も同じフラグを持つ。観測意味の抽出は共通で、本文候補・配置候補の
+書式だけが変わる。受信表示JSONのCLI切替は対象外（GUIの表示形式を使う）。
 
 レポートにはNPC/MOB個体、プレイヤー・キャラクタ情報、会話と会話外演出、
 ショップ、戦闘・スキル、MOB配置観測と未確定の配置候補、統合会話とAuriga本文候補を含む。
 手動採用していないNPCタイマーやMOB配置設定は生成しない。
 会話外演出は時刻・対象・根拠付きで保持するが、反復比較の基準点は利用者がGUIで選択する。
 
-source_sha256は元ログ、definitions_sha256は後方優先を適用した長さ定義の正規化SHA256、
+`emulator`は適用した生成プロファイル名。source_sha256は元ログ、definitions_sha256は後方優先を適用した長さ定義の正規化SHA256、
 dialogue_profileは会話生成書式のパスとSHA256。ログ・生成書式の解析中の変更は検出して拒否する。
 生ログは128MiBまで、出力JSONは64MiBまで。元ログ・指定定義・config以下への上書きは禁止し、
 出力は一時ファイルへ書込後に置換する。元のキャプチャログは変更しない。

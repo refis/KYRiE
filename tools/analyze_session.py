@@ -20,12 +20,13 @@ from reconstruction.mob_spawns import MobSpawnStore
 from reconstruction.mob_spawn_export import build_candidates
 from reconstruction.branches import build_merged
 from reconstruction.auriga import AurigaRenderer
-from reconstruction.emulator_profiles import profile as generation_profile
+from reconstruction.emulator_profiles import profile as generation_profile, target as active_emulator
 from reconstruction.session_quality import summarize_quality
 from reconstruction.dialogue_review import build_review_queue
 from reconstruction.cast_review import build_cast_review
 from reconstruction.entity_metadata import build_metadata_report
 from storage.project import fingerprint
+from tools.cli_emulator import add_emulator_argument, apply_emulator
 from tools.replay_capture import replay
 
 MAX_LOG_BYTES = 128 * 1024 * 1024
@@ -72,7 +73,8 @@ def analyze(path, definitions):
                     shops=shops.snapshot(), combat=combat.snapshot(), skills=skills.snapshot(),
                     mob_spawns=spawns.snapshot())
     definition_text = ''.join(f'{pid:04X} {size}\n' for pid, size in sorted(definitions.items()))
-    report = dict(schema_version=1, source_log=source_ref, source_sha256=source_hash,
+    report = dict(schema_version=1, emulator=active_emulator(), source_log=source_ref,
+                source_sha256=source_hash,
                 definitions_sha256=hashlib.sha256(definition_text.encode('utf-8')).hexdigest(),
                 dialogue_profile=dict(path=str(generation_profile('dialogue.json')), sha256=profile_hash),
                 replay=transport, **sections,
@@ -133,8 +135,10 @@ def main():
     cli.add_argument('log', type=Path)
     cli.add_argument('--definitions', required=True, type=Path)
     cli.add_argument('--output', required=True, type=Path)
+    add_emulator_argument(cli)
     args = cli.parse_args()
     try:
+        apply_emulator(args.emulator)
         report = analyze(args.log, load_lengths(args.definitions))
         save_report(args.output, report, (args.definitions,))
     except (OSError, ValueError) as exc:
@@ -142,8 +146,8 @@ def main():
     print(f'Packets {report["measurements"]["packet_count"]}; '
           f'conversations {len(report["dialogues"]["conversations"])}; '
           f'groups {len(report["merged_dialogues"]["groups"])} -> {args.output}')
-    print(f'Quality {report["quality"]["status"]}; completeness not_verified; '
-          f'findings {len(report["quality"]["findings"])}')
+    print(f'Emulator {report["emulator"]}; quality {report["quality"]["status"]}; '
+          f'completeness not_verified; findings {len(report["quality"]["findings"])}')
 
 
 if __name__ == '__main__':

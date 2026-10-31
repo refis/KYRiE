@@ -140,6 +140,7 @@ Aurigaのmenu/switch/cutin/close系構文は
 
 ```powershell
 python -m tools.analyze_dialogues logs/SESSION/capture.jsonl --definitions client/PacketLength.extracted.txt --output logs/SESSION/dialogues.json
+python -m tools.analyze_dialogues logs/SESSION/capture.jsonl --definitions client/PacketLength.extracted.txt --output logs/SESSION/dialogues-rathena.json --emulator rathena
 ```
 
 再解析用本文を保存したログが必要。入力ログは変更しない。
@@ -324,7 +325,8 @@ Icon 12（EFST_INC_AGI）と50（EFST_NOEQUIPWEAPON）は観測一意ではな�
 SC_INCREASEAGI / SC_STRIPWEAPON を通常変換へ入れ、除外候補はexcluded_candidatesに残す。
 残る曖昧6件（112/149/324/438/737/1316）は根拠なく一意化しない。
 表示側0196 flag=0の`sc_end`も変換後SCのみを使い、未解決は確認用コメントにする。
-CLIのエミュレータ指定と上流の継続追従は別対応。
+解析CLIは`--emulator auriga|rathena`（既定auriga）で同じ生成プロファイルを選べる
+（`analyze_session` / `analyze_dialogues` 等）。上流の継続追従は別対応。
 
 生成書式はconfig/auriga/dialogue.jsonのprogress_action、hideonnpc等、unittalk_target、
 status_start/status_end/status_review等で変更できる。GUIのタイムラインから元Packetへ移動できる。
