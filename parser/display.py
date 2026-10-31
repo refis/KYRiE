@@ -176,11 +176,15 @@ class DisplayProfile:
         for name, spec in fields.items():
             if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*', name) or name in values or name.startswith('ctx_'):
                 raise ProfileError(f'Invalid or reserved field name: {name}')
-            _keys(spec, {'offset', 'type', 'length', 'encoding', 'scale', 'add', 'mask'}, name)
+            _keys(spec, {'offset', 'type', 'length', 'encoding', 'scale', 'add', 'mask', 'index'}, name)
             _integer(spec.get('offset'), name + '.offset')
             kind = spec.get('type')
             if kind not in (*TYPES, 'string', 'bytes'):
                 raise ProfileError(f'Unknown field type: {kind}')
+            if 'index' in spec:
+                from parser.packet_overlay import INDEX_TAGS
+                if not isinstance(spec['index'], str) or spec['index'] not in INDEX_TAGS:
+                    raise ProfileError(f'Unknown field index tag: {spec.get("index")}')
             if kind in ('string', 'bytes'):
                 if 'length' in spec:
                     _integer(spec['length'], name + '.length')
@@ -223,7 +227,7 @@ class DisplayProfile:
 
 
 class ReceiveDisplay:
-    def __init__(self, profile, direction='RECV'):
+    def __init__(self, profile, direction='RECV', client_names=None, skill_names=None):
         self.profile = profile
         if direction not in ('RECV', 'SEND'):
             raise ValueError('Unsupported display direction')
@@ -231,6 +235,8 @@ class ReceiveDisplay:
         self.states = {}
         self.players = PlayerStore()
         self.world = WorldStore()
+        self.client_names = client_names
+        self.skill_names = skill_names
         self.command_store = None
         self.command_records = []
         self.command_error = None
@@ -238,6 +244,32 @@ class ReceiveDisplay:
         if any(rule.get('decoder') == 'script_command' for rule in self.profile.rules.values()):
             from reconstruction.script_commands import ScriptCommandStore
             self.command_store = ScriptCommandStore()
+        self._needs_index = any(
+            isinstance(spec, dict) and spec.get('index')
+            for rule in self.profile.rules.values()
+            for spec in rule.get('fields', {}).values())
+        if self._needs_index and profile.reference_names is None:
+            if any(isinstance(spec, dict) and spec.get('index') in ('status_icon', 'visual_effect')
+                   for rule in profile.rules.values()
+                   for spec in rule.get('fields', {}).values()):
+                from reconstruction.reference_names import load_reference_names
+                profile.reference_names = load_reference_names()
+
+    def _annotate_indexes(self, rule, fields, event):
+        if not getattr(self, '_needs_index', False):
+            return
+        from parser.packet_overlay import resolve_index_label
+        for name, spec in rule.get('fields', {}).items():
+            tag = spec.get('index') if isinstance(spec, dict) else None
+            if not tag or name not in fields:
+                continue
+            label = resolve_index_label(
+                tag, fields[name],
+                world=self.world, capture_session=0,
+                connection=event.connection, flow_id=event.flow_id or event.connection,
+                client_names=self.client_names, reference_names=self.profile.reference_names,
+                skill_names=self.skill_names)
+            fields[name + '_index'] = label
 
     def _changes_text(self, changes):
         parts=[]
@@ -372,6 +404,7 @@ class ReceiveDisplay:
                     value = data.split(b'\0', 1)[0].decode(spec.get('encoding', profile.encoding), errors='strict')
                 fields[name] = value
                 values[name] = value
+            self._annotate_indexes(rule, fields, event)
             if decoder == 'skill_unit':
                 if event.packet_id != 0x9ca or len(event.raw) != 23 or struct.unpack_from('<H',event.raw,2)[0] != 23:
                     raise ValueError('Unsupported skill unit packet layout')

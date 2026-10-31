@@ -10,12 +10,24 @@ from storage.observation_export import save_observation_bytes, MAX_EXPORT_BYTES
 
 
 class SessionLog:
-    def __init__(self, root, definitions, record_payload=False, max_bytes=64 * 1024 * 1024):
+    def __init__(self, root, definitions, record_payload=False, max_bytes=64 * 1024 * 1024, overlay=None):
         self.directory = Path(root) / (datetime.now().strftime('%Y%m%d-%H%M%S') + '-' + uuid.uuid4().hex[:8])
         self.directory.mkdir(parents=True, exist_ok=False)
         self.path = self.directory / 'capture.jsonl'
         definition_text = ''.join(f'{pid:04X} {size}\n' for pid, size in sorted(definitions.items()))
         (self.directory / 'PacketLength.used.txt').write_text(definition_text, encoding='utf-8')
+        start = dict(schema=1, record_payload=record_payload,
+                     definitions_sha256=hashlib.sha256(definition_text.encode('utf-8')).hexdigest())
+        if overlay is not None:
+            from parser.packet_overlay import overlay_evidence, write_overlay_snapshot
+            write_overlay_snapshot(self.directory, overlay)
+            evidence = overlay_evidence(overlay)
+            if evidence and evidence.get('sha256'):
+                start['overlay_sha256'] = evidence['sha256']
+            if evidence and evidence.get('path'):
+                start['overlay_path'] = evidence['path']
+            if evidence and evidence.get('packet_count') is not None:
+                start['overlay_packet_count'] = evidence['packet_count']
         self.file = self.path.open('w', encoding='utf-8', newline='\n')
         self.lock = Lock()
         self.record_payload = record_payload
@@ -23,8 +35,7 @@ class SessionLog:
         self.written = 0
         self.error = ''
         self.closed = False
-        self.write('session_start', schema=1, record_payload=record_payload,
-                   definitions_sha256=hashlib.sha256(definition_text.encode('utf-8')).hexdigest())
+        self.write('session_start', **start)
 
     def write(self, kind, data=None, **fields):
         with self.lock:

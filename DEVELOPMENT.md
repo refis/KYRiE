@@ -2275,3 +2275,12 @@ Selected verification: release+catalog+commands+npc+player+presentation+events+m
 and gui-restoration+gui-display+offline+storage (153); total 579. Not full discover.
 Artifacts: dist/KYRiE-v0.0.6-source.zip (+.sha256, verification.json; gitignored).
 See docs/releases/v0.0.6.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.
+
+### 2026-10-31: Packet structure overlay and field index tags (#35 P0)
+
+Explicit version-1 JSON overlays merge into PacketLength and display for unknown/extended IDs only.
+Field `index` tags annotate actor/item/quest/map/class/skill/status/effect from existing catalogs;
+wire values and SQLite raw stay unchanged. Session evidence writes PacketOverlay.used.json and
+overlay_sha256 beside PacketLength.used.txt. GUI settings expose the overlay path; packet detail
+shows `値（注釈）`. Example: config/packet_overlay.example.json. No unknown-ID resync.
+Selected: display + test_packet_overlay + session_log + gui-display + gui-capture (90). Not full discover.

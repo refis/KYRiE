@@ -41,7 +41,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
          'tests.unit.test_mob_spawns',
          'tests.unit.test_mob_skill_export'],
  'display': ['tests.unit.test_display', 'tests.unit.test_ignorepacket',
-             'tests.unit.test_identity_protection'],
+             'tests.unit.test_identity_protection', 'tests.unit.test_packet_overlay'],
  'events': ['tests.unit.test_timing',
             'tests.unit.test_event_trials',
             'tests.unit.test_event_trial_selection',
