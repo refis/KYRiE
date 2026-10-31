@@ -50,7 +50,9 @@ python -m tools.extract_packet_lengths client/unpacked_20261008.exe --output cli
 各セッションには次のファイルを作る。
 
 - `capture.jsonl`: 状態、受信セグメントのメタデータ、正常パケット、停止コンテキスト。
-- `PacketLength.used.txt`: 実際に読み込んだ後方優先適用後の定義。正規化SHA256も記録する。
+- `PacketLength.used.txt`: 実際に読み込んだ後方優先適用後の定義（構造オーバーレイ適用後を含む）。正規化SHA256も記録する。
+- `PacketOverlay.used.json`: 構造オーバーレイを指定した場合のみ。適用した版付きJSONのスナップショット。`session_start.overlay_sha256` と対になる。
+- `PacketLength.overlay-export.txt` / `display.overlay-export.json`: GUI「オーバーレイ確定をエクスポート」の出力。本体のPacketLength.txt／display.jsonは上書きしない。
 
 停止レコードはエンドポイント、初期シーケンス、SYN/ASSUMEDの境界種別、TCPの次の位置、
 未処理セグメント数、ストリームオフセット、直前16パケットのID・定義長・適用長・開始位置、

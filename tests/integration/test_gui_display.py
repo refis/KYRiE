@@ -657,6 +657,63 @@ class DisplayGuiTests(WindowTestCase):
         self.assertEqual(panel.selection.count(), 1)
         self.assertEqual(self.db.db.execute('SELECT COUNT(*) FROM packets').fetchone()[0], 8)
 
+    def test_overlay_editor_saves_index_and_reloads_detail(self):
+        w = self.window
+        packet = variable(0xB4, struct.pack('<I', 42) + b'hello\0')
+        w.add_packet(packet)
+        w.table.selectRow(0)
+        self.assertTrue(w.overlay_edit.isEnabled())
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'overlay.json'
+            from gui.overlay_editor import OverlayEditorDialog
+            from parser.packet_overlay import save_overlay, upsert_overlay_packet
+            dialog = OverlayEditorDialog(
+                0xb4, len(packet.raw),
+                display_rule=w.presenter.profile.rules[0xb4],
+                overlay_path=str(path), parent=w)
+            for row in range(dialog.table.rowCount()):
+                item = dialog.table.item(row, 0)
+                if item and item.text() == 'actor_id':
+                    dialog.table.cellWidget(row, 4).setCurrentText('actor_id')
+            entry = dialog.build_entry()
+            self.assertEqual(entry['fields']['actor_id']['index'], 'actor_id')
+            save_overlay(path, upsert_overlay_packet(None, entry))
+            w.overlay_path.setText(str(path))
+            w.reload_display()
+            w.table.selectRow(0)
+            w.show_selected()
+            self.assertIn('actor_id: 42（未観測）', w.hex.toPlainText())
+            self.assertTrue(path.is_file())
+            dialog.close()
+
+    def test_same_id_diff_and_overlay_export(self):
+        w = self.window
+        first = variable(0xB4, struct.pack('<I', 42) + b'hello\0')
+        second = variable(0xB4, struct.pack('<I', 99) + b'hello\0')
+        w.add_packet(first)
+        w.add_packet(second)
+        w.table.selectRow(0)
+        w.table.selectRow(1)  # ExtendedSelection keeps both when using Ctrl; force multi-select
+        from PySide6.QtCore import QItemSelectionModel
+        model = w.table.selectionModel()
+        model.select(w.table.model().index(0, 0), QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        model.select(w.table.model().index(1, 0), QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        self.assertTrue(w.overlay_diff.isEnabled())
+        w.diff_same_id_instances()
+        self.assertIn('同一ID差分: 0x00B4', w.hex.toPlainText())
+        self.assertIn('actor_id', w.hex.toPlainText())
+        with tempfile.TemporaryDirectory() as folder:
+            example = Path('config/packet_overlay.example.json')
+            w.overlay_path.setText(str(example.resolve()))
+            w.sync_ignore_selection()
+            self.assertTrue(w.overlay_export.isEnabled())
+            with patch('gui.main_window.QFileDialog.getExistingDirectory', return_value=folder), \
+                    patch('gui.main_window.QMessageBox.information'):
+                w.export_confirmed_overlay()
+            self.assertTrue((Path(folder) / 'PacketLength.overlay-export.txt').is_file())
+            self.assertTrue((Path(folder) / 'display.overlay-export.json').is_file())
+            self.assertIn('F001', (Path(folder) / 'PacketLength.overlay-export.txt').read_text(encoding='utf-8'))
+
     def test_display_filter_detail_save_and_raw_storage(self):
         w = self.window
         packet = variable(0xB4, struct.pack('<I', 42) + b'hello\0')

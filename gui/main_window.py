@@ -119,6 +119,10 @@ class MainWindow(QMainWindow):
         self.ignore_settings.clicked.connect(self.edit_ignorepacket)
         self.ignore_packet_selection.toggled.connect(self.toggle_selected_packet_ignore)
         self.ignore_npc_selection.toggled.connect(self.toggle_selected_npc_ignore)
+        self.overlay_edit.clicked.connect(self.edit_overlay_structure)
+        self.overlay_diff.clicked.connect(self.diff_same_id_instances)
+        self.overlay_export.clicked.connect(self.export_confirmed_overlay)
+        self.overlay_path.editingFinished.connect(self.sync_ignore_selection)
         self.table.itemSelectionChanged.connect(self.sync_ignore_selection)
         self.npc_panel.table.selectionModel().currentRowChanged.connect(self.sync_ignore_selection)
         self.npc_panel.model.modelReset.connect(self.sync_ignore_selection)
@@ -141,7 +145,7 @@ class MainWindow(QMainWindow):
         self.display_save.clicked.connect(self.save_display)
         self.reload_display()
         try:
-            self.send_presenter = ReceiveDisplay(DisplayProfile.load(DEFAULT_SEND_PROFILE), direction='SEND')
+            self.send_presenter = self._make_display(self._load_display_profile(DEFAULT_SEND_PROFILE), direction='SEND')
         except (OSError, ValueError) as exc:
             self.show_capture_status(f'SEND display profile load failed: {exc}')
         self.process.currentIndexChanged.connect(self.update_capture_controls)
@@ -187,6 +191,12 @@ class MainWindow(QMainWindow):
             button.setEnabled(value is not None)
             button.setChecked(value is not None and value in excluded)
             button.blockSignals(False)
+        self.overlay_edit.setEnabled(packet_id is not None)
+        selected = self.selected_packet_indices()
+        self.overlay_diff.setEnabled(
+            len(selected) == 2
+            and self.events[selected[0]].packet_id == self.events[selected[1]].packet_id)
+        self.overlay_export.setEnabled(bool(self.overlay_path.text().strip()))
 
     def toggle_selected_packet_ignore(self, checked):
         row = self.selected_packet_index()
@@ -262,6 +272,136 @@ class MainWindow(QMainWindow):
         path, _ = QFileDialog.getOpenFileName(self, 'パケット長定義を選択', self.path.text(), 'Text (*.txt);;All files (*)')
         if path:
             self.path.setText(path)
+
+    def browse_overlay(self):
+        start = self.overlay_path.text().strip() or str(Path(self.path.text()).parent)
+        path, _ = QFileDialog.getOpenFileName(self, '構造オーバーレイを選択', start, 'JSON (*.json);;All files (*)')
+        if path:
+            self.overlay_path.setText(path)
+            self.sync_ignore_selection()
+
+    def edit_overlay_structure(self):
+        row = self.selected_packet_index()
+        if row is None:
+            return
+        from gui.overlay_editor import OverlayEditorDialog
+        from parser.packet_overlay import find_overlay_packet
+        event = self.events[row]
+        overlay = None
+        try:
+            overlay = self._load_optional_overlay()
+        except (OSError, ValueError) as exc:
+            self.statusBar().showMessage(f'既存オーバーレイを読めません（新規として編集）: {exc}')
+        seed = find_overlay_packet(overlay, event.packet_id)
+        renderer = self.presenter if event.direction == 'RECV' else self.send_presenter
+        rule = renderer.profile.rules.get(event.packet_id) if renderer else None
+        default_path = self.overlay_path.text().strip() or str(
+            Path(self.path.text()).resolve().parent / 'packet_overlay.json')
+        dialog = OverlayEditorDialog(
+            event.packet_id, len(event.raw), seed_entry=seed, display_rule=rule,
+            overlay_path=default_path, parent=self)
+        if dialog.exec():
+            saved = dialog.saved_path()
+            if saved:
+                self.overlay_path.setText(saved)
+                self.reload_display()
+                self.show_selected()
+                self.sync_ignore_selection()
+                self.statusBar().showMessage(f'構造オーバーレイを保存し再解析しました: {saved}')
+
+    def selected_packet_indices(self):
+        indices = []
+        seen = set()
+        for item in self.table.selectedItems():
+            if item.column() != 0:
+                continue
+            index = item.data(Qt.UserRole)
+            if type(index) is int and 0 <= index < len(self.events) and index not in seen:
+                seen.add(index)
+                indices.append(index)
+        return indices
+
+    def diff_same_id_instances(self):
+        selected = self.selected_packet_indices()
+        if len(selected) != 2:
+            self.statusBar().showMessage('同一PacketIDのパケットを2件選択してください。')
+            return
+        left, right = self.events[selected[0]], self.events[selected[1]]
+        if left.packet_id != right.packet_id:
+            self.statusBar().showMessage('選択した2件のPacketIDが一致しません。')
+            return
+        from parser.packet_overlay import (
+            compare_same_id_instances, fields_from_display_rule, find_overlay_packet,
+            format_instance_diff,
+        )
+        fields = {}
+        try:
+            overlay = self._load_optional_overlay()
+            entry = find_overlay_packet(overlay, left.packet_id)
+            if entry:
+                fields = entry.get('fields') or {}
+        except (OSError, ValueError):
+            overlay = None
+        if not fields:
+            renderer = self.presenter if left.direction == 'RECV' else self.send_presenter
+            rule = renderer.profile.rules.get(left.packet_id) if renderer else None
+            fields = fields_from_display_rule(rule)
+        try:
+            report = compare_same_id_instances(left.raw, right.raw, fields=fields, packet_id=left.packet_id)
+        except ValueError as exc:
+            self.statusBar().showMessage(f'同一ID差分に失敗: {exc}')
+            return
+        text = format_instance_diff(report)
+        self.hex.setPlainText(
+            f'{text}\n\n--- A index={selected[0]} {left.connection} ---\n'
+            f'--- B index={selected[1]} {right.connection} ---')
+        self.statusBar().showMessage(
+            f'同一ID差分 0x{left.packet_id:04X}: '
+            + ('一致' if report['equal'] else f'{report["difference_count"]} 箇所'))
+
+    def export_confirmed_overlay(self):
+        try:
+            overlay = self._load_optional_overlay()
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, 'オーバーレイを読めません', str(exc))
+            return
+        if overlay is None:
+            QMessageBox.information(self, 'エクスポート', '設定で構造オーバーレイのパスを指定してください。')
+            return
+        start = str(Path(self.overlay_path.text().strip()).resolve().parent)
+        directory = QFileDialog.getExistingDirectory(self, 'オーバーレイ確定のエクスポート先', start)
+        if not directory:
+            return
+        from parser.packet_overlay import write_overlay_exports
+        try:
+            result = write_overlay_exports(directory, overlay)
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, 'エクスポートできません', str(exc))
+            return
+        self.statusBar().showMessage(
+            f'オーバーレイ確定を書き出しました（{result["packet_count"]} ID）: '
+            f'{result["lengths"]} / {result["display"]}')
+        QMessageBox.information(
+            self, 'エクスポート完了',
+            'PacketLength／displayの本体は上書きしていません。\n'
+            f'長さ: {result["lengths"]}\n表示断片: {result["display"]}')
+
+    def _load_optional_overlay(self):
+        path = self.overlay_path.text().strip()
+        if not path:
+            return None
+        from parser.packet_overlay import load_overlay
+        return load_overlay(path)
+
+    def _load_display_profile(self, path):
+        overlay = self._load_optional_overlay()
+        if overlay is None:
+            return DisplayProfile.load(path)
+        from parser.packet_overlay import load_profile_with_overlay
+        return load_profile_with_overlay(path, overlay)
+
+    def _make_display(self, profile, direction='RECV'):
+        return ReceiveDisplay(profile, direction=direction, client_names=getattr(self, 'client_names', None))
 
     def refresh_entity_views(self, *args):
         self.mob_spawn_panel.refresh()
@@ -391,7 +531,7 @@ class MainWindow(QMainWindow):
         path = CONFIG_ROOT / target / 'display.json'
         previous = getattr(self, 'last_emulator_index', 0)
         try:
-            profile = DisplayProfile.load(path)
+            profile = self._load_display_profile(path)
         except (OSError, ValueError) as exc:
             self.show_capture_status(f'表示形式を変更できません（前の設定を維持）: {exc}')
             self.emulator.blockSignals(True)
@@ -416,7 +556,7 @@ class MainWindow(QMainWindow):
             if self.selected_display_direction.upper()=='RECV':
                 self.display_path.setText(str(path))
             self.update_capture_summary()
-        self._reformat_with(ReceiveDisplay(profile),on_complete=committed)
+        self._reformat_with(self._make_display(profile),on_complete=committed)
 
     def save_capture_log(self):
         from storage.observation_export import save_observation_text
@@ -579,14 +719,15 @@ class MainWindow(QMainWindow):
     def reload_display(self):
         try:
             path=self.display_path.text()
-            profile=DisplayProfile.load(path)
+            profile=self._load_display_profile(path)
             direction=self.selected_display_direction
             def committed():
                 self.display_profile_paths[direction]=path
                 self.display_input_paths[direction]=path
                 label='受信' if direction=='RECV' else '送信'
-                self.statusBar().showMessage(f'表示定義を読み込みました（{label} {len(profile.rules)} 種類）。')
-            self._reformat_with(ReceiveDisplay(profile,direction=direction),direction=direction,on_complete=committed)
+                overlay='＋オーバーレイ' if self.overlay_path.text().strip() else ''
+                self.statusBar().showMessage(f'表示定義を読み込みました（{label} {len(profile.rules)} 種類{overlay}）。')
+            self._reformat_with(self._make_display(profile,direction=direction),direction=direction,on_complete=committed)
         except (OSError,ValueError) as exc:
             self.history_tasks.cancel('format')
             self.statusBar().showMessage(f'Display profile reload failed (previous profile retained): {exc}')
@@ -619,7 +760,7 @@ class MainWindow(QMainWindow):
         self.display_timestamps.blockSignals(False)
         profiles={'RECV':self.presenter,'SEND':self.send_presenter}
         profiles[direction]=presenter
-        renderers={key:ReceiveDisplay(value.profile,direction=key) for key,value in profiles.items() if value}
+        renderers={key:self._make_display(value.profile,direction=key) for key,value in profiles.items() if value}
         def replay():
             results=[];previous_session=None;index=0
             while index<len(self.events):
@@ -648,9 +789,9 @@ class MainWindow(QMainWindow):
 
     def reformat_display(self):
         if self.presenter:
-            self._reformat_with(ReceiveDisplay(self.presenter.profile))
+            self._reformat_with(self._make_display(self.presenter.profile))
         elif self.send_presenter:
-            self._reformat_with(ReceiveDisplay(self.send_presenter.profile, direction='SEND'), direction='SEND')
+            self._reformat_with(self._make_display(self.send_presenter.profile, direction='SEND'), direction='SEND')
 
     def display_visible(self, event, result, tags=None):
         return (self.matches(event) and bool(result.text) and
@@ -850,6 +991,10 @@ class MainWindow(QMainWindow):
             return
         try:
             definitions = load_lengths(self.path.text())
+            overlay = self._load_optional_overlay()
+            if overlay is not None:
+                from parser.packet_overlay import merge_lengths
+                definitions = merge_lengths(definitions, overlay)
             port = int(self.port.text()) if self.process.currentData() is None and self.port.text().strip() else None
             if port is not None and not 1 <= port <= 65535:
                 raise ValueError('Invalid TCP port')
@@ -859,7 +1004,8 @@ class MainWindow(QMainWindow):
             self.capture_state_label.setText('開始待ち')
             self.diagnostics_button.setText('診断')
             self.session_log = SessionLog(self.log_root.text().strip(), definitions,
-                                          record_payload=self.record_stream.isChecked())
+                                          record_payload=self.record_stream.isChecked(),
+                                          overlay=overlay)
             self.log_error_reported = False
             self.show_capture_status(f'Session log: {self.session_log.path}')
             self.session_log.write('capture_options', packet_db_journal=self.db.journal_mode,
@@ -1085,7 +1231,14 @@ class MainWindow(QMainWindow):
             hex_part = ' '.join(f'{x:02X}' for x in chunk)
             ascii_part = ''.join(chr(x) if 32 <= x < 127 else '.' for x in chunk)
             lines.append(f'{offset:08X}  {hex_part:<47}  {ascii_part}')
-        fields = '\n'.join(f'{name}: {value}' for name, value in decoded.fields.items())
+        from parser.packet_overlay import format_indexed_value
+        field_lines = []
+        for name, value in decoded.fields.items():
+            if name.endswith('_index'):
+                continue
+            label = decoded.fields.get(name + '_index')
+            field_lines.append(f'{name}: {format_indexed_value(value, label)}' if label is not None else f'{name}: {value}')
+        fields = '\n'.join(field_lines)
         self.hex.setPlainText(f'PacketID: 0x{event.packet_id:04X} | {event.connection}\n'
                              f'Display: {decoded.status} {decoded.name}\n{decoded.text}\n{fields}\n\n' + '\n'.join(lines))
 

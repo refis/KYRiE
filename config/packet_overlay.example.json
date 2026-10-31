@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "note": "Example structure overlay for an unknown/extended packet. Select this path in 設定 → 取得 → 構造オーバーレイ to apply. Index tags annotate display only; wire values stay raw.",
+  "packets": [
+    {
+      "id": "F001",
+      "length": 10,
+      "name": "example_overlay_actor_item",
+      "min_length": 10,
+      "fields": {
+        "actor_id": {"offset": 2, "type": "u32", "index": "actor_id"},
+        "item_id": {"offset": 6, "type": "u16", "index": "item_id"},
+        "flags": {"offset": 8, "type": "u16"}
+      },
+      "template": "@overlay_packet 0xF001 actor={actor_id} item={item_id} flags={flags};"
+    }
+  ]
+}

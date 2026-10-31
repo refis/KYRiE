@@ -43,6 +43,50 @@ GUI基本データの仕様は[基本データガイド](../observations/player-
 同じ一覧・整形ログ・HEX・SQLiteへ表示／保存する。Display JSONのRECV/SENDで
 編集する方向を切り替えられる。
 
+## 構造オーバーレイとフィールド索引タグ（#35）
+
+未知PacketIDや長さ拡張されたパケット向けに、版付きJSONで長さと表示フィールドを
+明示上書きできる。例: `config/packet_overlay.example.json`。
+「設定 → 取得 → 構造オーバーレイ」でパスを指定し、観測開始時にPacketLengthへ、
+表示の再読込時にdisplayへマージする。未指定時は従来どおり。失敗時は従来の
+方向fail-closedを維持し、未知ID後の境界再同期やバイト飛ばしは行わない。
+
+各フィールドに任意の `index` タグを付けられる（表示注釈のみ。ワイヤ値・SQLite raw・
+集計キーは数値／生値のまま）。未設定は従来どおり。設定時はパケット詳細で
+`値（注釈）` 形式（例: `1010（鉄）`）。一致なしは `未登録`／`未観測` を明示し埋めない。
+
+| index | 解決元 |
+|---|---|
+| actor_id | WorldStore（同一取得・接続・MAP世代の名称） |
+| item_id | client_names item_identified |
+| quest_id | client_names quests |
+| map_name | client_names maps |
+| class_id | player_classes（職業クラス可否のみ） |
+| skill_id | skill_names |
+| status_icon | reference_names status_icon |
+| visual_effect | reference_names visual_effect |
+
+セッション開始時は適用後の長さを `PacketLength.used.txt` に残し、オーバーレイ利用時は
+`PacketOverlay.used.json` と `session_start.overlay_sha256` も残す。
+
+### パケット詳細での編集（#35 P1）
+
+「パケット詳細」で行を選び「構造オーバーレイを編集…」を開く。
+フィールド追加・offset/type/length・index（actor_id / item_id 等）・パケット長を編集し、
+長さ確認（定義長と観測raw・フィールド被覆）のあとオーバーレイJSONへ保存する。
+保存後は設定のオーバーレイパスを更新し、表示を再解析する。
+既存のdisplay規則があれば初期値として読み、同一IDはオーバーレイ内で置換する。
+
+### 同一ID差分と確定エクスポート（#35 P2）
+
+同じPacketIDの行を2件選び「同一ID差分」でrawバイト差分を表示する。
+オーバーレイまたはdisplayのフィールド範囲があれば差分箇所をフィールド名で注釈する。
+長さが違っても境界再同期はせず、欠けた側は `--` と示す。
+
+「オーバーレイ確定をエクスポート…」は設定中のオーバーレイから
+`PacketLength.overlay-export.txt` と `display.overlay-export.json` を書き出す。
+プロジェクト本体の PacketLength.txt / display.json は上書きしない。
+
 ## 文面を変える例
 
 会話パケット00B4の既定値は `"template": "mes {text:q};"`。
