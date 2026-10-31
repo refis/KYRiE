@@ -231,12 +231,29 @@ class DialogueStore:
                 conversation.issues.append(dict(packet_index=index, message='Resource observation capacity reached'))
             return
         conversation.resource_observations.append(dict(kind=kind, fields=fields, cause_confirmed=False,
+            adoption_confirmed=False,
             after_step_index=len(conversation.steps) - 1,
             packet_index=index, packet_id=packet.packet_id, timestamp=packet.timestamp,
             connection=packet.connection, source=packet.source, direction=packet.direction,
             capture_session=session, flow_id=packet.flow_id or packet.connection))
         self.resource_count += 1
         self.revision += 1
+
+    def set_resource_adoption(self, conversation, packet_index, confirmed):
+        """Explicit per-row adoption for command candidates. Never flips cause_confirmed."""
+        if confirmed is not True and confirmed is not False:
+            raise ValueError('Resource adoption confirmation must be a boolean')
+        for row in conversation.resource_observations:
+            if row['packet_index'] != packet_index:
+                continue
+            if row['kind'].startswith('quest_'):
+                raise ValueError('Quest resources use the existing setquest path')
+            if row['kind'] not in ('zeny', 'item_gain', 'item_loss', 'map'):
+                raise ValueError('Unsupported resource kind for adoption')
+            row['adoption_confirmed'] = confirmed
+            self.revision += 1
+            return row
+        raise ValueError('Resource observation not found')
 
     def _self_actor(self, packet, session):
         state = self.world.player_maps.states.get((session, packet.flow_id or packet.connection)) if self.world else None

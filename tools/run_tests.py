@@ -12,6 +12,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
  'dialogue': ['tests.unit.test_dialogue',
               'tests.unit.test_dialogue_closing',
               'tests.unit.test_dialogue_format',
+              'tests.unit.test_resource_adoption',
               'tests.unit.test_branches',
               'tests.unit.test_timeout_merging',
               'tests.unit.test_instance_mode'],

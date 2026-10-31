@@ -92,7 +92,11 @@ RESOURCE_FIELDS = {'resource_header': set(),
     'resource_zeny_unknown': {'packet_index', 'value'},
     'resource_item_gain': {'packet_index', 'item_id', 'amount', 'index'},
     'resource_item_loss': {'packet_index', 'item_id', 'amount', 'index'},
-    'resource_map': {'packet_index', 'map_name', 'x', 'y'}}
+    'resource_map': {'packet_index', 'map_name', 'x', 'y'},
+    'resource_adoption_review': set(),
+    'zeny_set': {'delta_signed'},
+    'map_warp': {'map_name', 'x', 'y'},
+    'map_warp_review': {'map_name', 'x', 'y'}}
 OPTIONAL_FIELDS = {'observed_gap': {'duration_ms'},
                    'merged_header': {'id', 'npc_name', 'map_name', 'observations'},
                    'merge_conflict': set(), 'merge_boundary': set(), 'merge_input': set(), 'merge_unavailable': set(),
@@ -475,6 +479,13 @@ class AurigaRenderer:
                 emit(kind, depth, quest_id=fields['quest_id'])
             elif kind == 'quest_wait_review':
                 emit(kind, depth)
+            elif kind == 'resource_adoption_review':
+                emit(kind, depth)
+            elif kind == 'zeny_set':
+                emit(kind, depth, delta_signed=fields['delta_signed'])
+            elif kind in ('map_warp', 'map_warp_review'):
+                emit(kind, depth, map_name=_quote(base_map_name(fields['map_name'])),
+                     x=fields['x'], y=fields['y'])
             elif kind == 'overhead':
                 emit('overhead', depth, text=_quote(fields['text']))
             elif kind == 'unittalk':
