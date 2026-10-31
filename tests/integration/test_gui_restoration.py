@@ -637,6 +637,46 @@ class RestorationGuiTests(WindowTestCase):
         self.assertEqual(timing['candidates'],[])
         self.assertFalse(item.observed_open)
 
+    def test_touch_trial_comparison_lists_walk_offsets_without_expanding_radius(self):
+        from reconstruction.dialogue import Conversation
+        from reconstruction.touch import context
+        from tests.support.branches import NPC
+        base=dict(NPC)
+        first_npc=dict(base)
+        first_npc['touch']=context(first_npc,dict(map_name=base['map_name'],x=base['x']-2,y=base['y'],
+            position_basis='observed_walk_destination',packet_index=3,walk_send_packet_index=2),4)
+        second_npc=dict(base)
+        second_npc['touch']=context(second_npc,dict(map_name=base['map_name'],x=base['x'],y=base['y']+2,
+            position_basis='observed_walk_destination',packet_index=8,walk_send_packet_index=7),9)
+        first=Conversation(1,0,'flow',42,1,False,status='map_changed',npc=first_npc,
+            termination=dict(timestamp=2,packet_index=4,packet_id=0x91,direction='RECV',connection='flow',source='TEST',
+                fields=dict(map_name='target.gat',x=100,y=120,source_map_name=base['map_name'])))
+        second=Conversation(2,0,'flow',42,3,False,status='map_changed',npc=second_npc,
+            termination=dict(timestamp=4,packet_index=9,packet_id=0x91,direction='RECV',connection='flow',source='TEST',
+                fields=dict(map_name='target.gat',x=100,y=120,source_map_name=base['map_name'])))
+        w=self.window
+        w.dialogues.sessions=[first,second]
+        w.dialogues.touch_warp_inferences.append(dict(
+            capture_session=0,flow_id='flow',packet_index=4,candidate_count=1,nearest_count=1,
+            reason='unique_nearest_in_highest_priority_class',selected_actor_id=42))
+        w.dialogues.touch_warp_inferences.append(dict(
+            capture_session=0,flow_id='flow',packet_index=9,candidate_count=1,nearest_count=1,
+            reason='unique_nearest_in_highest_priority_class',selected_actor_id=42))
+        w.dialogues.revision+=1
+        w.refresh_entity_views()
+        panel=w.dialogue_panel
+        caption=panel.timing_caption.text()
+        self.assertIn('接触試行の比較',caption)
+        self.assertIn('dx=-2 dy=0',caption)
+        self.assertIn('dx=0 dy=2',caption)
+        self.assertIn('暫定半径1は既定の仮値',caption)
+        self.assertIn('歩行SEND#2',caption)
+        evidence=json.loads(panel.evidence.toPlainText())
+        self.assertEqual(len(evidence['touch_trial_comparison']),2)
+        panel.merge_checkbox.setChecked(True)
+        self.assertIn('接触試行の比較',panel.timing_caption.text())
+        self.assertEqual(len(json.loads(panel.evidence.toPlainText())['touch_trial_comparison']),2)
+
     def test_unanswered_next_close_shows_timeout_suspicion_and_never_resumes_as_close2(self):
         from tests.support.dialogue import packet
         w = self.window

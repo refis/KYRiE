@@ -1,5 +1,5 @@
 """All observed NPC placements with optional dialogue merging; no missing-data inference."""
-from reconstruction.touch import is_touch, merge_contexts
+from reconstruction.touch import is_touch, merge_contexts, compare_conversation_trials, format_trial_comparison
 from reconstruction.actor_identity import actor_sort_key
 from reconstruction.actor_appearance import player_class
 from reconstruction.instance_names import projection as instance_projection
@@ -16,7 +16,7 @@ from reconstruction.shop_export import ShopRenderer, shop_name_for
 
 
 def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=False, shops=(),
-                     max_chars=64 * 1024 * 1024, identity=None):
+                     max_chars=64 * 1024 * 1024, identity=None, touch_inferences=None):
     conversations = list(conversations)
     sources = dict(source_sessions or {})
     renderer = AurigaRenderer(identity=identity)
@@ -87,16 +87,26 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
         items = [item for item in bucket['conversations'] if (item.capture_session, item.id) not in direct_keys]
         bodies, used = [], set()
         merge_exclusions = []
+        touch_trial_comparison = []
+        touch_trial_caption = ''
         if merge and items:
-            combined = build_merged((source(item), item) for item in items)
+            combined = build_merged(((source(item), item) for item in items),
+                                    touch_inferences=touch_inferences)
             merge_exclusions = combined['excluded']
             for group in combined['groups']:
+                if group.get('touch_trial_comparison') and not touch_trial_comparison:
+                    touch_trial_comparison = group['touch_trial_comparison']
+                    touch_trial_caption = group.get('touch_trial_caption') or format_trial_comparison(touch_trial_comparison)
                 try:
                     bodies.append(renderer.render_merged(group, include_initialization=False))
                 except ValueError as exc:
                     excluded.append(dict(kind='merged_conversation', group_id=group['id'], reason=str(exc)))
                     continue
                 used.update((row['source_ref'], row['capture_session'], row['conversation_id']) for row in group['contributions'])
+        elif items and any(is_touch(item.npc) for item in items):
+            touch_trial_comparison = compare_conversation_trials(
+                items, touch_inferences, source_refs=sources)
+            touch_trial_caption = format_trial_comparison(touch_trial_comparison)
         for item in items:
             if (source(item), item.capture_session, item.id) in used:
                 continue
@@ -165,6 +175,8 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
         entries.append(dict(npc=npc, rendered_names=instance_projection(npc), entities=bucket['entities'],
             conversations=[asdict(item) for item in bucket['conversations']], shops=shop_entries, dialogue_mode='merged' if merge else 'individual',
             rendered_paths=len(bodies), auriga=code,
+            touch_trial_comparison=touch_trial_comparison,
+            touch_trial_caption=touch_trial_caption,
             review_only=any(row['mode'] == 'shop' and (visibility_state(row['record']['npc'])
                             in ('hidden', 'cloaked', 'ambiguous') or player_class((row['record']['npc'].get('initial_display') or {}).get('class_id',row['record']['npc'].get('class_id')))) for row in shop_entries),
             initial_state_conflict=len(states) > 1,

@@ -6,7 +6,7 @@ from reconstruction.world import WorldStore
 from reconstruction.dialogue import DialogueStore
 from reconstruction.branches import build_merged
 from reconstruction.npc_bundle import build_npc_bundle
-from reconstruction.touch import context
+from reconstruction.touch import context, compare_trials, format_trial_comparison, merge_contexts
 from tests.support.world import map_packet, actor_packet, packet
 from tests.support.dialogue import packet as dialogue_packet
 
@@ -246,3 +246,95 @@ class TouchNpcTests(unittest.TestCase):
         self.assertEqual(evidence['nearest_count'], 1)
         self.assertEqual(evidence['nearest_distance'], 0)
         self.assertFalse(evidence['cause_confirmed'])
+
+    def test_two_walk_destination_trials_compare_without_expanding_range(self):
+        world = WorldStore()
+        dialogues = DialogueStore(world=world)
+        def consume(event, values=None, timestamp=1.0):
+            event = replace(event, connection='server', flow_id='game', timestamp=timestamp)
+            index = dialogues.packet_ordinal
+            world.apply(event, packet_index=index)
+            dialogues.apply(event, packet_index=index, player_observation=values)
+        def place(timestamp):
+            consume(map_packet('map_a.gat', timestamp=timestamp), timestamp=timestamp)
+            first = actor_packet(name='Gate', x=172, y=163)
+            raw = bytearray(first.raw)
+            struct.pack_into('<H', raw, 23, 45)
+            consume(replace(first, raw=bytes(raw)), timestamp=timestamp)
+        place(1.0)
+        consume(packet(0x85, bytes(3), direction='SEND'), timestamp=2.0)
+        consume(packet(0xffff), dict(event_kind='walk', map_name='map_a.gat', x=168, y=163,
+                                     destination_x=170, destination_y=163), timestamp=2.0)
+        consume(map_packet('map_b.gat', timestamp=3.0), timestamp=3.0)
+        place(4.0)
+        consume(packet(0x85, bytes(3), direction='SEND'), timestamp=5.0)
+        consume(packet(0xffff), dict(event_kind='walk', map_name='map_a.gat', x=172, y=161,
+                                     destination_x=172, destination_y=165), timestamp=5.0)
+        consume(map_packet('map_b.gat', timestamp=6.0), timestamp=6.0)
+        self.assertEqual(len(dialogues.sessions), 2)
+        offsets = [item.npc['touch']['signed_offsets'] for item in dialogues.sessions]
+        self.assertEqual(offsets, [{'dx': -2, 'dy': 0}, {'dx': 0, 'dy': 2}])
+        for item in dialogues.sessions:
+            touch = item.npc['touch']
+            self.assertEqual((touch['radius_x'], touch['radius_y']), (1, 1))
+            self.assertEqual(touch['range_basis'], 'walk_minimum_3x3')
+            self.assertTrue(touch['range_provisional'])
+            self.assertFalse(touch['cause_confirmed'])
+            self.assertFalse(any(touch['confirmed_axes'].values()))
+            self.assertIsInstance(touch['player']['walk_send_packet_index'], int)
+        comparisons = dialogues.snapshot()['touch_trial_comparisons']
+        self.assertEqual(len(comparisons), 1)
+        rows = comparisons[0]['trials']
+        self.assertEqual(len(rows), 2)
+        self.assertEqual([(row['signed_dx'], row['signed_dy'], row['position_basis']) for row in rows],
+                         [(-2, 0, 'observed_walk_destination'), (0, 2, 'observed_walk_destination')])
+        self.assertTrue(all(row['walk_send_packet_index'] is not None for row in rows))
+        self.assertTrue(all(row['walk_recv_packet_index'] is not None for row in rows))
+        self.assertTrue(all(row['transfer_packet_index'] is not None for row in rows))
+        self.assertTrue(all(row['candidate_count'] == 1 for row in rows))
+        self.assertIn('暫定半径1は既定の仮値', comparisons[0]['caption'])
+        self.assertNotIn('半径2', comparisons[0]['caption'])
+        merged = build_merged(('', item) for item in dialogues.sessions)
+        group = merged['groups'][0]
+        self.assertEqual(len(group['touch_trial_comparison']), 2)
+        self.assertIn('walk_minimum_3x3', group['touch_trial_caption'])
+        bundle = build_npc_bundle([], dialogues.sessions, merge=True,
+                                  touch_inferences=list(dialogues.touch_warp_inferences))
+        touch = bundle['entries'][0]['npc']['touch']
+        self.assertEqual((touch['radius_x'], touch['radius_y']), (1, 1))
+        self.assertTrue(touch['range_provisional'])
+        self.assertIn('1,1,map_b.gat', bundle['auriga'])
+        self.assertNotIn('2,2,', bundle['auriga'])
+        self.assertEqual(len(bundle['entries'][0]['touch_trial_comparison']), 2)
+        merged_touch = merge_contexts([item.npc['touch'] for item in dialogues.sessions])
+        self.assertEqual((merged_touch['radius_x'], merged_touch['radius_y']), (1, 1))
+        self.assertTrue(merged_touch['range_provisional'])
+
+    def test_compare_trials_keeps_provenance_without_inventing_ontouch_range(self):
+        npc = dict(class_id=45, map_name='map_a.gat', x=172, y=163, flow_id='game',
+                   capture_session=0, map_generation=1, actor_id=42)
+        first = context(npc, dict(map_name='map_a.gat', x=170, y=163,
+                                  position_basis='observed_walk_destination', packet_index=3,
+                                  walk_send_packet_index=2), 4)
+        second = context(npc, dict(map_name='map_a.gat', x=172, y=165,
+                                   position_basis='observed_walk_destination', packet_index=8,
+                                   walk_send_packet_index=7), 9)
+        rows = compare_trials([
+            dict(source_ref='a.jsonl', capture_session=0, conversation_id=1, flow_id='game',
+                 npc=dict(npc, touch=first), termination=dict(packet_index=4, packet_id=0x91)),
+            dict(source_ref='a.jsonl', capture_session=0, conversation_id=2, flow_id='game',
+                 npc=dict(npc, touch=second, map_generation=3),
+                 termination=dict(packet_index=9, packet_id=0x91)),
+        ], inferences=[
+            dict(capture_session=0, flow_id='game', packet_index=4, candidate_count=1,
+                 nearest_count=1, reason='unique_nearest_in_highest_priority_class', selected_actor_id=42),
+            dict(capture_session=0, flow_id='game', packet_index=9, candidate_count=1,
+                 nearest_count=1, reason='unique_nearest_in_highest_priority_class', selected_actor_id=42),
+        ])
+        self.assertEqual([(row['signed_dx'], row['signed_dy']) for row in rows], [(-2, 0), (0, 2)])
+        self.assertTrue(all(row['range_basis'] == 'walk_minimum_3x3' for row in rows))
+        self.assertTrue(all(row['range_provisional'] for row in rows))
+        caption = format_trial_comparison(rows)
+        self.assertIn('歩行SEND#2', caption)
+        self.assertIn('転送#9', caption)
+        self.assertIn('候補1', caption)
