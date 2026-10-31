@@ -782,7 +782,7 @@
           "type": "u32"
         }
       },
-      "template": "@delmisceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "template": "@delmisceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "visual_effect_name",
       "min_length": 10
     },
@@ -867,7 +867,7 @@
           "type": "u32"
         }
       },
-      "template": "@misceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "template": "@misceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "visual_effect_name",
       "min_length": 10
     },
@@ -890,7 +890,7 @@
           "type": "u32"
         }
       },
-      "template": "@misceffect_value {effect_id},{value};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "template": "@misceffect_value {effect_id},{value};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "visual_effect_name",
       "min_length": 14
     },
@@ -1491,7 +1491,7 @@
           "type": "u32"
         }
       },
-      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "status_icon_name",
       "min_length": 29
     },
@@ -1530,7 +1530,7 @@
           "type": "u32"
         }
       },
-      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols}]",
+      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "status_icon_name",
       "min_length": 25
     },
@@ -1623,7 +1623,7 @@
           "type": "u8"
         }
       },
-      "template": "@status_load type: {effect_id}, aid: {actor_id}, flag: {flag} [{reference_namespace}: {reference_symbols}]",
+      "template": "@status_load type: {effect_id}, aid: {actor_id}, flag: {flag} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "variants": [
         {
           "when": {

@@ -8,10 +8,12 @@ from pathlib import Path
 import re
 import tempfile
 from reconstruction.skill_catalog import tokenize,TableParser,read_bounded,digest
-from reconstruction.reference_names import PREFIXES,load_reference_names,DEFAULT_REFERENCE_NAMES
+from reconstruction.reference_names import (
+    PREFIXES, load_reference_names, DEFAULT_REFERENCE_NAMES, MAX_DESCRIPTION_CHARS)
 
 ROOT=Path(__file__).resolve().parents[1]
 BASE=ROOT/'.reference/data/luafiles514/lua files'
+STATUS_INFO_TABLES=('StateIconList','StateIconInfoList')
 
 
 def constants(raw,name,prefix):
@@ -70,7 +72,49 @@ def supplement_statuses(rows,additional):
     return result,added,agreed
 
 
-def build_catalog(effect_path,status_path,maria_path=None):
+def status_descriptions(raw,symbol_to_id,encoding='cp932'):
+    """Pull descriptive= strings keyed by EFST_* from StateIconList-style tables."""
+    parser=TableParser(tokenize(raw,encoding))
+    found=None
+    while parser.tokens[parser.index][0]!='eof':
+        kind,value=parser.tokens[parser.index]
+        if (kind=='name' and value in STATUS_INFO_TABLES
+                and parser.tokens[parser.index+1][0]=='='):
+            parser.index+=1;parser.take('=')
+            found=parser.value()
+            break
+        parser.index+=1
+    if found is None:
+        raise ValueError('State icon description table not found')
+    if type(found) is not dict:
+        raise ValueError('Invalid state icon description table')
+    result={};conflicts=[]
+    for key,row in found.items():
+        if isinstance(key,tuple) and key[0]=='ref' and key[1] in ('EFST_IDs','EFST'):
+            symbol=key[2]
+        elif isinstance(key,str) and key.startswith('EFST_'):
+            symbol=key
+        else:
+            continue
+        if type(row) is not dict or not isinstance(row.get('descriptive'),str):
+            continue
+        text=row['descriptive'].strip()
+        if not text or len(text)>MAX_DESCRIPTION_CHARS or any(ch in text for ch in '\0\r\n'):
+            raise ValueError('Invalid descriptive text for '+symbol)
+        number=symbol_to_id.get(symbol)
+        if number is None:
+            continue
+        key=str(number)
+        if key in result and result[key]!=text:
+            conflicts.append(symbol)
+            continue
+        result[key]=text
+    if conflicts:
+        raise ValueError('Conflicting descriptive text: '+', '.join(conflicts[:8]))
+    return result
+
+
+def build_catalog(effect_path,status_path,maria_path=None,status_info_path=None,status_info_encoding='cp932'):
     catalogs={};sources=[];duplicates=[];guards=[]
     for namespace,path,table in (('visual_effect',effect_path,'EFID'),('status_icon',status_path,'EFST_IDs')):
         raw=read_bounded(path)
@@ -84,20 +128,36 @@ def build_catalog(effect_path,status_path,maria_path=None):
         raw=read_bounded(maria_path)
         catalogs['status_icon'],added,agreed=supplement_statuses(catalogs['status_icon'],maria_statuses(raw))
         sources.append(dict(namespace='status_icon',path=str(Path(maria_path).resolve()),sha256=digest(raw),basis='maria_fallback'))
+    descriptions={namespace:{} for namespace in PREFIXES}
+    description_sources=[]
+    if status_info_path is not None:
+        raw=read_bounded(status_info_path)
+        symbol_to_id={symbol:int(key) for key,values in catalogs['status_icon'].items() for symbol in values}
+        descriptions['status_icon']=status_descriptions(raw,symbol_to_id,status_info_encoding)
+        description_sources.append(dict(
+            namespace='status_icon',path=str(Path(status_info_path).resolve()),
+            sha256=digest(raw),field='descriptive',encoding=status_info_encoding))
     return dict(version=1,catalogs=catalogs,sources=sources,identical_duplicates=duplicates,
                 supplemental_statuses=added,lua_maria_agreements=agreed,
-                ignored_known_guard_tables=guards,script_id_conversion=False)
+                ignored_known_guard_tables=guards,script_id_conversion=False,
+                descriptions=descriptions,description_sources=description_sources)
 
 
 def main():
     cli=argparse.ArgumentParser(description=__doc__)
     cli.add_argument('--effects',type=Path,default=BASE/'skilleffectinfo/effectid.lua')
     cli.add_argument('--status',type=Path,default=BASE/'stateicon/efstids.lua')
+    cli.add_argument('--status-info',type=Path,default=None,
+                     help='Optional stateiconinfo.lua for Japanese descriptive text')
+    cli.add_argument('--status-info-encoding',choices=('cp932','utf-8'),default='cp932')
     cli.add_argument('--maria',type=Path,default=ROOT/'.reference/MARiA/const.py')
     cli.add_argument('--output',type=Path,default=DEFAULT_REFERENCE_NAMES)
     args=cli.parse_args()
-    document=build_catalog(args.effects,args.status,args.maria);destination=args.output.resolve()
-    if destination.is_relative_to(ROOT/'.reference') or destination in {Path(row['path']) for row in document['sources']}:
+    document=build_catalog(args.effects,args.status,args.maria,args.status_info,args.status_info_encoding)
+    destination=args.output.resolve()
+    protected={Path(row['path']) for row in document['sources']}
+    protected.update(Path(row['path']) for row in document['description_sources'])
+    if destination.is_relative_to(ROOT/'.reference') or destination in protected:
         cli.error('Reference and source files are read-only')
     temporary=None
     try:
@@ -105,12 +165,13 @@ def main():
             temporary=Path(stream.name)
             stream.write((json.dumps(document,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
         load_reference_names(temporary)
-        for row in document['sources']:
+        for row in document['sources']+document['description_sources']:
             if digest(read_bounded(row['path']))!=row['sha256']:raise ValueError('Reference source changed')
         os.replace(temporary,destination)
     finally:
         if temporary is not None:temporary.unlink(missing_ok=True)
     print('Catalog IDs: '+', '.join(f'{key}={len(value)}' for key,value in document['catalogs'].items()))
+    print('Descriptions: '+', '.join(f'{key}={len(value)}' for key,value in document['descriptions'].items()))
 
 
 if __name__=='__main__':main()

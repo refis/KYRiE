@@ -158,22 +158,31 @@ config/reference_names.jsonに状態アイコン1,318種・視覚効果121種の
 EFSTファイル末尾の既知のunknown-stateガードは完全一致する形だけを除外し、Lua関数を実行しない。
 その他の実行文・関数・不正な定数は取り込まない。
 
-書式のdecoder=visual_effect_name/status_icon_nameでreference_symbols/reference_namespace/
-reference_known/reference_catalog_sha256を利用できる。辞書はDisplayProfile読込時に固定され、
-表示中に原Luaや辞書を1件ずつ再読込しない。未登録IDは元の数値と未登録表示を維持する。
+書式のdecoder=visual_effect_name/status_icon_nameでreference_symbols/reference_description/
+reference_namespace/reference_known/reference_catalog_sha256を利用できる。辞書はDisplayProfile読込時に固定され、
+表示中に原Luaや辞書を1件ずつ再読込しない。未登録IDは元の数値と未登録／説明未登録表示を維持する。
 受信長は各対応形式に厳密一致する必要があり、未対応の構造を類推して読むことはない。
 旧プロファイルでdecoderを指定しなければ従来の数値表示を利用できる。
+
+### 日本語説明と版・出典（#24）
+
+`catalogs` は ID→シンボルのみ。任意の `descriptions` は名前空間ごとの ID→説明文字列で、
+シンボル表とは分離する。未設定・未登録は `説明未登録`。改行・NUL・空文字・未知IDへの説明は拒否する。
+`description_sources` に取り込み元パス・SHA-256・field（現状 `descriptive`）・encoding を残す。
+説明の有無で effect_id・SC変換・観測集計・script_id_conversion は変えない。
+視覚エフェクトの日本語は確認済み出典が無い間は空のままとする。
 
 開発用の再生成:
 
 ```powershell
 python -m tools.build_reference_names
+python -m tools.build_reference_names --status-info ".reference/data/luafiles514/lua files/stateicon/stateiconinfo.lua"
 ```
 
 既定入力は提供されたskilleffectinfo/effectid.luaとstateicon/efstids.lua。
---effects/--status/--outputで指定可能。入力・.referenceへの上書きを拒否し、出典SHA-256を記録する。
-現在の対応はシンボル名までで、stateiconinfoの日本語説明やEFST→SCの新規対応追加は別作業。
-プロジェクト再解析で同じ表示を得るには、この辞書の版も維持する必要がある。
+--effects/--status/--status-info/--outputで指定可能。入力・.referenceへの上書きを拒否し、出典SHA-256を記録する。
+`--status-info` は StateIconList／StateIconInfoList の `descriptive` 文字列だけを読む（関数・実行文は拒否）。
+EFST→SCの新規対応追加は別作業。プロジェクト再解析で同じ表示を得るには、この辞書の版も維持する。
 
 対象8テストを確認。既存2ログでは合計3,213通知・表示エラー0。
 状態2,566件中2,255件、視覚効果647件中51件でシンボルを解決し、残るIDは未登録で保持した。
