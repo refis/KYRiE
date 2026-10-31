@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
@@ -19,18 +20,32 @@ class WindowTestCase(unittest.TestCase):
         set_target('auriga')
         self.db = PacketDatabase(':memory:')
         self.log_folder = tempfile.TemporaryDirectory()
-        with patch('gui.main_window.PacketDatabase', return_value=self.db), \
-             patch('gui.main_window.list_processes', return_value=[]):
-            self.window = MainWindow()
+        self.settings_folder = tempfile.TemporaryDirectory()
+        self.settings_path = Path(self.settings_folder.name) / 'user_settings.json'
+        self._settings_patcher = patch('storage.user_settings.DEFAULT_PATH', self.settings_path)
+        self._settings_patcher.start()
+        try:
+            with patch('gui.main_window.PacketDatabase', return_value=self.db), \
+                 patch('gui.main_window.list_processes', return_value=[]):
+                self.window = MainWindow()
+        except Exception:
+            self._settings_patcher.stop()
+            self.settings_folder.cleanup()
+            self.log_folder.cleanup()
+            raise
         self.window.log_root.setText(self.log_folder.name)
         self.window.ip.setText('127.0.0.1')
 
     def tearDown(self):
         from reconstruction.emulator_profiles import set_target
         set_target('auriga')
-        self.window.close()
-        self.wait_window_closed()
-        self.log_folder.cleanup()
+        try:
+            self.window.close()
+            self.wait_window_closed()
+        finally:
+            self._settings_patcher.stop()
+            self.log_folder.cleanup()
+            self.settings_folder.cleanup()
 
 
     def wait_display_export(self, timeout_ms=60000):

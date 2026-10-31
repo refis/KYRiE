@@ -28,7 +28,7 @@ python -m tools.run_tests shop --dry-run
 - `mob`: 攻撃・性能、スキル、配置・DB候補
 - `display`: 表示変換・ignorepacket
 - `events`: 時間経過、観測窓、反復比較、手動タイマー候補
-- `storage`: ログ、観測保存、品質、作業プロジェクト
+- `storage`: ログ、観測保存、品質、作業プロジェクト、GUIユーザー設定プロファイル
 - `gui-capture` / `gui-display` / `gui-restoration` / `gui-timing`: GUI責務別
 - `offline`: 再解析・参照ファイル連携
 - `selection`: テスト実行対象の選択機構

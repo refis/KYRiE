@@ -9,7 +9,7 @@ KYRiEは private な開発リポジトリです。作業の入り口は **GitHub
 
 1. [README](README.md) で導入と限界を確認する。
 2. [docs/README.md](docs/README.md) で対象資料を探す。
-3. 生ログ・DB・クライアントEXE・`.reference` は Git に入れない（`.gitignore` / [SECURITY.md](SECURITY.md)）。
+3. 生ログ・DB・クライアントEXE・`.reference`・`config/user_settings.json` は Git に入れない（`.gitignore` / [SECURITY.md](SECURITY.md)）。
 
 ## Issue
 

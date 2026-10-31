@@ -844,3 +844,47 @@ class DisplayGuiTests(WindowTestCase):
         w.clear_filter.click()
         self.assertTrue(w.filter_notice.isHidden())
         self.assertIn('next;', w.display_log.toPlainText())
+
+    def test_user_settings_profile_persists_across_restart(self):
+        from gui.main_window import MainWindow
+        from storage.database import PacketDatabase
+        from storage.user_settings import load
+        from reconstruction.emulator_profiles import set_target
+        w = self.window
+        w.capture_send.setChecked(False)
+        w.children.setChecked(True)
+        w.display_timestamps.setChecked(True)
+        w.display_unmapped.setChecked(True)
+        w.record_stream.setChecked(True)
+        w.pipe_name.setText('gpa-persist-test')
+        w.dialogue_panel.merge_checkbox.setChecked(True)
+        w.persist_user_settings()
+        saved = load(self.settings_path)
+        self.assertFalse(saved['capture_send'])
+        self.assertTrue(saved['include_children'])
+        self.assertTrue(saved['display_timestamps'])
+        self.assertTrue(saved['display_unmapped'])
+        self.assertTrue(saved['record_stream'])
+        self.assertEqual(saved['pipe_name'], 'gpa-persist-test')
+        self.assertTrue(saved['merge_npc_paths'])
+        db = PacketDatabase(':memory:')
+        with patch('gui.main_window.PacketDatabase', return_value=db), \
+             patch('gui.main_window.list_processes', return_value=[]):
+            restarted = MainWindow()
+        try:
+            self.assertFalse(restarted.capture_send.isChecked())
+            self.assertTrue(restarted.children.isChecked())
+            self.assertTrue(restarted.display_timestamps.isChecked())
+            self.assertTrue(restarted.display_unmapped.isChecked())
+            self.assertTrue(restarted.record_stream.isChecked())
+            self.assertEqual(restarted.pipe_name.text(), 'gpa-persist-test')
+            self.assertTrue(restarted.dialogue_panel.merge_checkbox.isChecked())
+            self.assertTrue(restarted.export_merge_action.isChecked())
+        finally:
+            set_target('auriga')
+            restarted.close()
+            from PySide6.QtCore import QElapsedTimer
+            from PySide6.QtTest import QTest
+            elapsed = QElapsedTimer(); elapsed.start()
+            while not restarted.workspace_closed and elapsed.elapsed() < 60000:
+                self.app.processEvents(); QTest.qWait(1)
