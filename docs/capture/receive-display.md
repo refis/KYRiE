@@ -220,7 +220,7 @@ unit_symbol/unit_name/unit_skill_ids/unit_known、unit_mapping_basis/unit_catalo
 状態はstatus_icon（EFST_*）、効果はvisual_effect（EF_*）で、同じ数値でも別の名前空間を参照する。
 元のeffect_id、ActorID、値・時間・フラグは変更しない。sc_start/sc_endの命令IDや引数変換は既存処理のまま。
 
-config/reference_names.jsonに状態アイコン1,318種・視覚効果121種のID対応を保持する。
+config/reference_names.jsonに状態アイコン1,325種・視覚効果121種のID対応を保持する。
 既知の同値重複3件は記録し、異なる定義値の競合は生成時に拒否する。
 EFSTファイル末尾の既知のunknown-stateガードは完全一致する形だけを除外し、Lua関数を実行しない。
 その他の実行文・関数・不正な定数は取り込まない。
@@ -235,7 +235,8 @@ reference_namespace/reference_known/reference_catalog_sha256を利用できる�
 
 `catalogs` は ID→シンボルのみ。任意の `descriptions` は名前空間ごとの ID→説明文字列で、
 シンボル表とは分離する。未設定・未登録は `説明未登録`。改行・NUL・空文字・未知IDへの説明は拒否する。
-`description_sources` に取り込み元パス・SHA-256・field（現状 `descriptive`）・encoding を残す。
+`description_sources` に取り込み元パス・SHA-256・field（現状 `descript_title`）・encoding を残す。
+提供 `stateiconinfo.lua` から状態アイコン日本語タイトル792件を取り込み済み。
 説明の有無で effect_id・SC変換・観測集計・script_id_conversion は変えない。
 視覚エフェクトの日本語は確認済み出典が無い間は空のままとする。
 
@@ -248,7 +249,8 @@ python -m tools.build_reference_names --status-info ".reference/data/luafiles514
 
 既定入力は提供されたskilleffectinfo/effectid.luaとstateicon/efstids.lua。
 --effects/--status/--status-info/--outputで指定可能。入力・.referenceへの上書きを拒否し、出典SHA-256を記録する。
-`--status-info` は StateIconList／StateIconInfoList の `descriptive` 文字列だけを読む（関数・実行文は拒否）。
+`--status-info` は StateIconList／StateIconInfoList の `descriptive` 文字列、または `descript` 配列の先頭日本語タイトルだけを読む（`COLOR_*` 色定数の裸識別子は無視、関数・実行文は拒否）。
+インデックス代入形式 `StateIconList[EFST_IDs.…]=…` も取り込み、空の `StateIconList={}` 初期化はスキップする。
 EFST→SCの新規対応追加は別作業。プロジェクト再解析で同じ表示を得るには、この辞書の版も維持する。
 
 対象8テストを確認。既存2ログでは合計3,213通知・表示エラー0。

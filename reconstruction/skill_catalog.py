@@ -180,8 +180,11 @@ class TableParser:
             self.index += 1
             if value in ('true', 'false', 'nil'):
                 return {'true':True, 'false':False, 'nil':None}[value]
-            self.take('.')
-            return ('ref', value, self.take('name'))
+            # EFST_IDs.EFST_X style refs require a dot; bare COLOR_* names are constants.
+            if self.tokens[self.index][0] == '.':
+                self.take('.')
+                return ('ref', value, self.take('name'))
+            return ('name', value)
         raise ValueError(f'Unsupported Lua value at token {self.index}')
 
 

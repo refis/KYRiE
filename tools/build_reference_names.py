@@ -72,49 +72,92 @@ def supplement_statuses(rows,additional):
     return result,added,agreed
 
 
+def _description_title(row):
+    """Prefer descriptive= string; else first Japanese title in descript= lines."""
+    if type(row) is not dict:
+        return None
+    if isinstance(row.get('descriptive'),str):
+        return row['descriptive'].strip()
+    descript=row.get('descript')
+    if type(descript) is not dict:
+        return None
+    for entry in descript.values():
+        if isinstance(entry,str):
+            return entry.strip()
+        if type(entry) is dict:
+            for value in entry.values():
+                if isinstance(value,str):
+                    return value.strip()
+                break
+    return None
+
+
+def _record_status_description(result,conflicts,symbol,text,symbol_to_id):
+    if not text or len(text)>MAX_DESCRIPTION_CHARS or any(ch in text for ch in '\0\r\n'):
+        raise ValueError('Invalid descriptive text for '+symbol)
+    number=symbol_to_id.get(symbol)
+    if number is None:
+        return
+    key=str(number)
+    if key in result and result[key]!=text:
+        conflicts.append(symbol)
+        return
+    result[key]=text
+
+
 def status_descriptions(raw,symbol_to_id,encoding='cp932'):
-    """Pull descriptive= strings keyed by EFST_* from StateIconList-style tables."""
+    """Pull EFST labels from StateIconList tables (descriptive= or descript= title)."""
     parser=TableParser(tokenize(raw,encoding))
-    found=None
+    result={};conflicts=[];saw_table=False
     while parser.tokens[parser.index][0]!='eof':
         kind,value=parser.tokens[parser.index]
         if (kind=='name' and value in STATUS_INFO_TABLES
                 and parser.tokens[parser.index+1][0]=='='):
             parser.index+=1;parser.take('=')
             found=parser.value()
-            break
+            if type(found) is not dict:
+                raise ValueError('Invalid state icon description table')
+            saw_table=True
+            if not found:
+                continue  # StateIconList = {} then indexed rows follow.
+            for key,row in found.items():
+                if isinstance(key,tuple) and key[0]=='ref' and key[1] in ('EFST_IDs','EFST'):
+                    symbol=key[2]
+                elif isinstance(key,str) and key.startswith('EFST_'):
+                    symbol=key
+                else:
+                    continue
+                text=_description_title(row)
+                if text is None:
+                    continue
+                _record_status_description(result,conflicts,symbol,text,symbol_to_id)
+            continue
+        if (kind=='name' and value=='StateIconList'
+                and parser.tokens[parser.index+1][0]=='['):
+            parser.take('name');parser.take('[')
+            key=parser.value();parser.take(']');parser.take('=')
+            row=parser.value();saw_table=True
+            if isinstance(key,tuple) and key[0]=='ref' and key[1] in ('EFST_IDs','EFST'):
+                symbol=key[2]
+            elif isinstance(key,str) and key.startswith('EFST_'):
+                symbol=key
+            else:
+                continue
+            text=_description_title(row)
+            if text is None:
+                continue
+            _record_status_description(result,conflicts,symbol,text,symbol_to_id)
+            continue
         parser.index+=1
-    if found is None:
+    if not saw_table:
         raise ValueError('State icon description table not found')
-    if type(found) is not dict:
-        raise ValueError('Invalid state icon description table')
-    result={};conflicts=[]
-    for key,row in found.items():
-        if isinstance(key,tuple) and key[0]=='ref' and key[1] in ('EFST_IDs','EFST'):
-            symbol=key[2]
-        elif isinstance(key,str) and key.startswith('EFST_'):
-            symbol=key
-        else:
-            continue
-        if type(row) is not dict or not isinstance(row.get('descriptive'),str):
-            continue
-        text=row['descriptive'].strip()
-        if not text or len(text)>MAX_DESCRIPTION_CHARS or any(ch in text for ch in '\0\r\n'):
-            raise ValueError('Invalid descriptive text for '+symbol)
-        number=symbol_to_id.get(symbol)
-        if number is None:
-            continue
-        key=str(number)
-        if key in result and result[key]!=text:
-            conflicts.append(symbol)
-            continue
-        result[key]=text
     if conflicts:
         raise ValueError('Conflicting descriptive text: '+', '.join(conflicts[:8]))
     return result
 
 
-def build_catalog(effect_path,status_path,maria_path=None,status_info_path=None,status_info_encoding='cp932'):
+def build_catalog(effect_path,status_path,maria_path=None,status_info_path=None,status_info_encoding='cp932',
+                  preserve_supplemental_from=None):
     catalogs={};sources=[];duplicates=[];guards=[]
     for namespace,path,table in (('visual_effect',effect_path,'EFID'),('status_icon',status_path,'EFST_IDs')):
         raw=read_bounded(path)
@@ -124,10 +167,23 @@ def build_catalog(effect_path,status_path,maria_path=None,status_info_path=None,
         duplicates.extend(dict(namespace=namespace,**row) for row in repeated)
         if ignored:guards.append(table)
     added=[];agreed=0
-    if maria_path is not None:
+    if maria_path is not None and Path(maria_path).exists():
         raw=read_bounded(maria_path)
         catalogs['status_icon'],added,agreed=supplement_statuses(catalogs['status_icon'],maria_statuses(raw))
         sources.append(dict(namespace='status_icon',path=str(Path(maria_path).resolve()),sha256=digest(raw),basis='maria_fallback'))
+    elif preserve_supplemental_from is not None and Path(preserve_supplemental_from).exists():
+        # Keep previously recorded MARiA-only IDs when const.py is not in this tree.
+        previous=load_reference_names(preserve_supplemental_from)
+        extras={row['id']:row['symbol'] for row in previous.get('supplemental_statuses',[])
+                if isinstance(row,dict) and row.get('basis')=='maria_only'
+                and isinstance(row.get('id'),int) and isinstance(row.get('symbol'),str)}
+        catalogs['status_icon'],added,agreed=supplement_statuses(catalogs['status_icon'],extras)
+        agreed=previous.get('lua_maria_agreements',agreed)
+        for row in previous.get('sources',[]):
+            if row.get('basis')=='maria_fallback':
+                # Historical path/hash only; const.py may be absent in this tree.
+                sources.append(dict(row,preserved=True))
+                break
     descriptions={namespace:{} for namespace in PREFIXES}
     description_sources=[]
     if status_info_path is not None:
@@ -136,7 +192,7 @@ def build_catalog(effect_path,status_path,maria_path=None,status_info_path=None,
         descriptions['status_icon']=status_descriptions(raw,symbol_to_id,status_info_encoding)
         description_sources.append(dict(
             namespace='status_icon',path=str(Path(status_info_path).resolve()),
-            sha256=digest(raw),field='descriptive',encoding=status_info_encoding))
+            sha256=digest(raw),field='descript_title',encoding=status_info_encoding))
     return dict(version=1,catalogs=catalogs,sources=sources,identical_duplicates=duplicates,
                 supplemental_statuses=added,lua_maria_agreements=agreed,
                 ignored_known_guard_tables=guards,script_id_conversion=False,
@@ -153,7 +209,8 @@ def main():
     cli.add_argument('--maria',type=Path,default=ROOT/'.reference/MARiA/const.py')
     cli.add_argument('--output',type=Path,default=DEFAULT_REFERENCE_NAMES)
     args=cli.parse_args()
-    document=build_catalog(args.effects,args.status,args.maria,args.status_info,args.status_info_encoding)
+    document=build_catalog(args.effects,args.status,args.maria,args.status_info,args.status_info_encoding,
+                           preserve_supplemental_from=args.output)
     destination=args.output.resolve()
     protected={Path(row['path']) for row in document['sources']}
     protected.update(Path(row['path']) for row in document['description_sources'])
@@ -166,6 +223,8 @@ def main():
             stream.write((json.dumps(document,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
         load_reference_names(temporary)
         for row in document['sources']+document['description_sources']:
+            if row.get('preserved'):
+                continue  # preserved MARiA provenance; file may be absent locally
             if digest(read_bounded(row['path']))!=row['sha256']:raise ValueError('Reference source changed')
         os.replace(temporary,destination)
     finally:
