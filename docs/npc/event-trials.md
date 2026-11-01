@@ -126,7 +126,7 @@ comparisonにmodeと真偽値include_actionsを保存する。会話アクショ
 タイマー扱い列は手動採用側の区分だけを示す（OnTimer値は生成しない）:
 
 - 実行命令候補（command）: emotion／effect／effect_remove／announcement／unittalk／overhead
-- コメント採用のみ（comment）: effect_value／event_marker／hat_effect／classchange
+- コメント採用のみ（comment）: effect_value／event_marker／hat_effect／colored_speech／classchange
 - タイマー拒否（rejected）: sound／music／viewpoint／progressbar／mapcell／会話レイアウト／
   status_action／script_command など。比較列には載せられても採用入口で拒否する
 

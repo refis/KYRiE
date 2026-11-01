@@ -5,7 +5,8 @@ import json
 # Explicit list: new presentation types must be reviewed before treating them as
 # straight-line observations. Input prompts and closing boundaries remain barriers.
 PASS_THROUGH = {'choice', 'mes', 'next', 'clear', 'cutin', 'emotion', 'effect', 'effect_value', 'effect_remove', 'sound',
-                'overhead', 'viewpoint', 'classchange', 'progressbar', 'announcement', 'unittalk'}
+                'overhead', 'viewpoint', 'classchange', 'progressbar', 'announcement', 'unittalk', 'colored_speech',
+                'event_marker', 'hat_effect'}
 PASS_THROUGH.update({'visibility_action', 'status_action', 'progress_action', 'unittalk_target', 'action_wait_review', 'script_command', 'npc_display_action'})
 PASS_THROUGH.update({'dialogue_size','dialogue_position','dialogue_alignment'})
 PASS_THROUGH.update({'quest_set', 'quest_delete', 'quest_wait_review'})

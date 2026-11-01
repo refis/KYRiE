@@ -38,7 +38,7 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | unittalk | 実行命令（unittalk） |
 | overhead | 実行命令（showmessage）。対象NPC自身のみ |
 | announcement | announce（関連候補・起因未確定の注記付き） |
-| effect_value / event_marker / hat_effect / classchange | **全行コメント**。実行命令へ落とさない |
+| effect_value / event_marker / hat_effect / colored_speech / classchange | **全行コメント**。実行命令へ落とさない |
 
 未対応のまま拒否する種別（比較列には載せられるがタイマー採用不可）:
 sound、music、viewpoint、progressbar／progress_action、mapcell、会話レイアウト、

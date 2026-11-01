@@ -36,6 +36,8 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'external_event_marker': {'x', 'y', 'state', 'kind', 'target'},
                        'hat_effect': {'enabled', 'effect_id'},
                        'external_hat_effect': {'enabled', 'effect_id', 'target'},
+                       'colored_speech': {'color_hex', 'text'},
+                       'external_colored_speech': {'color_hex', 'text', 'target'},
                        'external_effect_remove': {'value', 'target'},
                        'classchange': {'class_id', 'kind'},
                        'progressbar': {'seconds', 'color'},
@@ -210,9 +212,11 @@ class AurigaRenderer:
             if 'sound' in values:
                 values['sound'] = _quote(values['sound'])
             kind = row['kind']
+            if kind == 'colored_speech':
+                values['color_hex'] = f"{values.pop('color'):08X}"
             adopted = row.get('adoption_confirmed') is True and kind in self.ADOPTABLE_EXTERNAL_KINDS
             if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
-                            'sound', 'effect_value', 'event_marker', 'hat_effect'):
+                            'sound', 'effect_value', 'event_marker', 'hat_effect', 'colored_speech'):
                 continue
             if adopted:
                 adopted_any = True
@@ -533,6 +537,9 @@ class AurigaRenderer:
                 emit('overhead', depth, text=self._text(fields['text']))
             elif kind == 'unittalk':
                 emit('unittalk', depth, text=self._text(fields['text']))
+            elif kind == 'colored_speech':
+                emit('colored_speech', depth, color_hex=f"{fields['color']:08X}",
+                     text=self._text(fields['text']))
             elif kind == 'announcement':
                 template, values = announcement_values(fields)
                 values = dict(values, text=self._text(fields['text']))

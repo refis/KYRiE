@@ -62,6 +62,21 @@
 
 合成パケットで decode・保持・命令非生成を確認。残バイトの意味は推測しない。
 
+## 色付きユニット発言（02C1）
+
+| 項目 | 内容 |
+|------|------|
+| PacketID | `02C1`（PacketLength `-1`） |
+| 表示名 | Colored unit speech / `@talk …, color: …` |
+| フィールド | length@2 u16、actor_id@4 u32、color@8 u32、text@12（NUL終端） |
+| 状態 | `observed` + `not_adopted` |
+| 観測 kind | `colored_speech` |
+| 生成 | コメントのみ（`colored_speech` / `external_colored_speech`）。`unittalk` 実行命令は出さない |
+| タイマー | 手動採用時は**全行コメント**のみ（[event-timer-candidates](event-timer-candidates.md)） |
+| 外部候補 | 会話中の別既知NPCへ届いた場合は `external_presentations` へ保持。呼出し元は未確定 |
+
+表示定義の wire 色値を明示し、008D `unittalk` と混同しない。合成パケットで decode・保持・コメント出力を確認。
+
 ## 表示定義にあるが構造化未接続（display_only）
 
 表示テンプレートがあるが、現状 `decode_dialogue` へ未配線。一覧のみ。勝手に命令化しない。
@@ -69,7 +84,6 @@
 | PacketID | 表示名 | 主なフィールド（表示定義） | 構造化が必要になったときの方針 |
 |----------|--------|---------------------------|--------------------------------|
 | `0AB9` / `0B13` | Item preview | index@2 | 表示のみ／編集用メモ。getitem へ自動変換しない |
-| `02C1` | Colored unit speech | 表示テンプレート参照 | unittalk と混同しない。要フィールド照合後に観測 kind を新設 |
 | `01D6` / `099B` | Map property | kind 等 | マップ属性観測。NPC 本文命令へは出さない |
 | `029B` | Mercenary | actor_id, name, duration | 傭兵表示。NPC 復元の主経路外 |
 | `08FF` / `0984` | Status on enter | 表示の `@effect_enter` | 既存 status（0196/043F/0983）と別。混同・自動補完しない |
@@ -84,6 +98,7 @@
 | `mapcell`（0192） | 構造化 | setcell／タイマーへ出さない |
 | `effect_value`（0284） | 構造化・コメント | 実行命令なし。タイマーはコメント採用可（[event-timer-candidates](event-timer-candidates.md)） |
 | `hat_effect`（0A3B） | 構造化・コメント | 実行命令なし。タイマーはコメント採用可 |
+| `colored_speech`（02C1） | 構造化・コメント | 実行 unittalk なし。タイマーはコメント採用可 |
 | `external_*` | 外部候補 | 既定はコメント。emotion／effect／解除／overhead／unittalk は明示採用可（#16）。sound等は不可 |
 | `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 対応範囲外はコメントまたは非タイマー |
 
@@ -91,7 +106,7 @@
 
 ```text
 python -m tools.run_tests presentation
-python -m tools.run_tests tests.unit.test_hat_effect_observations
+python -m tools.run_tests tests.unit.test_colored_speech_observations
 ```
 
 全件 discover は本Issueの既定範囲外。実機・Npcap・Auriga確認は不要。

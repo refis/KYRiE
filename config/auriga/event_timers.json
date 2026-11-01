@@ -12,6 +12,7 @@
   "effect_value": "// 値付きエフェクト観測: effect={effect_id}, value={value}。対応命令未確認のため未実行。",
   "event_marker": "// イベントアイコン観測: state={state}, kind={kind}, x={x}, y={y}。showeventは未生成。",
   "hat_effect": "// 帽子エフェクト観測: enabled={enabled}, effect={effect_id}。hateffect等は未生成。",
+  "colored_speech": "// 色付きユニット発言観測: color=0x{color_hex}, text={text}。unittalkへは変換しない。",
   "classchange": "// 外見変更観測: class={class_id}, kind={kind}。setnpcdisplay等は未生成。",
   "emotion": "emotion {value};",
   "effect": "misceffect {value};",

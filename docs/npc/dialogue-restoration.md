@@ -8,6 +8,12 @@
 実行の showevent 命令は出さない。手動タイマーではコメント採用のみ
 （[タイマー候補](event-timer-candidates.md)）。対照表は[未対応通知](unsupported-notifications.md)。
 
+## 色付きユニット発言（02C1）
+
+0x02C1は PacketLength `-1`。表示定義どおり actor_id@4・color@8・text@12 を
+`colored_speech` として構造化保持する。008D `unittalk` とは別観測で、実行命令は出さない
+（コメントのみ。詳細は[未対応通知](unsupported-notifications.md)）。
+
 ## 帽子エフェクト（0A3B）
 
 0x0A3Bは PacketLength `-1` だが、表示定義どおり全長11バイト（length@2=11、actor_id@4、
