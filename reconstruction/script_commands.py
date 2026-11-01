@@ -10,7 +10,7 @@ from reconstruction.instance_names import map_name
 
 POLICY_PATH = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'script_commands.json'
 COMMAND_ARGS = {
-    'openstorage': (), 'getitem': ('item_id', 'amount'),
+    'openstorage': (), 'openreform': ('item_id',), 'getitem': ('item_id', 'amount'),
     'getitem2': ('item_id', 'amount', 'identified', 'refine', 'attribute', 'card1', 'card2', 'card3', 'card4'),
     'delitem': ('item_id', 'amount'), 'delequip': ('slot',), 'unequip': ('slot',),
     'successrefitem': ('slot',), 'failedrefitem': ('slot',), 'downrefitem': ('slot', 'decrement'),
@@ -189,6 +189,16 @@ class ScriptCommandStore:
             if not state['storage']:
                 emit('openstorage', {}, observed=dict(amount=r.number(2,'H'), capacity=r.number(4,'H')))
             state['storage'] = True
+        if pid == 0xb8f:
+            # ZC_OPEN_REFORM_UI: PacketType u16 + ITID u32. Auriga has no openreform.
+            if len(packet.raw) != 6:
+                raise ObservationError('Invalid item reform UI packet')
+            item_id = r.number(2, 'I')
+            if not item_id:
+                raise ObservationError('Zero reform trigger item ID')
+            emit('openreform', dict(item_id=item_id), review=True,
+                 reason='Auriga未実装のopenreform。観測したReform UI開放候補',
+                 observed=dict(item_id=item_id))
         if pid in LIST_STRIDES:
             decoded = decode_player(packet)
             if decoded and decoded[0] == 'inventory_list':
