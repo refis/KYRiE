@@ -2,13 +2,14 @@ import struct
 import unittest
 
 from events import PacketEvent
+from reconstruction.dialogue import DialogueStore
 from reconstruction.shops import ShopStore, decode_shop_list
 from reconstruction.decoder import ObservationError
 
 
 def message(pid, body=b'', direction='RECV', flow='game', timestamp=1):
     raw = struct.pack('<H', pid)
-    if pid in (0xc6, 0xb77):
+    if pid in (0xb4, 0xb7, 0xc6, 0xb77):
         raw += struct.pack('<H', len(body) + 4)
     return PacketEvent(timestamp, direction, pid, raw + body, 'NPCAP', 'half', flow)
 
@@ -64,6 +65,43 @@ class ShopTests(unittest.TestCase):
         delayed.apply(listing)
         self.assertEqual(delayed.records[0]['actor_id'], 42)
         self.assertFalse(delayed.records[0]['npc'])
+
+    def test_after_close_list_links_without_selector_inside_two_seconds(self):
+        dialogues = DialogueStore()
+        store = ShopStore(dialogues=dialogues)
+        now = 1.0
+
+        def consume(pid, body=b'', direction='RECV'):
+            nonlocal now
+            event = message(pid, body, direction, timestamp=now)
+            index = dialogues.packet_ordinal
+            store.apply(event, packet_index=index)
+            dialogues.apply(event, packet_index=index)
+
+        consume(0x90, struct.pack('<IB', 42, 1), 'SEND')
+        consume(0xb4, struct.pack('<I', 42) + b'callshop\0')
+        consume(0xb6, struct.pack('<I', 42))
+        consume(0x146, struct.pack('<I', 42), 'SEND')
+        now += 1.5
+        consume(0xc6, struct.pack('<IIBI', 1200, 1200, 0, 1100006))
+        self.assertEqual(store.records[0]['association'], 'after_close_list')
+        self.assertEqual(store.records[0]['conversation_id'], dialogues.sessions[0].id)
+        self.assertEqual(store.records[0]['conversation_link_basis'], 'same_flow_after_close')
+        self.assertEqual(dialogues.sessions[0].status, 'shop_opened')
+        self.assertEqual(dialogues.sessions[0].termination['packet_id'], 0xc6)
+
+        dialogues2 = DialogueStore()
+        store2 = ShopStore(dialogues=dialogues2)
+        for event in (
+                message(0x90, struct.pack('<IB', 42, 1), 'SEND', timestamp=1.0),
+                message(0xb4, struct.pack('<I', 42) + b'late\0', timestamp=1.0),
+                message(0xb6, struct.pack('<I', 42), timestamp=1.0),
+                message(0xc6, struct.pack('<IIBI', 1, 1, 0, 501), timestamp=4.0)):
+            index = dialogues2.packet_ordinal
+            store2.apply(event, packet_index=index)
+            dialogues2.apply(event, packet_index=index)
+        self.assertEqual(store2.records[0]['association'], 'unresolved')
+        self.assertEqual(dialogues2.sessions[0].status, 'closed')
 
     def test_invalid_list_clears_target_and_capacity_is_not_silent(self):
         store = ShopStore(max_records=1)

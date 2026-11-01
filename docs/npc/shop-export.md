@@ -50,9 +50,16 @@ conversation_link_basisを記録する。GUI・CLIのショップ解析で同じ
 通常の会話終了通知の後にショップが開く場合、別の会話・マップ切替を挟まず
 同じフローで2秒以内ならsame_flow_after_closeとして関連付け候補を残す。
 終了前に00C4を受信したactive_dialogueとは区別する。
+00C4/00C5を挟まずRECV 00C6（または0B77）だけが届く経路も、同じ2秒枠なら
+after_close_listとしてcallshop候補に含める。一覧パケットをshop_opened境界とし、
+close2継続の一種として扱う。対象選択付きのselector_and_buy_replyとは区別する。
 これは時間的な候補であり、元のcallshop実装やNPC起因を確定する判定ではない。
 期限外や関連会話がない場合は、近傍NPCの台詞を借りてcallshop本文を作らない。
 別NPCの操作が混じった可能性は根拠で確認する。
+
+非配置の`- shop`定義は、callshopを使う配置NPCの直前へ出力する。
+Auriga未実装のbarter／exchangeなどは、観測できた場合のみ`//- barter`／`//- exchange`
+として同じく非配置行で残し、実行可能な命令へ昇格しない。未観測の交換行は作らない。
 
 close/close2の元の命令は通信だけで確定せず、出力では会話を閉じて呼び出すための
 編集用構造としてclose2を使用する。タッチ範囲・タイマー・スクリプト移動は復元しない。
