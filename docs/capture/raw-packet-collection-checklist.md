@@ -22,6 +22,31 @@ Auriga本体で生成コードを読み込む試験や新規環境試験は、�
 NPC出現名の解読警告6件等は残っており、全項目の完全検証ではない。
 以下のチェック欄は各採取時の記入用。採取済み例を再び揃える必要はない。
 
+## 採取済み項目の更新（2026-11-01）
+
+20261101-194609-edbe9ab0（解析コピー `logs/20261101-194609-edbe9ab0-upload/`）で数値inputと全NPC会話を追加確認した。
+ログ本体はリポジトリに含めない。capture.jsonl sha256
+`a07e3b17e40d3536eb32b6ae77d8a3072d3e61852e3100734209f24b3bb1c745`、
+PacketLength.used.txt sha256
+`b0d50734c25b91f1bcd135fcf55ff0f2e8ea769c94f4635d41c9e6c8f99bffc2`。
+session_start の definitions_sha256（`5dd636…`）は used／workspace 定義と一致しないが、used 定義で 2260 packets をフレーミングできた。
+record_payload は True（生バイトは tcp_segment／stream_chunk）。
+
+- A05（数値）: 式#evh1の会話#9–#15で RECV 0x0142×7 と SEND 0x0143×7（会話対応の応答6＋timeout後の無所属1）。
+  応答値は 0／1／2。同一経路の N1→N1→N2 手順としては未整理のため部分採取。
+  文字input（01D4／01D5）はこのログにない。
+- A06（数値未応答）: 会話#14で number 待ちのままサーバー close（timeout_suspected、待機約179.8秒）。
+  前後に同NPCの正常数値応答あり。生成からは `timeout_additional_evidence_review` で除外し、追加証拠として保持。
+- 全会話16件（いずれも closed）: 悔恨の侯爵#tor×7、ストレミング王子#hallo0×1、式#evh1×7、カプラカプレーゼ#evh1×1。
+- getitem2 review: item 100736×3（identified=1、期限あり、options_summary 全0）。
+  grade／期限／binding／ランダムオプション規則により review_only。未鑑定入手（identified=0）はなし。
+- 所持品: 0x0B09×4・0x0B39×5あり。0x0B38／0x0B0Aは0件。I01の未鑑定フラグ検証には使わない。
+- barter: **RECV 0x0B0E×1**（504byte＝20商品）が悔恨の侯爵#tor 会話#4の close 直後（約0.15秒）。
+  `clif_barterlist` の25byte行としてデコード対象。0x0B56／0x0B79／通常shopsは0件。
+  0x09CF／0x09D0・近傍0x0A30（名前応答）は barter としない。
+
+ローカル確認物: collection-notes.md、checklist-evidence.json、session-analysis.json、inventory-layout-review.json。
+
 ## 最小構成と優先順
 
 まず次の4セッションで、P0項目から採取する。途中でログが分かれても構わない。
@@ -32,8 +57,9 @@ NPC出現名の解読警告6件等は残っており、全項目の完全検証�
 4. **S04・MOBと状態変化**: 同種MOB複数個体 → HP割合・使用スキル → 死亡／視界離脱 → 再観測。
 
 本人への発言イベント、特殊shop、外見変更等は、該当場面があれば追加する。
-1回で全項目を揃える必要はない。**最初にA01の本人通常発言が採れるだけでも有用**。
-本人入力との照合は20261029-215033-0a6328faで確認済み。追加採取は未確認の同文連続入力等を優先する。
+1回で全項目を揃える必要はない。**次の最小1本は文字input（01D4→01D5）の正常完了→未応答終了→正常完了**。
+0x0B0E／exchange 候補の再試行が自然に取れる場合は Issue #51 をその1本より優先する。
+本人入力との照合は20261029-215033-0a6328faで確認済み。数値inputの代表例は20261101-194609-edbe9ab0で追加済み。
 
 ## 共通の採取設定・終了方法
 
@@ -393,3 +419,20 @@ python -m tools.audit_inventory logs/SESSION/capture.jsonl --output logs/SESSION
 - I01の0B38は別の所持品診断で両ログ0件と確認済み。現在の0B09を0B38検証済み扱いにしない。
 
 未採取項目のために合成ログを実ログと扱ったり、サーバー設定を推測して命令を増やさない。
+
+## 未採取部分の再確認（2026-11-01 / 20261101-194609-edbe9ab0追加後）
+
+上記に 20261101-194609-edbe9ab0 を加えた。packets 2260、conversations 16、shops/barters 0。
+詳細は本章「採取済み項目の更新（2026-11-01）」とローカル collection-notes.md。
+
+- A05／A06の**数値**inputと数値未応答終了: 本ログで実例あり（部分）。追加必須ではない。
+  同一経路の N1→N1→N2 を揃えた反復セットはまだ弱い。必要なら式#evh1相当で追記採取。
+- A05／A06の**文字**input（01D4／01D5）とその未応答終了: 引き続き0件。**次の最小セッション**とする。
+- C03の位置0BA3/0BB5・整列0BA1: 本ログも0件（0BA2は13件あり、追加必須としない）。
+- C04の途中中断02F2・個体対象09D1: 本ログも0件。
+- I01の0B38／未鑑定入手: 本ログも0B38=0、getitem2は identified=1 のみ。0B09を0B38検証済み扱いにしない。
+- 0x0B0E barterlist: 本ログ1件でレイアウト照合済み。0x0B79／実機0x0B56は0件のまま。
+  追加採取は購入応答・閉じる操作・別NPCでの再出現を優先（Issue #51の0x0B79側）。
+
+優先順（1本だけ取る場合）: 文字inputの正常→未応答→正常。
+0x0B79拡張barterが自然に取れるなら Issue #51 側を先にする。

@@ -77,8 +77,9 @@ class BarterRenderer:
     def render(self, record, *, item_ids_confirmed=False, map_name=None, conversation=None, review_unconfirmed=False):
         if item_ids_confirmed is not True and review_unconfirmed is not True:
             raise ValueError('出力先DBの商品ID対応を確認してください。')
-        if record.get('market_kind') != 'expanded_barter' or record.get('association') != 'after_close_list':
-            raise ValueError('close直後の拡張barter一覧対応を確認できる記録を選択してください。')
+        if (record.get('market_kind') not in ('expanded_barter', 'barterlist')
+                or record.get('association') != 'after_close_list'):
+            raise ValueError('close直後のbarter一覧対応を確認できる記録を選択してください。')
         linked = record.get('conversation_id')
         if (conversation is None or conversation.id != linked
                 or conversation.capture_session != record['capture_session']
@@ -88,8 +89,9 @@ class BarterRenderer:
                 or conversation.termination.get('shop_actor_id') != record['actor_id']
                 or record.get('conversation_link_basis') != 'same_flow_after_close'
                 or conversation.termination.get('shop_link_basis') != 'same_flow_after_close'
-                or conversation.termination.get('after_close_barter') is not True):
-            raise ValueError('対応する会話から拡張barterへの遷移が一致しません。')
+                or conversation.termination.get('after_close_barter') is not True
+                or conversation.termination.get('market_kind') != record.get('market_kind')):
+            raise ValueError('対応する会話からbarterへの遷移が一致しません。')
         if not conversation.observed_open or conversation.issues:
             raise ValueError('会話開始・応答・解析問題を確認してください。')
         if not any(step['kind'] not in ('open', 'dismiss') for step in conversation.steps):

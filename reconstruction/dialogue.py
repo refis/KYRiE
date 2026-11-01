@@ -701,8 +701,8 @@ class DialogueStore:
                     self.active.pop(key, None)
                     self.revision += 1
             return
-        if packet.direction == 'RECV' and packet.packet_id == 0xb56:
-            # Expanded barter list after close: same 2s shop_recent window as close2/callshop.
+        if packet.direction == 'RECV' and packet.packet_id in (0xb0e, 0xb56):
+            # Barter list after close: same 2s shop_recent window as close2/callshop.
             recent = self.shop_recent.get(key)
             if (recent and session == self.current_capture and 0 <= packet.timestamp - recent[0] <= 2
                     and self.active.get(key) is not recent[1]):
@@ -711,11 +711,12 @@ class DialogueStore:
                 self.after_close.pop(key, None)
                 if linked.status not in ('shop_opened', 'barter_opened'):
                     linked.status = 'barter_opened'
+                    market_kind = 'barterlist' if packet.packet_id == 0xb0e else 'expanded_barter'
                     linked.termination = dict(timestamp=packet.timestamp, packet_index=index,
                         packet_id=packet.packet_id, direction=packet.direction, connection=packet.connection,
                         source=packet.source, shop_actor_id=linked.actor_id,
                         shop_link_basis='same_flow_after_close', after_close_barter=True,
-                        market_kind='expanded_barter')
+                        market_kind=market_kind)
                     self.active.pop(key, None)
                     self.revision += 1
             return

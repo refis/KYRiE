@@ -20,6 +20,8 @@ cutincardはユーザー指定により実装対象外。既存のcutin（表示
 - getitem/getitem2: 会話中の成功した入手通知。通常アイテムはgetitem、鑑定・精錬・属性・カードを
   持つものはgetitem2。ランダムオプション・grade・期限・bindingを持ち、getitem2で表せない場合は確認用コメントとする。
   アイテムIDはクライアント観測値の候補であり、対象DBとの一致を保証しない。
+  20261101-194609-edbe9ab0では item 100736×3 が期限付きのため getitem2 review_only
+  （identified=1、options_summary 全0）。未鑑定入手の実例はこのログにはない。
 - delitem/delequip: 会話中の消失通知と、所持品Indexに対応する観測済みItemIDが必要。
   装備中の部位を特定できる場合はdelequip、それ以外はdelitem候補。
   装備個体・部位・IDが不足する場合は引数を補わずコメントへ残す。
@@ -39,7 +41,7 @@ cutincardはユーザー指定により実装対象外。既存のcutin（表示
 入力待ち中に届いた命令は実際の返信後のブロックへ仮配置し、その旨をコメントに残す。
 通常close後の無関係な入手・状態通知から会話を再開しない。
 openstorage／openreformは既存のclose応答後2秒以内の帰属候補へ関連付けるが、タイムアウト疑いのcloseは再開しない。
-拡張barter（0x0B56）も同じclose応答後2秒枠で会話へ帰属し、`//- barter`候補を出す（[shop出力](shop-export.md)）。
+barter一覧（0x0B0E／0x0B56）も同じclose応答後2秒枠で会話へ帰属し、`//- barter`候補を出す（[shop出力](shop-export.md)）。
 送信・受信の半接続名が異なってもflowで照合する。接続・capture・MAP世代を越えて操作を借用しない。
 
 ## 床アイテム
