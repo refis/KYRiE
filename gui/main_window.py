@@ -631,6 +631,7 @@ class MainWindow(QMainWindow):
         self.open_log_button.setEnabled(not running)
         self.open_project_action.setEnabled(not running)
         self.repair_project_action.setEnabled(not running)
+        self.edit_project_sources_action.setEnabled(not running)
         self.open_logs_action.setEnabled(not running)
         if self.offline:
             self.start_button.setEnabled(False)
@@ -701,6 +702,19 @@ class MainWindow(QMainWindow):
         from gui.project_references import ProjectReferencesDialog
         try:
             ProjectReferencesDialog(load_project(path), path, self).exec()
+        except (OSError, ValueError):
+            QMessageBox.critical(self, '作業ファイルを開けません', 'プロジェクト形式を確認してください。')
+
+    def edit_project_sources(self):
+        if self.receiver or self.offline:
+            return
+        path, _ = QFileDialog.getOpenFileName(self, 'ログ一覧を編集する作業プロジェクトを選択', '', 'Project (*.gpa.json)')
+        if not path:
+            return
+        from storage.project import load_project
+        from gui.project_sources import ProjectSourcesDialog
+        try:
+            ProjectSourcesDialog(load_project(path), path, self).exec()
         except (OSError, ValueError):
             QMessageBox.critical(self, '作業ファイルを開けません', 'プロジェクト形式を確認してください。')
 

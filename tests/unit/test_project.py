@@ -4,7 +4,9 @@ import tempfile
 import unittest
 
 from storage.project import (FILE_KEYS, fingerprint, load_project, save_project, verify_project, save_multiple_project,
-                             project_references, relocate_project, save_relocated_project)
+                             project_references, relocate_project, save_relocated_project, project_as_schema2,
+                             add_project_source, remove_project_source, reorder_project_sources,
+                             replace_project_source_content, save_edited_project)
 
 
 class ProjectTests(unittest.TestCase):
@@ -154,3 +156,52 @@ class ProjectTests(unittest.TestCase):
                 doc=json.loads(old);doc['catalogs']=value
                 invalid=root/'invalid.gpa.json';invalid.write_text(json.dumps(doc))
                 with self.assertRaises(ValueError):load_project(invalid)
+
+    def test_add_remove_reorder_and_content_replace_for_project_sources(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            files = {}
+            for name in FILE_KEYS:
+                path = root / (name + '.txt')
+                path.write_text('content-' + name, encoding='utf-8')
+                files[name] = path
+            view = dict(filter='', timestamps=False, unmapped=False, tab=0, conversation=-1, merged=False)
+            expected = fingerprint(files['log'], 1024)
+            single = root / 'single.gpa.json'
+            save_project(single, files, view, 'note', expected)
+            loaded = load_project(single)
+            second = root / 'second.jsonl'
+            second.write_text('second-log', encoding='utf-8')
+            third = root / 'third.jsonl'
+            third.write_text('third-log', encoding='utf-8')
+            added = add_project_source(loaded, second, files['definitions'])
+            self.assertEqual(loaded['schema'], 1)
+            self.assertEqual(added['schema'], 2)
+            self.assertEqual([row['capture_session'] for row in added['sources']], [1, 2])
+            with self.assertRaises(ValueError):
+                add_project_source(added, second, files['definitions'])
+            with_third = add_project_source(added, third, files['definitions'], capture_session=5)
+            self.assertEqual([row['capture_session'] for row in with_third['sources']], [1, 2, 5])
+            removed = remove_project_source(with_third, 1)
+            self.assertEqual([row['capture_session'] for row in removed['sources']], [1, 5])
+            with self.assertRaises(ValueError):
+                remove_project_source(remove_project_source(removed, 0), 0)
+            reordered = reorder_project_sources(removed, [1, 0])
+            self.assertEqual([row['capture_session'] for row in reordered['sources']], [1, 2])
+            self.assertEqual(reordered['sources'][0]['log']['path'], str(third.resolve()))
+            same_bytes = root / 'second-copy.jsonl'
+            same_bytes.write_bytes(second.read_bytes())
+            with self.assertRaises(ValueError):
+                replace_project_source_content(added, 1, same_bytes)
+            replacement = root / 'replacement.jsonl'
+            replacement.write_text('replacement-log', encoding='utf-8')
+            replaced = replace_project_source_content(added, 1, replacement)
+            self.assertNotEqual(replaced['sources'][1]['log']['sha256'], added['sources'][1]['log']['sha256'])
+            with self.assertRaises(ValueError):
+                relocate_project(added, {next(i for i, (key, _) in enumerate(project_references(added))
+                                         if key == 'log' and i > 0): replacement})
+            edited = root / 'edited.gpa.json'
+            save_edited_project(edited, replaced)
+            verify_project(load_project(edited))
+            with self.assertRaises(ValueError):
+                save_edited_project(replacement, replaced)
