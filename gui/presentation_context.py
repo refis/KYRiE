@@ -14,6 +14,10 @@ def presentation_context(row):
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='BGMの対象ActorIDは未記録。会話との同時観測だけではNPCへ割り当てません。',
             summary='このBGM通知は対象ActorIDを含みません。Aurigaのmusiceffectで再現する場合は接続プレイヤーが必要です。会話中に届いてもNPCの発生元・配信範囲を確定せず、タイマー命令へ変換しません。')
+    elif kind=='achievement':
+        result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
+            short='実績通知は対象ActorID未記録。プレイヤー向け観測でありNPC命令へは出しません。',
+            summary='0x0A24は固定66バイトのうち表示定義どおり achievement_id@16 だけを保持します。他バイトは未解釈です。会話中に届いてもNPCの発生元とせず、achievement 実行命令やタイマーへ変換しません。')
     elif kind=='progress_action' or kind=='progressbar' and packet==0x2f0:
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='進捗対象のActorIDは未記録。会話元NPCのIDと同一視しません。',
