@@ -11,6 +11,7 @@ from storage.observation_export import save_observations, save_observation_text
 from reconstruction.npc_initial_state import visibility_state
 
 ASSOCIATION_LABELS = {'selector_and_buy_reply': '対象選択と購入応答を確認',
+                      'after_close_list': 'close直後の一覧（callshop候補）',
                       'selector_only': '対象選択のみ', 'unresolved': '対象未解決'}
 
 

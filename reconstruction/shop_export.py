@@ -48,8 +48,10 @@ class ShopRenderer:
     def render(self, record, mode, *, item_ids_confirmed=False, map_name=None, conversation=None, review_unconfirmed=False):
         if mode not in ('shop', 'callshop') or (item_ids_confirmed is not True and review_unconfirmed is not True):
             raise ValueError('生成形式と出力先DBの商品ID対応を確認してください。')
-        if record['association'] != 'selector_and_buy_reply':
-            raise ValueError('対象選択と購入応答を確認できる一覧を選択してください。')
+        if record['association'] not in ('selector_and_buy_reply', 'after_close_list'):
+            raise ValueError('対象選択と購入応答、またはclose直後の一覧対応を確認できる一覧を選択してください。')
+        if record['association'] == 'after_close_list' and mode != 'callshop':
+            raise ValueError('close直後の一覧対応にはcallshop形式を選択してください。')
         linked = record.get('conversation_id')
         if linked is not None:
             if (conversation is None or conversation.id != linked
@@ -59,6 +61,11 @@ class ShopRenderer:
                     or conversation.termination.get('packet_index') != record['association_evidence'][0]['packet_index']
                     or conversation.termination.get('shop_actor_id') != record['actor_id']):
                 raise ValueError('対応する会話からショップへの遷移が一致しません。')
+            if (record['association'] == 'after_close_list'
+                    and (record.get('conversation_link_basis') != 'same_flow_after_close'
+                         or conversation.termination.get('shop_link_basis') != 'same_flow_after_close'
+                         or conversation.termination.get('after_close_list') is not True)):
+                raise ValueError('close直後の一覧対応根拠が一致しません。')
         has_dialogue = bool(conversation and any(step['kind'] not in ('open', 'dismiss') for step in conversation.steps))
         if mode == 'callshop' and (linked is None or not has_dialogue):
             raise ValueError('callshop形式には本文を伴う対応会話が必要です。')

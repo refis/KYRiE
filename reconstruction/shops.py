@@ -98,19 +98,35 @@ class ShopStore:
             if len(self.records) >= self.max_records or self.item_count + len(items) > self.max_items:
                 raise ObservationError('Shop observation capacity exceeded')
             actor = selector['actor_id'] if selector else None
+            conversation_id = selector.get('conversation_id') if selector else None
+            conversation_link_basis = selector.get('conversation_link_basis') if selector else None
+            association = selector['association'] if selector else 'unresolved'
+            association_evidence = deepcopy(selector['evidence']) if selector else []
+            entity_key = selector.get('entity_key') if selector else None
+            # close/close2 window: list without 00C4/00C5, same flow within 2s of close.
+            if not selector and self.dialogues:
+                recent = self.dialogues.shop_recent.get(key)
+                if (recent and session == self.dialogues.current_capture
+                        and 0 <= packet.timestamp - recent[0] <= 2
+                        and self.dialogues.active.get(key) is not recent[1]):
+                    conversation = recent[1]
+                    actor = conversation.actor_id
+                    conversation_id = conversation.id
+                    conversation_link_basis = 'same_flow_after_close'
+                    association = 'after_close_list'
+                    association_evidence = [evidence]
             entity = self.world.find_current(packet, session, actor, 'NPC') if self.world and actor else None
-            if entity and selector['entity_key'] != entity.key:
+            if entity and selector is not None and entity_key != entity.key:
                 entity = None  # Never borrow metadata from a later appearance.
             npc = ({name: deepcopy(getattr(entity, name)) for name in
                      ('name', 'map_name', 'class_id', 'x', 'y', 'direction', 'appearance', 'map_generation',
                         'map_origin', 'map_evidence', 'server_endpoint', 'initial_options', 'initial_state_evidence', 'initial_display', 'appearance_data', 'display_changes', 'waitingrooms')}
                    if entity else {})
             self.records.append(dict(id=len(self.records) + 1, capture_session=session, flow_id=key[1],
-                actor_id=actor, npc=npc, association=selector['association'] if selector else 'unresolved',
-                conversation_id=selector.get('conversation_id') if selector else None,
-                conversation_link_basis=selector.get('conversation_link_basis') if selector else None,
+                actor_id=actor, npc=npc, association=association,
+                conversation_id=conversation_id, conversation_link_basis=conversation_link_basis,
                 items=items, item_id_kind='client_item_id', packet=evidence,
-                association_evidence=deepcopy(selector['evidence']) if selector else [], cause_confirmed=False))
+                association_evidence=association_evidence, cause_confirmed=False))
             self.item_count += len(items)
             self.revision += 1
         except ObservationError as exc:
