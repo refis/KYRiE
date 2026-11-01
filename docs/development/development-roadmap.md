@@ -526,20 +526,19 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-01時点。#5–#44 相当と、拡張barter 0x0B56コメント候補・openreform・
-after_close callshop・README版同期・0x0B0E barterlist デコードは完了またはPR反映済み。
+2026-11-02時点。#45–#66 相当（プロジェクトログ編集、display_only 個別配線、
+状態アイコン日本語タイトル792件、barter／openreform／callshop 等）は完了またはPR反映済み。
 残作業（採取必須のものは採取後）:
 
 1. **P0-A 採取**: 文字input（01D4／01D5）の正常→未応答→正常（[採取リスト](../capture/raw-packet-collection-checklist.md)）
-2. **必要時のみ**: 0x0B79実機ログでのレイアウト再確認（合成契約は済み）。
-   display_only 一覧（0A24／02C1／0AB9・0B13／01D6・099B／08FF・0984／029B）は観測保持・命令非生成まで完了。
-   未登録 effect／状態の根拠付き辞書拡充は、手元の `.reference`／`client` を読取専用で用いてよい（原資料の Git 持ち出し禁止。
-   [クライアント資料計画](client-data-utilization-plan.md)）。状態アイコン日本語タイトル792件は取り込み済み。
-   通常shop品名併記（#47）と所持品鑑定フラグ境界の文書化（#48）は完了。0B38 は定義なし／廃止候補のため追採取しない。
-3. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
+2. **採取ブロック**: 0x0B79／exchange 実機ログでのレイアウト再確認（合成契約は済み。未採取のままレイアウトを広げない）
+3. **辞書（読取専用 `.reference`）**: stateicon 画像名など、確認済み出典だけの表示補助。視覚エフェクト日本語は出典確認まで空のまま。
+   原資料の Git 持ち出し禁止（[クライアント資料計画](client-data-utilization-plan.md)）
+4. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
 
-プロジェクトログの追加・削除・並べ替え／内容差替えは実装済み（#49）。
-[作業プロジェクト](../guide/offline-project.md)を参照。
+display_only の個別配線（0A24／02C1／0AB9・0B13／01D6・099B／08FF・0984／029B）は
+観測保持・命令非生成まで完了（[未対応通知](../npc/unsupported-notifications.md)）。
+通常shop品名併記・鑑定フラグ境界文書・プロジェクトログ編集・0B38追採取除外も完了済み。
 
 湧き数 amount・delay1／delay2 は今後も観測自動補完しない。
 手動編集と確認フラグ付き保存のみとし、詳細は[配置・再観測](../mob/mob-spawn-observations.md)。
