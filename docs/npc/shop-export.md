@@ -82,12 +82,17 @@ callshopのtypeは省略して取引メニューを開く。購入専用や売�
 
 件数 u32 のあと、商品26byte＋通貨12byte×N（viewSprite／locationなし）。
 
-### 未対応
+### RECV 0x0B79（拡張barter・clif_expanded_barterlist）
 
-0x0B79（拡張barter新レイアウト）は未デコード。提供された `clif_expanded_barterlist` では
-PACKETVERにより 0x0B79／0x0B56 を切り替え、商品ヘッダに look／equip／refine と可変通貨が付く。
-実パケット採取後に境界を確定する。0x09CF／0x09D0は barter としない。
-近傍の 0x0A30（106byte）は名前応答であり一覧ではない。
+提供ソースの PACKETVER 分岐を、長さが過不足なく消費できる一意レイアウトだけ採用する。
+曖昧・不一致は失敗させ、未観測行は作らない。
+
+- `>=20260107`: 商品ヘッダ36byte（currency_count@+28、refine@+32）+ 通貨12byte×N
+- `>=20250402`: 商品ヘッダ36byte（refine@+28、currency_count@+32）+ 通貨12byte×N
+- `>=20210203`: 商品ヘッダ32byte（currency_count@+28、refineなし）+ 通貨12byte×N
+
+look／equip／refine は観測保持。脚本候補の商品行は従来どおり `ID:在庫:zeny { 通貨… }`。
+実機ログの 0x0B79 は未採取（合成で契約確認）。0x09CF／0x09D0・0x0A30 は barter としない。
 
 書式はconfig/auriga/barters.json。
 

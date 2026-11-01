@@ -701,7 +701,7 @@ class DialogueStore:
                     self.active.pop(key, None)
                     self.revision += 1
             return
-        if packet.direction == 'RECV' and packet.packet_id in (0xb0e, 0xb56):
+        if packet.direction == 'RECV' and packet.packet_id in (0xb0e, 0xb56, 0xb79):
             # Barter list after close: same 2s shop_recent window as close2/callshop.
             recent = self.shop_recent.get(key)
             if (recent and session == self.current_capture and 0 <= packet.timestamp - recent[0] <= 2

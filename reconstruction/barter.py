@@ -1,4 +1,4 @@
-"""Barter market lists: simple 0x0B0E (clif_barterlist) and expanded 0x0B56."""
+"""Barter market lists: 0x0B0E barterlist, 0x0B56/0x0B79 expanded barter."""
 from collections import deque
 from copy import deepcopy
 import math
@@ -6,11 +6,46 @@ import math
 from reconstruction.decoder import Reader, ObservationError
 
 # Old PACKETVER layout used by 0x0B56 (no viewSprite/location/item refine).
-ITEM_HEADER = 26
+ITEM_HEADER_B56 = 26
 CURRENCY_SIZE = 12
 # clif_barterlist / 0x0B0E: fixed 25-byte rows after a 4-byte header.
 BARTERLIST_ITEM = 25
 BARTERLIST_HEADER = 4
+# clif_expanded_barterlist / 0x0B79 variants (item header before currencies).
+# 20210203: 32 + k*12; 20250402/20260107: 36 + k*12 (currency_count/refine swap).
+B79_LAYOUTS = (
+    ('0x0B79 PACKETVER>=20260107; item=36+12*currency', 36, 'count_at_28'),
+    ('0x0B79 PACKETVER>=20250402; item=36+12*currency', 36, 'count_at_32'),
+    ('0x0B79 PACKETVER>=20210203; item=32+12*currency', 32, 'count_at_28'),
+)
+
+
+def _read_currencies(r, offset, currency_count, end):
+    if currency_count > 64:
+        raise ObservationError('Expanded barter currency capacity exceeded')
+    currencies = []
+    for _ in range(currency_count):
+        if offset + CURRENCY_SIZE > end:
+            raise ObservationError('Expanded barter currency truncated')
+        currency_id = r.number(offset, 'I')
+        refine = r.number(offset + 4, 'H')
+        currency_amount = r.number(offset + 6, 'I')
+        currency_type = r.number(offset + 10, 'H')
+        if not currency_id:
+            raise ObservationError('Zero expanded barter currency ID')
+        currencies.append(dict(client_item_id=currency_id, refine_level=refine,
+                               amount=currency_amount, item_type=currency_type))
+        offset += CURRENCY_SIZE
+    return currencies, offset
+
+
+def _stock_and_zeny(amount, zeny):
+    stock = -1 if amount == 0xffffffff else amount
+    if stock != -1 and not 0 <= stock <= 2147483647:
+        raise ObservationError('Expanded barter stock out of range')
+    if not 0 <= zeny <= 2147483647:
+        raise ObservationError('Expanded barter zeny out of range')
+    return stock
 
 
 def decode_expanded_barter(packet):
@@ -25,7 +60,7 @@ def decode_expanded_barter(packet):
     offset = 8
     items = []
     for _ in range(count):
-        if offset + ITEM_HEADER > len(packet.raw):
+        if offset + ITEM_HEADER_B56 > len(packet.raw):
             raise ObservationError('Expanded barter item header truncated')
         nameid = r.number(offset, 'I')
         item_type = r.number(offset + 4, 'H')
@@ -36,32 +71,96 @@ def decode_expanded_barter(packet):
         currency_count = r.number(offset + 22, 'I')
         if not nameid:
             raise ObservationError('Zero expanded barter item ID')
-        if currency_count > 64:
-            raise ObservationError('Expanded barter currency capacity exceeded')
-        offset += ITEM_HEADER
-        currencies = []
-        for _ in range(currency_count):
-            if offset + CURRENCY_SIZE > len(packet.raw):
-                raise ObservationError('Expanded barter currency truncated')
-            currency_id = r.number(offset, 'I')
-            refine = r.number(offset + 4, 'H')
-            currency_amount = r.number(offset + 6, 'I')
-            currency_type = r.number(offset + 10, 'H')
-            if not currency_id:
-                raise ObservationError('Zero expanded barter currency ID')
-            currencies.append(dict(client_item_id=currency_id, refine_level=refine,
-                                   amount=currency_amount, item_type=currency_type))
-            offset += CURRENCY_SIZE
-        stock = -1 if amount == 0xffffffff else amount
-        if stock != -1 and not 0 <= stock <= 2147483647:
-            raise ObservationError('Expanded barter stock out of range')
-        if not 0 <= zeny <= 2147483647:
-            raise ObservationError('Expanded barter zeny out of range')
+        offset += ITEM_HEADER_B56
+        currencies, offset = _read_currencies(r, offset, currency_count, len(packet.raw))
+        stock = _stock_and_zeny(amount, zeny)
         items.append(dict(client_item_id=nameid, item_type=item_type, stock=stock, amount_raw=amount,
                           weight=weight, index=index, zeny=zeny, currencies=currencies))
     if offset != len(packet.raw):
         raise ObservationError('Expanded barter trailing bytes remain after known layout')
     return items
+
+
+def _try_b79_layout(r, raw, header_size, count_mode):
+    count = r.number(4, 'I')
+    if count > 2048:
+        raise ObservationError('Expanded barter item capacity exceeded')
+    offset = 8
+    items = []
+    for _ in range(count):
+        if offset + header_size > len(raw):
+            raise ObservationError('Expanded barter item header truncated')
+        nameid = r.number(offset, 'I')
+        item_type = r.number(offset + 4, 'H')
+        amount = r.number(offset + 6, 'I')
+        weight = r.number(offset + 10, 'I')
+        index = r.number(offset + 14, 'I')
+        zeny = r.number(offset + 18, 'I')
+        view_sprite = r.number(offset + 22, 'H')
+        location = r.number(offset + 24, 'I')
+        if header_size == 36 and count_mode == 'count_at_28':
+            currency_count = r.number(offset + 28, 'I')
+            refine_level = r.number(offset + 32, 'I')
+        elif header_size == 36 and count_mode == 'count_at_32':
+            refine_level = r.number(offset + 28, 'I')
+            currency_count = r.number(offset + 32, 'I')
+        else:
+            currency_count = r.number(offset + 28, 'I')
+            refine_level = None
+        if not nameid:
+            raise ObservationError('Zero expanded barter item ID')
+        if refine_level is not None and not 0 <= refine_level <= 2147483647:
+            raise ObservationError('Expanded barter item refine out of range')
+        currency_start = offset + header_size
+        currencies, offset = _read_currencies(r, currency_start, currency_count, len(raw))
+        stock = _stock_and_zeny(amount, zeny)
+        row = dict(client_item_id=nameid, item_type=item_type, stock=stock, amount_raw=amount,
+                   weight=weight, index=index, zeny=zeny, view_sprite=view_sprite, location=location,
+                   currencies=currencies)
+        if refine_level is not None:
+            row['refine_level'] = refine_level
+        items.append(row)
+    if offset != len(raw):
+        raise ObservationError('Expanded barter trailing bytes remain after known layout')
+    return items
+
+
+def decode_expanded_barter_b79(packet):
+    """Decode RECV 0x0B79 using clif_expanded_barterlist PACKETVER layouts.
+
+    Tries the three known writers and accepts only a unique exact-length match.
+    Ambiguous or unknown layouts fail closed without inventing rows.
+    """
+    if packet.direction != 'RECV' or packet.packet_id != 0xb79:
+        return None
+    raw = packet.raw
+    r = Reader(raw)
+    if len(raw) < 8 or r.number(2, 'H') != len(raw):
+        raise ObservationError('Expanded barter length does not match the packet header')
+    matches = []
+    for label, header_size, count_mode in B79_LAYOUTS:
+        try:
+            items = _try_b79_layout(Reader(raw), raw, header_size, count_mode)
+        except ObservationError:
+            continue
+        matches.append((label, items))
+    if not matches:
+        raise ObservationError('Expanded barter 0x0B79 layout not recognized')
+    # Equivalent outcomes (same exported fields) collapse; conflicting parses fail.
+    signatures = []
+    for label, items in matches:
+        signatures.append((label, tuple(
+            (it['client_item_id'], it['stock'], it['zeny'], it.get('refine_level'),
+             tuple((c['client_item_id'], c['refine_level'], c['amount']) for c in it['currencies']))
+            for it in items)))
+    unique = {}
+    for label, sig in signatures:
+        unique.setdefault(sig, []).append(label)
+    if len(unique) != 1:
+        raise ObservationError('Expanded barter 0x0B79 layout is ambiguous')
+    label = unique[next(iter(unique))][0]
+    items = next(items for name, items in matches if name == label)
+    return items, label
 
 
 def decode_barterlist(packet):
@@ -109,6 +208,9 @@ def _decode_barter_packet(packet):
         return decode_barterlist(packet), 'barterlist', '0x0B0E clif_barterlist; item=25 bytes'
     if packet.packet_id == 0xb56:
         return decode_expanded_barter(packet), 'expanded_barter', '0x0B56 without viewSprite/location'
+    if packet.packet_id == 0xb79:
+        items, label = decode_expanded_barter_b79(packet)
+        return items, 'expanded_barter', label
     return None, None, None
 
 
@@ -128,7 +230,7 @@ class BarterStore:
         self.begin_capture(session)
         if session != self.current_capture:
             return
-        if packet.direction != 'RECV' or packet.packet_id not in (0xb0e, 0xb56):
+        if packet.direction != 'RECV' or packet.packet_id not in (0xb0e, 0xb56, 0xb79):
             return
         key = (session, packet.flow_id or packet.connection)
         evidence = dict(packet_index=packet_index, packet_id=packet.packet_id, timestamp=packet.timestamp,
@@ -172,4 +274,5 @@ class BarterStore:
     def snapshot(self):
         return dict(schema_version=1, records=deepcopy(self.records), issue_count=self.issue_count,
                     issues=list(self.issues),
-                    layout='0x0B0E barterlist item=25 bytes; 0x0B56 expanded item=26 bytes currency=12 bytes')
+                    layout=('0x0B0E barterlist item=25 bytes; 0x0B56 expanded item=26 bytes currency=12 bytes; '
+                            '0x0B79 expanded variants from clif_expanded_barterlist'))
