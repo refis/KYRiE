@@ -8,6 +8,23 @@
 全ファイルの相対パス・サイズ・SHA-256と予備照合は
 `logs/client-data-reference-inventory.json` に保存した。
 
+## ローカル原資料の利用許可（2026-11-02）
+
+辞書・カタログ拡充が必要なときは、利用者マシン上の次を**読取専用の根拠**として用いてよい。
+
+- `C:\project\KYRiE\.reference`（および作業コピーの `.reference/`）
+- `C:\project\KYRiE\client`（および作業コピーの `client/`）
+
+制約（既存方針と同じ）:
+
+- 原資料そのもの（EXE／DLL／Lua／LUB／抽出バイナリ／私有ログ等）を Git・ソースZIP・PR へ持ち出さない。
+  `.gitignore` の `.reference/` と `client/*` 除外を維持する。
+- 成果物は `config/*.json` 等の生成辞書と、SHA-256／出典パスを記した docs・レポートのみ。
+- Lua／Python／EXE は実行せず、限定静的パーサだけ使う。未確認 ID の発明・EFST→SC の新規変換・サーバー条件の推定はしない。
+- 原資料ディレクトリへの書込み・上書き出力を拒否する（既存インポータ契約）。
+
+エージェント環境に `.reference/data` が無い場合は拡充を保留し、手元に原資料がある実行での再生成を待つ。
+
 ## 1. 調査結果
 
 全3,109ファイル、174,068,656 byte。Lua 1,534、LUB 1,534、TXT 38、SCP 1、EXE 1、BAT 1。
