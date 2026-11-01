@@ -20,6 +20,8 @@
   "external_hat_effect": "// 帽子エフェクトの外部候補: enabled={enabled}, effect={effect_id}, target={target}。呼出し元・命令対応は未確定。",
   "colored_speech": "// 色付きユニット発言観測: color=0x{color_hex}, text={text}。unittalkと混同せず実行命令は未生成。",
   "external_colored_speech": "// 色付きユニット発言の外部候補: color=0x{color_hex}, text={text}, target={target}。unittalkへは変換しない。",
+  "status_enter": "// 入場時状態観測: effect={effect_id}, remain_ms={remaining_ms}, v1={value1}, v2={value2}, v3={value3}, tick={tick}。0196系statusと混同せずsc_start等は未生成。",
+  "external_status_enter": "// 入場時状態の外部候補: effect={effect_id}, remain_ms={remaining_ms}, v1={value1}, v2={value2}, v3={value3}, tick={tick}, target={target}。status命令へは変換しない。",
   "mercenary": "// 傭兵表示観測: name={name}, duration={duration}。makemerc等の実行命令は未生成。",
   "external_mercenary": "// 傭兵表示の外部候補: name={name}, duration={duration}, target={target}。実行命令は未生成。",
   "effect_remove": "delmisceffect {value};",

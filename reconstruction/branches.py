@@ -12,7 +12,7 @@ from dataclasses import asdict
 from reconstruction.timing import build_timeline
 from reconstruction.quests import valid_counter_fields
 
-PRESENTATION_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment', 'emotion', 'effect', 'effect_value', 'effect_remove', 'event_marker', 'hat_effect', 'achievement', 'item_preview', 'mercenary', 'sound', 'cutin', 'classchange', 'progressbar', 'viewpoint', 'overhead', 'announcement', 'unittalk', 'colored_speech', 'visibility_action', 'status_action', 'progress_action', 'unittalk_target', 'action_wait_review', 'script_command', 'npc_display_action'}
+PRESENTATION_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment', 'emotion', 'effect', 'effect_value', 'effect_remove', 'event_marker', 'hat_effect', 'achievement', 'item_preview', 'map_property', 'status_enter', 'mercenary', 'sound', 'cutin', 'classchange', 'progressbar', 'viewpoint', 'overhead', 'announcement', 'unittalk', 'colored_speech', 'visibility_action', 'status_action', 'progress_action', 'unittalk_target', 'action_wait_review', 'script_command', 'npc_display_action'}
 
 
 def validate_external(conversation):
@@ -32,7 +32,7 @@ def validate_external(conversation):
                 or row.get('entity_kind') != 'NPC' or row.get('target_observed') is not True
                 or row.get('kind') not in ('emotion', 'effect', 'effect_value', 'effect_remove', 'event_marker',
                                            'hat_effect', 'sound', 'overhead', 'unittalk', 'colored_speech',
-                                           'mercenary')
+                                           'status_enter', 'mercenary')
                 or row['adoption_confirmed'] is not True and row['adoption_confirmed'] is not False
                 or type(anchor) is not int or not 0 <= anchor < len(conversation.steps)
                 or row['packet_index'] in seen or not math.isfinite(row['timestamp'])

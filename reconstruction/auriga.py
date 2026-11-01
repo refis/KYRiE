@@ -38,6 +38,8 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'external_hat_effect': {'enabled', 'effect_id', 'target'},
                        'colored_speech': {'color_hex', 'text'},
                        'external_colored_speech': {'color_hex', 'text', 'target'},
+                       'status_enter': {'effect_id', 'remaining_ms', 'value1', 'value2', 'value3', 'tick'},
+                       'external_status_enter': {'effect_id', 'remaining_ms', 'value1', 'value2', 'value3', 'tick', 'target'},
                        'mercenary': {'name', 'duration'},
                        'external_mercenary': {'name', 'duration', 'target'},
                        'external_effect_remove': {'value', 'target'},
@@ -217,11 +219,13 @@ class AurigaRenderer:
             if kind == 'colored_speech':
                 values['color_hex'] = f"{values.pop('color'):08X}"
             adopted = row.get('adoption_confirmed') is True and kind in self.ADOPTABLE_EXTERNAL_KINDS
+            if kind == 'status_enter' and 'tick' not in values:
+                values['tick'] = 'n/a'
             if kind == 'mercenary' and 'name' in values:
                 values['name'] = _quote(values['name'])
             if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
                             'sound', 'effect_value', 'event_marker', 'hat_effect', 'colored_speech',
-                            'mercenary'):
+                            'status_enter', 'mercenary'):
                 continue
             if adopted:
                 adopted_any = True
@@ -558,6 +562,11 @@ class AurigaRenderer:
                      state=fields['state'], kind=fields['kind'])
             elif kind == 'hat_effect':
                 emit('hat_effect', depth, enabled=fields['enabled'], effect_id=fields['effect_id'])
+            elif kind == 'status_enter':
+                emit('status_enter', depth, effect_id=fields['effect_id'],
+                     remaining_ms=fields['remaining_ms'], value1=fields['value1'],
+                     value2=fields['value2'], value3=fields['value3'],
+                     tick=fields.get('tick', 'n/a'))
             elif kind == 'mercenary':
                 emit('mercenary', depth, name=_quote(fields['name']), duration=fields['duration'])
             elif kind == 'classchange':
