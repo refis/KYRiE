@@ -73,6 +73,20 @@ RECV 0x0B56（旧レイアウト）をデコードし、close応答後2秒以内
 0x0B79新レイアウト・exchange専用形式は未対応。未観測行は作らない。
 20261101-194609-edbe9ab0でも 0x0B56／0x0B79／shops／barters は0件。
 0x09CF／0x09D0があっても exchange とは扱わない（Issue #51 は採取ブロック継続）。
+
+### 候補: RECV 0x0B0E（exchange 上位互換の仮説）
+
+同ログに RECV 0x0B0E が1件（長さ504、定義 `-1`）。
+悔恨の侯爵#tor 会話#4の close 応答（SEND 0x0146）の約0.15秒後で、
+既存の after_close 2秒枠に入る。0x0B56旧レイアウトとしての項目走査は成立しない。
+公開エミュ定義に 0x0B0E の確定名は見当たらず、項目境界は未確定。
+利用者仮説では exchange の上位互換一覧の可能性があるが、デコードや
+`//- exchange` 行はレイアウト確定まで行わない。
+
+近傍の RECV 0x0A30（固定106）は名前応答（ZC_ACK_REQNAMEALL2 相当）で、
+SEND 0x0368（名前要求）の直後に複数回出現する。会話NPCの ActorID とは一致せず、
+exchange 一覧とは扱わない。
+
 書式はconfig/auriga/barters.json。
 
 ## 書式と検証
