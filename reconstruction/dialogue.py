@@ -16,9 +16,9 @@ from reconstruction.actor_appearance import declaration_class
 WALK_SEND_IDS = {0x85, 0x35f}
 PRESENTATION_ACTOR_OFFSETS = {0xc0: 2, 0x19b: 2, 0x1f3: 2, 0x1d3: 31,
                               0x1b0: 2, 0x9d1: 2, 0x144: 2, 0x8b3: 4, 0x8d: 4, 0x2c1: 4, 0xb0d: 2, 0x284: 2,
-                              0x446: 2, 0xa3b: 4, 0x8ff: 2, 0x984: 2}
+                              0x446: 2, 0xa3b: 4, 0x8ff: 2, 0x984: 2, 0x29b: 2}
 EXTERNAL_PRESENTATION_IDS = {0xc0, 0x19b, 0x1f3, 0x1d3, 0x8b3, 0x8d, 0x2c1, 0xb0d, 0x284, 0x446, 0xa3b,
-                             0x8ff, 0x984}
+                             0x8ff, 0x984, 0x29b}
 DIALOGUE_LAYOUT_IDS = {0xba1, 0xba2, 0xba3, 0xbb5}
 DIALOGUE_LAYOUT_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment'}
 
@@ -39,7 +39,7 @@ def decode_dialogue(packet):
                  0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement',
                  0xab9: 'item_preview', 0xb13: 'item_preview',
                  0x1d6: 'map_property', 0x99b: 'map_property',
-                 0x8ff: 'status_enter', 0x984: 'status_enter'}
+                 0x8ff: 'status_enter', 0x984: 'status_enter', 0x29b: 'mercenary'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
         expected = 3 if pid == 0xba1 else 10
@@ -108,6 +108,11 @@ def decode_dialogue(packet):
         if pid == 0x984:
             fields['tick'] = r.number(12, 'I')
         return kind, actor, fields
+    if kind == 'mercenary':
+        # PacketLength 80. Display: actor_id@2, name@22 len24, duration@64. Other bytes opaque.
+        if len(packet.raw) != 80:
+            raise ObservationError('Mercenary length does not match supported layout')
+        return kind, r.number(2, 'I'), dict(name=r.text(22, 24), duration=r.number(64, 'I'))
     if kind == 'announcement':
         offset = 4 if pid == 0x9a else 16
         if (not offset + 1 <= len(packet.raw) <= 65535

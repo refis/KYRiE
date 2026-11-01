@@ -116,13 +116,22 @@
 | タイマー | 採用対象外（入場時状態を OnTimer へ落とさない） |
 | 外部候補 | 会話中の別既知NPCへ届いた場合は `external_presentations` へ保持 |
 
+## 傭兵表示（029B）
+
+| 項目 | 内容 |
+|------|------|
+| PacketID | `029B`（80バイト） |
+| 表示名 | Mercenary / `@makemerc` |
+| フィールド | actor_id@2、name@22（24バイト）、duration@64（他バイトは未解釈） |
+| 状態 | `observed` + `not_adopted` |
+| 観測 kind | `mercenary` |
+| 生成 | コメントのみ。`makemerc` 等の実行命令は出さない |
+| 対象 | NPC 復元の主経路外。外部候補保持可。タイマー採用対象外 |
+
 ## 表示定義にあるが構造化未接続（display_only）
 
-表示テンプレートがあるが、現状 `decode_dialogue` へ未配線。一覧のみ。勝手に命令化しない。
-
-| PacketID | 表示名 | 主なフィールド（表示定義） | 構造化が必要になったときの方針 |
-|----------|--------|---------------------------|--------------------------------|
-| `029B` | Mercenary | actor_id, name, duration | 傭兵表示。NPC 復元の主経路外 |
+表示テンプレートがあるが、現状 `decode_dialogue` へ未配線だった ID は上記へ個別配線済み。
+新たな display_only 候補が出たときだけ、この表へ追加する。
 
 ## 観測済みだが実行命令未採用（not_adopted の例）
 
@@ -138,6 +147,7 @@
 | `item_preview`（0AB9／0B13） | 構造化 | getitem／itempreview 実行命令・タイマーへ出さない |
 | `map_property`（01D6／099B） | 構造化 | mapproperty 実行命令・タイマーへ出さない |
 | `status_enter`（08FF／0984） | 構造化・コメント | sc_start 等なし。タイマー採用対象外 |
+| `mercenary`（029B） | 構造化・コメント | makemerc 実行命令・タイマーへ出さない |
 | `external_*` | 外部候補 | 既定はコメント。emotion／effect／解除／overhead／unittalk は明示採用可（#16）。sound等は不可 |
 | `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 対応範囲外はコメントまたは非タイマー |
 
@@ -145,7 +155,7 @@
 
 ```text
 python -m tools.run_tests presentation
-python -m tools.run_tests tests.unit.test_map_property_observations tests.unit.test_status_enter_observations
+python -m tools.run_tests tests.unit.test_map_property_observations tests.unit.test_status_enter_observations tests.unit.test_mercenary_observations
 ```
 
 全件 discover は本Issueの既定範囲外。実機・Npcap・Auriga確認は不要。

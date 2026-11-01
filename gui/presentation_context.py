@@ -30,6 +30,10 @@ def presentation_context(row):
         result.update(actor_role='status_enter_target',
             short='入場時状態の対象IDです。0196／043F／0983のstatus付与とは別観測です。',
             summary='0x08FF／0x0984は対象ActorIDと effect_id／残時間／付加値を保持します。既存 status（sc_start相当）と混同せず、自動補完・実行命令・タイマー化はしません。コメント観測のみです。')
+    elif kind=='mercenary':
+        result.update(actor_role='mercenary_actor',
+            short='傭兵表示の対象IDです。NPC復元の主経路外で、makemerc命令へは出しません。',
+            summary='0x029Bは対象ActorID・名前・durationを保持します。他バイトは未解釈です。NPC本文の傭兵生成命令やタイマーへ変換せず、コメント観測のみとします。')
     elif kind=='progress_action' or kind=='progressbar' and packet==0x2f0:
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='進捗対象のActorIDは未記録。会話元NPCのIDと同一視しません。',

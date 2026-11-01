@@ -40,6 +40,8 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'external_colored_speech': {'color_hex', 'text', 'target'},
                        'status_enter': {'effect_id', 'remaining_ms', 'value1', 'value2', 'value3', 'tick'},
                        'external_status_enter': {'effect_id', 'remaining_ms', 'value1', 'value2', 'value3', 'tick', 'target'},
+                       'mercenary': {'name', 'duration'},
+                       'external_mercenary': {'name', 'duration', 'target'},
                        'external_effect_remove': {'value', 'target'},
                        'classchange': {'class_id', 'kind'},
                        'progressbar': {'seconds', 'color'},
@@ -219,9 +221,11 @@ class AurigaRenderer:
             adopted = row.get('adoption_confirmed') is True and kind in self.ADOPTABLE_EXTERNAL_KINDS
             if kind == 'status_enter' and 'tick' not in values:
                 values['tick'] = 'n/a'
+            if kind == 'mercenary' and 'name' in values:
+                values['name'] = _quote(values['name'])
             if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
                             'sound', 'effect_value', 'event_marker', 'hat_effect', 'colored_speech',
-                            'status_enter'):
+                            'status_enter', 'mercenary'):
                 continue
             if adopted:
                 adopted_any = True
@@ -563,6 +567,8 @@ class AurigaRenderer:
                      remaining_ms=fields['remaining_ms'], value1=fields['value1'],
                      value2=fields['value2'], value3=fields['value3'],
                      tick=fields.get('tick', 'n/a'))
+            elif kind == 'mercenary':
+                emit('mercenary', depth, name=_quote(fields['name']), duration=fields['duration'])
             elif kind == 'classchange':
                 if npc_name:
                     emit('script_rendered',depth,text=render_display(dict(name=npc_name,map_name=map_name),{'class_id':fields['class_id']},self.templates))
