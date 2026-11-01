@@ -20,6 +20,8 @@ cutincardはユーザー指定により実装対象外。既存のcutin（表示
 - getitem/getitem2: 会話中の成功した入手通知。通常アイテムはgetitem、鑑定・精錬・属性・カードを
   持つものはgetitem2。ランダムオプション・grade・期限・bindingを持ち、getitem2で表せない場合は確認用コメントとする。
   アイテムIDはクライアント観測値の候補であり、対象DBとの一致を保証しない。
+  20261101-194609-edbe9ab0では item 100736×3 が期限付きのため getitem2 review_only
+  （identified=1、options_summary 全0）。未鑑定入手の実例はこのログにはない。
 - delitem/delequip: 会話中の消失通知と、所持品Indexに対応する観測済みItemIDが必要。
   装備中の部位を特定できる場合はdelequip、それ以外はdelitem候補。
   装備個体・部位・IDが不足する場合は引数を補わずコメントへ残す。
