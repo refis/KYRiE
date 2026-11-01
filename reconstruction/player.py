@@ -5,9 +5,11 @@ from dataclasses import dataclass, field, asdict
 from reconstruction.decoder import Reader, ObservationError, TextDecodingError
 
 # Record sizes (bytes after the 5-byte inventory header). Stride mismatch fails closed.
+# 0x0B38: MARiA-era 35-byte normal list. Not in workspace PacketLength.txt (possible retirement);
+# kept only for synthetic/handed PacketEvents. Never invent a framing length for live capture.
 LIST_STRIDES = {0xb09: 34, 0xb0a: 67, 0xb38: 35, 0xb39: 68}
 # Confirmed identify flag = bit0 at these offsets within each record. 0x0B38 omitted on purpose:
-# flag location is unconfirmed; identified stays None (GUI「不明」). Never copy 0B09/0B39 offsets onto 0B38.
+# no PacketLength entry and no confirmed flag offset; identified stays None. Never copy 0B09/0B39 onto 0B38.
 IDENTIFY_FLAG_OFFSETS = {0xb09: 33, 0xb0a: 66, 0xb39: 67}
 CHARACTER_STRIDES = {0x99d: (155, 88, 118), 0xb72: (175, 108, 138)}
 PLAYER_IDS = {0x179, 0x71, 0x91, 0x92, 0x87, 0x88, 0x283, 0x2eb, 0xa18, *CHARACTER_STRIDES,

@@ -330,6 +330,13 @@ class PlayerTests(unittest.TestCase):
             self.assertIsNone(store.states[(0,'game')].items[2]['identified'])
 
     def test_inventory_list_identify_boundary_keeps_unconfirmed_0b38_unstructured(self):
+        from pathlib import Path
+        from parser.definitions import load_lengths
+        lengths = load_lengths(Path(__file__).resolve().parents[2] / 'PacketLength.txt')
+        # Live framing has no 0B38 entry (0B37 then 0B39); do not invent a length.
+        self.assertNotIn(0xb38, lengths)
+        self.assertIn(0xb37, lengths)
+        self.assertIn(0xb39, lengths)
         self.assertEqual(LIST_STRIDES, {0xb09: 34, 0xb0a: 67, 0xb38: 35, 0xb39: 68})
         self.assertEqual(IDENTIFY_FLAG_OFFSETS, {0xb09: 33, 0xb0a: 66, 0xb39: 67})
         self.assertNotIn(0xb38, IDENTIFY_FLAG_OFFSETS)

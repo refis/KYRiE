@@ -69,13 +69,17 @@ Issue表記の「35／68byte」は 0B38／0B39 のレコード長を指す。未
 | 0x0B09 | 通常一覧 | 34 | offset 33 の bit0 | 確認済み |
 | 0x0B0A | 装備一覧 | 67 | offset 66 の bit0 | 確認済み |
 | 0x0B39 | 装備一覧 | 68 | offset 67 の bit0（offset 66 は grade） | 確認済み |
-| 0x0B38 | 通常一覧 | 35 | 位置未確認 | **未確認**（`identified=None`／GUI「不明」） |
+| 0x0B38 | （旧）通常一覧 | MARiA想定 35 | 位置未確認 | **PacketLength 未登録**／現行採取 0 件。利用廃止の可能性 |
 
 根拠: ローカル Auriga `clif.c` の 0B09／0B0A、[rAthena NORMALITEM_INFO／EQUIPITEM_INFO](https://github.com/rathena/rathena/blob/master/src/map/packets_struct.hpp)、
-既存実ログ末尾照合（0B39）。0B38 は MARiA も Index／ItemID／個数のみでフラグ根拠なし。
-採取状況は[採取リスト I01](../capture/raw-packet-collection-checklist.md#i01-未確認0b38所持品一覧の鑑定フラグ)。
-0B09 実例を 0B38 検証済みへ流用しない。他ビットが立っても bit0 以外で鑑定済みとしない。
-decode 定数は `LIST_STRIDES`／`IDENTIFY_FLAG_OFFSETS`（0B38 は後者に載せない）。
+既存実ログ末尾照合（0B39）。
+
+**0x0B38**: ワークスペース `PacketLength.txt` に ID 行がなく（0B37 の次は 0B39）、フレーミング定義もない。
+未知 ID として当該ストリームを閉じる。長さやフラグ位置を推測して追加しない。
+MARiA は 35byte 行を読む互換コードを持つが、鑑定フラグ根拠はない。
+実ログでも未観測のため、追加採取の優先対象から外す（[採取リスト I01](../capture/raw-packet-collection-checklist.md#i01-0b38所持品一覧採取優先から外す)）。
+合成／手渡しの PacketEvent 向けに `LIST_STRIDES` へ 35 を残すが、`IDENTIFY_FLAG_OFFSETS` には載せない
+（`identified=None`）。0B09 実例を 0B38 検証済みへ流用しない。
 
 ## ログの外部書式
 

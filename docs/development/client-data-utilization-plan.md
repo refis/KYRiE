@@ -274,7 +274,7 @@ GUIの所持品・基本MAP情報・クエストタイムラインへ併記し�
 ログと定義のハッシュは不変。logs/client-name-identification-review.jsonへ記録した。
 通常shopへの品名併記は実装済み。商品ID・価格・復元コードは変更しない。
 0B39は参照実装と実ログ末尾を照合し、68byteレコードoffset67のbit0に対応済み。
-0B38のフラグ位置は未確認のまま不明を維持し、採取リスト I01 待ち。
+0B38は PacketLength 未登録・実ログ0件で利用廃止の可能性。長さ／フラグを推測追加せず、採取優先外。
 参照: https://github.com/rathena/rathena/blob/master/src/map/packets_struct.hpp （EQUIPITEM_INFO）。
 
 会話タイムラインのアイテム授受（getitem/getitem2/delitem）にも資料品名を反映済み。ID・数量、未登録ID、装備属性、観測モデルと生成コードの維持を関連3項目で確認。
