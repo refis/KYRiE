@@ -137,7 +137,7 @@ touch-warp-review.jsonとtouch-warp-reviewed.txtを当該フォルダへ保存�
 元ログ・定義・configへの出力を拒否する。レポート保存は既存の一時ファイル置換を用いる。
 Index/ID/数量、鑑定状態の確認状況、元レコードhex、パケット番号・接続・時刻を記録する。
 所持品以外のinventory typeと不正レコードは別集計。PlayerStoreや生成コードは更新しない。
-未確認0B38のフラグ位置を推定しない。件数・抽出上限・省略数を必ず確認する。
+0B38の長さ・フラグ位置を推定しない（PacketLength未登録・廃止候補）。件数・抽出上限・省略数を必ず確認する。
 確認済み／未確認の表は[所持品観測の検証境界](../observations/player-observations.md#一覧ストライドと鑑定フラグの検証境界48)。
 
 
