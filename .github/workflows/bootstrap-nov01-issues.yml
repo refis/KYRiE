@@ -240,11 +240,11 @@ jobs:
             }
 
             for (const issue of issues) {
-              const q = \`repo:\${owner}/\${repo} is:issue in:title "\${issue.title.replace(/"/g, '')}"\`;
+              const q = `repo:${owner}/${repo} is:issue in:title "${issue.title.replace(/"/g, '')}"`;
               const search = await github.rest.search.issuesAndPullRequests({ q });
               const hit = (search.data.items || []).find((it) => it.title === issue.title);
               if (hit) {
-                core.info(\`exists #\${hit.number}: \${issue.title}\`);
+                core.info(`exists #${hit.number}: ${issue.title}`);
                 continue;
               }
               const created = await github.rest.issues.create({
@@ -254,5 +254,5 @@ jobs:
                 labels: issue.labels,
                 body: normalizeBody(issue.body),
               });
-              core.info(\`created #\${created.data.number}: \${created.data.html_url}\`);
+              core.info(`created #${created.data.number}: ${created.data.html_url}`);
             }
