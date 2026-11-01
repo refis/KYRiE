@@ -477,9 +477,11 @@ class MainWindow(QMainWindow):
             if large:
                 from reconstruction.report_snapshot import freeze_npc_report
                 prepared=freeze_npc_report(entities,self.dialogues.sessions,sources,merge=merge,
-                                          shops=self.shops.records,barters=self.barters.records,identity=identity)
+                                          shops=self.shops.records,barters=self.barters.records,identity=identity,
+                                          client_names=getattr(self,'client_names',None))
             report=None if prepared is not None else build_npc_bundle(entities,self.dialogues.sessions,
-                sources,merge=merge,shops=self.shops.records,barters=self.barters.records,identity=identity)
+                sources,merge=merge,shops=self.shops.records,barters=self.barters.records,identity=identity,
+                client_names=getattr(self,'client_names',None))
             if report is not None and not report['entries'] and not report['excluded']:
                 raise ValueError('NPCの観測がありません。')
             mode = '統合' if merge else '個別'

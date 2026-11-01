@@ -64,13 +64,9 @@ class ShopRenderer:
             for _, name, spec, conversion in Formatter().parse(value):
                 if name is not None and (name not in FIELDS[key] or spec or conversion):
                     raise ValueError('ショップ書式の引数が不正です。')
-        if client_names is None:
-            try:
-                from reconstruction.client_names import load_client_names
-                client_names = load_client_names()
-            except (OSError, ValueError, KeyError, TypeError):
-                client_names = empty_client_names()
-        self.client_names = client_names
+        # Never open client_names.json here: frozen NPC builds forbid late file I/O.
+        # Callers that already hold a catalog (GUI / freeze snapshot) pass it explicitly.
+        self.client_names = empty_client_names() if client_names is None else client_names
 
     def render(self, record, mode, *, item_ids_confirmed=False, map_name=None, conversation=None, review_unconfirmed=False):
         if mode not in ('shop', 'callshop') or (item_ids_confirmed is not True and review_unconfirmed is not True):

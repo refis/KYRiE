@@ -17,7 +17,8 @@ from reconstruction.barter_export import BarterRenderer, barter_name_for
 
 
 def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=False, shops=(),
-                     barters=(), max_chars=64 * 1024 * 1024, identity=None, touch_inferences=None):
+                     barters=(), max_chars=64 * 1024 * 1024, identity=None, touch_inferences=None,
+                     client_names=None):
     conversations = list(conversations)
     sources = dict(source_sessions or {})
     renderer = AurigaRenderer(identity=identity)
@@ -50,7 +51,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             bucket['conversations'].append(deepcopy(item))
         else:
             excluded[-1]['conversation'] = asdict(item)
-    shop_renderer = ShopRenderer() if shops else None
+    shop_renderer = ShopRenderer(client_names=client_names) if shops else None
     lookup = {(item.capture_session, item.id): item for item in conversations}
     for record in shops:
         record = deepcopy(record)
