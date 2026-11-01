@@ -22,6 +22,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
                   'tests.unit.test_effect_value',
                   'tests.unit.test_event_marker_observations',
                   'tests.unit.test_hat_effect_observations',
+                  'tests.unit.test_achievement_observations',
                   'tests.unit.test_external_presentations',
                   'tests.unit.test_music_observations',
                   'tests.unit.test_overhead_observations',

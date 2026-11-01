@@ -34,7 +34,7 @@ def decode_dialogue(packet):
                  0xc0: 'emotion', 0x1d3: 'sound', 0x19b: 'effect', 0x1f3: 'effect', 0x1b0: 'classchange',
                  0x2f0: 'progressbar', 0x9d1: 'progressbar', 0x7fe: 'music', 0xb8c: 'music',
                  0x144: 'viewpoint', 0x8b3: 'overhead', 0x8d: 'unittalk', 0xb0d: 'effect_remove', 0x284: 'effect_value',
-                 0x446: 'event_marker', 0xa3b: 'hat_effect'}
+                 0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
         expected = 3 if pid == 0xba1 else 10
@@ -67,6 +67,11 @@ def decode_dialogue(packet):
         if len(packet.raw) != 11 or r.number(2, 'H') != 11:
             raise ObservationError('Hat effect length does not match supported layout')
         return kind, r.number(4, 'I'), dict(enabled=r.number(8, 'B'), effect_id=r.number(9, 'H'))
+    if kind == 'achievement':
+        # PacketLength 66. Display JSON only documents achievement_id@16; other bytes stay opaque.
+        if len(packet.raw) != 66:
+            raise ObservationError('Achievement length does not match supported layout')
+        return kind, None, dict(achievement_id=r.number(16, 'I'))
     if kind == 'announcement':
         offset = 4 if pid == 0x9a else 16
         if (not offset + 1 <= len(packet.raw) <= 65535
@@ -638,7 +643,7 @@ class DialogueStore:
                 self._retain_presentation(packet, session, index, None, 'input_wait', conversation, prompt_index)
                 return
             self._retain_presentation(packet, session, index, None, 'during_dialogue')
-        elif packet.direction == 'RECV' and packet.packet_id in (0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c):
+        elif packet.direction == 'RECV' and packet.packet_id in (0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24):
             # No actor ID: never assign this notification to the active NPC.
             context = 'during_dialogue' if conversation else 'outside_dialogue'
             if key in self.close_pending:

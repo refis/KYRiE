@@ -48,13 +48,26 @@
 表示定義のフィールド配置に合わせた合成パケットで decode・保持・コメント出力を確認。
 未知の追加バイトや length≠11 は構造化せずエラーとする。実機／Auriga実行確認は不要（#18範囲）。
 
+## 実績通知（0A24）
+
+| 項目 | 内容 |
+|------|------|
+| PacketID | `0A24`（PacketLength 66） |
+| 表示名 | Achievement / `achievement {id}` |
+| フィールド | achievement_id@16 u32（表示定義どおり。他バイトは未解釈） |
+| 状態 | `observed` + `not_adopted` |
+| 観測 kind | `achievement` |
+| 生成 | 出さない。プレイヤー向け通知であり NPC の achievement 命令／タイマーへ変換しない |
+| 対象 | ActorID なし。会話中でも active NPC へ割り当てない（music と同様） |
+
+合成パケットで decode・保持・命令非生成を確認。残バイトの意味は推測しない。
+
 ## 表示定義にあるが構造化未接続（display_only）
 
 表示テンプレートがあるが、現状 `decode_dialogue` へ未配線。一覧のみ。勝手に命令化しない。
 
 | PacketID | 表示名 | 主なフィールド（表示定義） | 構造化が必要になったときの方針 |
 |----------|--------|---------------------------|--------------------------------|
-| `0A24` | Achievement | achievement_id@16 | プレイヤー通知として保持候補。NPC命令へは出さない |
 | `0AB9` / `0B13` | Item preview | index@2 | 表示のみ／編集用メモ。getitem へ自動変換しない |
 | `02C1` | Colored unit speech | 表示テンプレート参照 | unittalk と混同しない。要フィールド照合後に観測 kind を新設 |
 | `01D6` / `099B` | Map property | kind 等 | マップ属性観測。NPC 本文命令へは出さない |
