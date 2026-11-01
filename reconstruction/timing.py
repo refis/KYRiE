@@ -35,7 +35,9 @@ def build_timeline(conversation, source_ref='', min_gap_ms=100, *, player_notifi
     steps = list(conversation.steps)
     if conversation.termination:
         steps.append(dict(conversation.termination,
-                          kind='shop_opened' if conversation.status == 'shop_opened' else 'map_changed', fields={}))
+                          kind=('shop_opened' if conversation.status == 'shop_opened' else
+                                'barter_opened' if conversation.status == 'barter_opened' else 'map_changed'),
+                          fields={}))
     rows, waits, gaps = [], [], []
     quality = set()
     if not conversation.observed_open:

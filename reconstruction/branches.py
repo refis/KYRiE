@@ -368,16 +368,23 @@ def conversation_path(source_ref, conversation, strict=True):
                 break
     else:
         append_quests(len(steps) - 1)
-    if not tokens and conversation.status != 'shop_opened' and not is_touch(conversation.npc):
+    if (not tokens and conversation.status not in ('shop_opened', 'barter_opened')
+            and not is_touch(conversation.npc)):
         raise ValueError('No supported conversation content')
     terminal = ('boundary' if conversation.status == 'map_changed' else
+                'barter_boundary' if conversation.status == 'barter_opened' else
                 'shop_boundary' if conversation.status == 'shop_opened' else 'end')
     reference = (tokens[-1]['evidence'] if tokens else
                  _reference(source_ref, conversation, steps[0], 0) if steps else
                  _reference(source_ref, conversation, conversation.termination, None))
-    if terminal in ('boundary', 'shop_boundary') and conversation.termination:
+    if terminal in ('boundary', 'shop_boundary', 'barter_boundary') and conversation.termination:
         reference = _reference(source_ref, conversation, conversation.termination, None)
     terminal_fields = {}
+    if terminal == 'barter_boundary' and conversation.termination.get('barter_call_name'):
+        name = conversation.termination['barter_call_name']
+        if not isinstance(name, str) or not re.fullmatch(r'GPA_B[0-9a-f]{12}', name):
+            raise ValueError('Invalid observed-barter candidate name')
+        terminal_fields = {'barter_call_name': name}
     if terminal == 'shop_boundary' and conversation.termination.get('shop_call_name'):
         name = conversation.termination['shop_call_name']
         if not isinstance(name, str) or not re.fullmatch(r'GPA_S[0-9a-f]{12}', name):
@@ -520,7 +527,7 @@ def build_merged(observations, max_nodes=100000, max_observations=2000,
             reason = 'npc_identity_incomplete'
         elif not is_touch(conversation.npc) and (not conversation.observed_open or not conversation.steps or conversation.steps[0]['kind'] != 'open'):
             reason = 'open_unobserved'
-        elif conversation.status not in ('closed', 'map_changed', 'shop_opened'):
+        elif conversation.status not in ('closed', 'map_changed', 'shop_opened', 'barter_opened'):
             reason = 'conversation_incomplete'
         elif (set(timing['quality_flags']) - ({'start_unobserved'} if is_touch(conversation.npc) else set())) and not (timeout and set(timing['quality_flags']) <= {'overlapping_prompt', 'unanswered_termination'}):
             reason = 'observation_quality'

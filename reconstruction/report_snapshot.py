@@ -29,6 +29,7 @@ class NpcReportSnapshot:
     sources: dict
     merge: bool
     shops: list
+    barters: list
     rendering: object
     text_output: bool=False
     identity: dict | None=None
@@ -37,13 +38,14 @@ class NpcReportSnapshot:
         from reconstruction.npc_bundle import build_npc_bundle
         with self.rendering.activate():
             report=build_npc_bundle(self.entities,self.conversations,self.sources,merge=self.merge,shops=self.shops,
-                                   identity=self.identity)
+                                   barters=self.barters, identity=self.identity)
         if not report['entries'] and not report['excluded']:raise ValueError('NPCの観測がありません。')
         return report
 
 
-def freeze_npc_report(entities,conversations,sources,*,merge,shops=(),identity=None):
+def freeze_npc_report(entities,conversations,sources,*,merge,shops=(),barters=(),identity=None):
     from reconstruction.render_inputs import freeze_npc_render_inputs
-    entities,conversations,sources,shops=deepcopy((list(entities),list(conversations),dict(sources),list(shops)))
-    return NpcReportSnapshot(entities,conversations,sources,merge,shops,freeze_npc_render_inputs(),
+    entities,conversations,sources,shops,barters=deepcopy(
+        (list(entities),list(conversations),dict(sources),list(shops),list(barters)))
+    return NpcReportSnapshot(entities,conversations,sources,merge,shops,barters,freeze_npc_render_inputs(),
                              identity=dict(identity or {}))

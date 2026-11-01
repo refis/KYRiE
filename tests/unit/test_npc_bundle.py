@@ -42,6 +42,19 @@ class NpcBundleTests(unittest.TestCase):
         self.assertEqual(reviewed['review_only_count'], 1)
         self.assertTrue(all(not line.strip() or line.startswith('//') for line in reviewed['auriga'].splitlines()))
 
+    def test_bundle_places_commented_barter_before_npc_and_callbarter_in_body(self):
+        from tests.unit.test_barter import observe_barter
+        record, conversation = observe_barter()
+        report = build_npc_bundle([], [conversation], barters=[record])
+        self.assertFalse(report['excluded'])
+        self.assertEqual(len(report['entries']), 1)
+        self.assertTrue(report['entries'][0]['review_only'])
+        text = report['auriga']
+        self.assertIn('//-\tbarter\tGPA_B', text)
+        self.assertIn('// callbarter "GPA_B', text)
+        self.assertLess(text.index('//-\tbarter\t'), text.index('\tscript\t'))
+        self.assertLess(text.index('close2;'), text.index('// callbarter "'))
+
     def test_bundle_shop_dialogues_follow_merge_checkbox_without_mutating_inputs(self):
         from tests.unit.test_shop_export import observe_shop
         record, first = observe_shop(True)

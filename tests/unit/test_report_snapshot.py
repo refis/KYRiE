@@ -37,21 +37,29 @@ class ReportSnapshotTests(unittest.TestCase):
         from reconstruction.npc_bundle import build_npc_bundle
         from tests.unit.test_npc_bundle import entity
         from tests.unit.test_shop_export import observe_shop
+        from tests.unit.test_barter import observe_barter
         for merge in (False,True):
             direct,opened=observe_shop(False)
             direct['npc']['name']='Direct';opened.npc['name']='Direct'
             opened.id=10;direct['conversation_id']=10
             linked,talk=observe_shop(True)
+            barter_record,barter_talk=observe_barter()
+            barter_talk.id=20
+            barter_record['conversation_id']=20
+            barter_talk.npc['name']='BarterNpc'
             entities=[dict(entity(),name='Decorative',actor_id=99)]
-            conversations=[opened,talk];shops=[direct,linked];sources={0:'original'}
-            expected=build_npc_bundle(entities,conversations,sources,merge=merge,shops=shops)
-            prepared=freeze_npc_report(entities,conversations,sources,merge=merge,shops=shops)
+            conversations=[opened,talk,barter_talk];shops=[direct,linked];barters=[barter_record]
+            sources={0:'original'}
+            expected=build_npc_bundle(entities,conversations,sources,merge=merge,shops=shops,barters=barters)
+            prepared=freeze_npc_report(entities,conversations,sources,merge=merge,shops=shops,barters=barters)
             entities[0]['title']='changed'
             talk.steps.clear();linked['items'][0]['price']=99999;sources[0]='later'
+            barter_record['items'][0]['zeny']=1
             with self.subTest(merge=merge),patch('pathlib.Path.read_bytes',side_effect=AssertionError('late file read')), \
                     patch('pathlib.Path.resolve',side_effect=AssertionError('late path resolution')), \
                     patch('pathlib.Path.open',side_effect=AssertionError('late file open')):
                 self.assertEqual(prepared.build(),expected)
+                self.assertIn('//-\tbarter\tGPA_B', expected['auriga'])
 
     def test_frozen_rendering_context_is_private_to_its_thread(self):
         from threading import Event,Thread

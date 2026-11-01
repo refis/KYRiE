@@ -64,6 +64,8 @@
   "npc_name_conflict": "// 同名・異配置のNPC {name}。自動選択や改名をせず、候補をコメントで保持します。",
   "shop_boundary": "// ショップ選択画面への遷移を観測。shop/callshopの元構造は未確定。",
   "callshop": "callshop {shop_name};",
+  "barter_boundary": "// 拡張barter一覧への遷移を観測。barter宣言・呼出しの元構造はAuriga未実装。",
+  "callbarter_review": "// callbarter {shop_name}; // Auriga未実装。拡張barter一覧を観測。",
   "emotion": "emotion {value};",
   "classchange": "// NPC外見変更を観測: class={class_id}, type={kind}。元命令・起因条件は未確定。",
   "progressbar": "// 対象付きprogressbar通知: 秒数={seconds}, 色={color}。待機命令・タイマー設定・起因は未確定。",
