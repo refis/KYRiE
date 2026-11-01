@@ -74,6 +74,7 @@ FILE_FIELDS = {'npc_empty': {'map_name', 'x', 'y', 'direction', 'npc_name', 'cla
                'npc_unobserved_body': set(), 'npc_bundle_header': {'count', 'excluded', 'mode'},
                'npc_name_conflict': {'name'},
                'npc_file_footer': set(), 'shop_boundary': set(), 'callshop': {'shop_name'},
+               'barter_boundary': set(), 'callbarter_review': {'shop_name'},
                'close2_observed': set(), 'post_close_warp': {'map_name', 'x', 'y'}}
 for _suffix in ('', '_hidden', '_cloaked'):
     FILE_FIELDS['npc_touch_header' + _suffix] = {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id', 'radius_x', 'radius_y'}
@@ -167,7 +168,8 @@ class AurigaRenderer:
         nodes = [dict(id=0, kind='root', fields={}, children=[])]
         timing = build_timeline(conversation)
         timing_rows = {row['step_index']: row for row in timing['rows'] if row['step_index'] is not None}
-        has_content = (bool(conversation.actions) or is_touch(conversation.npc) or conversation.status == 'shop_opened' or
+        has_content = (bool(conversation.actions) or is_touch(conversation.npc)
+                       or conversation.status in ('shop_opened', 'barter_opened') or
                        any(step['kind'] not in ('open', 'dismiss') for step in conversation.steps))
         if not has_content:
             preamble.append(('pending', {}))
@@ -356,6 +358,8 @@ class AurigaRenderer:
                 value = not children
             elif kind == 'shop_boundary':
                 value = bool(node['fields'].get('shop_call_name')) and not children
+            elif kind == 'barter_boundary':
+                value = bool(node['fields'].get('barter_call_name')) and not children
             elif kind in ('pending', 'boundary', 'ambiguous'):
                 value = False
             elif kind in ('menu', 'loop_menu'):
@@ -478,7 +482,7 @@ class AurigaRenderer:
                                   ('emit', ('block_close', {}), cutin, window_closed, depth)])
                 schedule(tasks)
                 continue
-            if kind in ('end', 'pending', 'boundary', 'ambiguous', 'shop_boundary'):
+            if kind in ('end', 'pending', 'boundary', 'ambiguous', 'shop_boundary', 'barter_boundary'):
                 if kind == 'pending':
                     emit('pending', depth)
                 elif kind == 'boundary':
@@ -496,6 +500,17 @@ class AurigaRenderer:
                         emit('callshop', depth, shop_name=reference)
                     else:
                         emit('shop_boundary', depth)
+                elif kind == 'barter_boundary':
+                    call_name = fields.get('barter_call_name')
+                    if call_name is not None:
+                        if not window_closed:
+                            emit('close2', depth)
+                        reference = _quote(call_name)
+                        if isinstance(map_name, str) and '@' in map_name:
+                            reference = self.templates['instance_npc_reference'].format(name=reference)
+                        emit('callbarter_review', depth, shop_name=reference)
+                    else:
+                        emit('barter_boundary', depth)
                 emit('end', depth)
                 continue
             if kind == 'mes':
@@ -595,13 +610,18 @@ class AurigaRenderer:
                 cutin = fields['position'] != 255
                 emit('cutin', depth, image=_quote(fields['image']), position=fields['position'])
             elif kind == 'close':
-                if shop_call_name is not None or any(nodes[child]['kind'] == 'shop_boundary'
-                        and nodes[child]['fields'].get('shop_call_name') for child in node['children']):
+                if (shop_call_name is not None
+                        or any(nodes[child]['kind'] == 'shop_boundary'
+                               and nodes[child]['fields'].get('shop_call_name') for child in node['children'])
+                        or any(nodes[child]['kind'] == 'barter_boundary'
+                               and nodes[child]['fields'].get('barter_call_name') for child in node['children'])):
                     stack.append(('walk', node['id'], cutin, window_closed, depth))
                     continue
                 emit('close', depth)
                 if any(nodes[child]['kind'] == 'shop_boundary' for child in node['children']):
                     emit('shop_boundary', depth)
+                if any(nodes[child]['kind'] == 'barter_boundary' for child in node['children']):
+                    emit('barter_boundary', depth)
                 continue
             elif kind == 'close2':
                 window_closed = True

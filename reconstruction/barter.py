@@ -1,0 +1,124 @@
+"""Expanded barter market lists (ZC_NPC_EXPANDED_BARTER_MARKET_ITEMINFO / 0x0B56)."""
+from collections import deque
+from copy import deepcopy
+import math
+
+from reconstruction.decoder import Reader, ObservationError
+
+# Old PACKETVER layout used by 0x0B56 (no viewSprite/location/item refine).
+ITEM_HEADER = 26
+CURRENCY_SIZE = 12
+
+
+def decode_expanded_barter(packet):
+    if packet.direction != 'RECV' or packet.packet_id != 0xb56:
+        return None
+    r = Reader(packet.raw)
+    if len(packet.raw) < 8 or r.number(2, 'H') != len(packet.raw):
+        raise ObservationError('Expanded barter length does not match the packet header')
+    count = r.number(4, 'I')
+    if count > 2048:
+        raise ObservationError('Expanded barter item capacity exceeded')
+    offset = 8
+    items = []
+    for _ in range(count):
+        if offset + ITEM_HEADER > len(packet.raw):
+            raise ObservationError('Expanded barter item header truncated')
+        nameid = r.number(offset, 'I')
+        item_type = r.number(offset + 4, 'H')
+        amount = r.number(offset + 6, 'I')
+        weight = r.number(offset + 10, 'I')
+        index = r.number(offset + 14, 'I')
+        zeny = r.number(offset + 18, 'I')
+        currency_count = r.number(offset + 22, 'I')
+        if not nameid:
+            raise ObservationError('Zero expanded barter item ID')
+        if currency_count > 64:
+            raise ObservationError('Expanded barter currency capacity exceeded')
+        offset += ITEM_HEADER
+        currencies = []
+        for _ in range(currency_count):
+            if offset + CURRENCY_SIZE > len(packet.raw):
+                raise ObservationError('Expanded barter currency truncated')
+            currency_id = r.number(offset, 'I')
+            refine = r.number(offset + 4, 'H')
+            currency_amount = r.number(offset + 6, 'I')
+            currency_type = r.number(offset + 10, 'H')
+            if not currency_id:
+                raise ObservationError('Zero expanded barter currency ID')
+            currencies.append(dict(client_item_id=currency_id, refine_level=refine,
+                                   amount=currency_amount, item_type=currency_type))
+            offset += CURRENCY_SIZE
+        stock = -1 if amount == 0xffffffff else amount
+        if stock != -1 and not 0 <= stock <= 2147483647:
+            raise ObservationError('Expanded barter stock out of range')
+        if not 0 <= zeny <= 2147483647:
+            raise ObservationError('Expanded barter zeny out of range')
+        items.append(dict(client_item_id=nameid, item_type=item_type, stock=stock, amount_raw=amount,
+                          weight=weight, index=index, zeny=zeny, currencies=currencies))
+    if offset != len(packet.raw):
+        raise ObservationError('Expanded barter trailing bytes remain after known layout')
+    return items
+
+
+class BarterStore:
+    def __init__(self, world=None, max_records=1000, max_items=20000, dialogues=None):
+        self.world, self.max_records, self.max_items = world, max_records, max_items
+        self.records = []
+        self.current_capture, self.revision, self.item_count, self.issue_count = -1, 0, 0, 0
+        self.issues = deque(maxlen=100)
+        self.dialogues = dialogues
+
+    def begin_capture(self, session):
+        if session > self.current_capture:
+            self.current_capture = session
+
+    def apply(self, packet, session=0, packet_index=None):
+        self.begin_capture(session)
+        if session != self.current_capture:
+            return
+        if packet.direction != 'RECV' or packet.packet_id != 0xb56:
+            return
+        key = (session, packet.flow_id or packet.connection)
+        evidence = dict(packet_index=packet_index, packet_id=packet.packet_id, timestamp=packet.timestamp,
+                        connection=packet.connection, direction=packet.direction, source=packet.source)
+        try:
+            if not math.isfinite(packet.timestamp):
+                raise ObservationError('Invalid barter observation timestamp')
+            items = decode_expanded_barter(packet)
+            if len(self.records) >= self.max_records or self.item_count + len(items) > self.max_items:
+                raise ObservationError('Barter observation capacity exceeded')
+            association, conversation_id, link_basis, actor = 'unresolved', None, None, None
+            if self.dialogues:
+                recent = self.dialogues.shop_recent.get(key)
+                if (recent and session == self.dialogues.current_capture
+                        and 0 <= packet.timestamp - recent[0] <= 2
+                        and self.dialogues.active.get(key) is not recent[1]):
+                    conversation = recent[1]
+                    association = 'after_close_list'
+                    conversation_id = conversation.id
+                    link_basis = 'same_flow_after_close'
+                    actor = conversation.actor_id
+            entity = self.world.find_current(packet, session, actor, 'NPC') if self.world and actor else None
+            npc = ({name: deepcopy(getattr(entity, name)) for name in
+                     ('name', 'map_name', 'class_id', 'x', 'y', 'direction', 'appearance', 'map_generation',
+                      'map_origin', 'map_evidence', 'server_endpoint', 'initial_options', 'initial_state_evidence',
+                      'initial_display', 'appearance_data', 'display_changes', 'waitingrooms')}
+                   if entity else {})
+            self.records.append(dict(id=len(self.records) + 1, capture_session=session, flow_id=key[1],
+                actor_id=actor, npc=npc, association=association, conversation_id=conversation_id,
+                conversation_link_basis=link_basis, items=items, item_id_kind='client_item_id',
+                packet=evidence, association_evidence=[evidence] if association != 'unresolved' else [],
+                market_kind='expanded_barter', layout='0x0B56 without viewSprite/location',
+                cause_confirmed=False))
+            self.item_count += len(items)
+            self.revision += 1
+        except ObservationError as exc:
+            self.issue_count += 1
+            self.issues.append(dict(packet_index=packet_index, packet_id=packet.packet_id, message=str(exc)))
+            self.revision += 1
+
+    def snapshot(self):
+        return dict(schema_version=1, records=deepcopy(self.records), issue_count=self.issue_count,
+                    issues=list(self.issues),
+                    layout='0x0B56 expanded barter; item=26 bytes, currency=12 bytes')

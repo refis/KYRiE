@@ -40,7 +40,8 @@ KIND_LABELS = {'dialogue_size':'会話サイズ', 'dialogue_position':'会話位
                'menu': '選択肢', 'choice': '選択操作', 'number': '数値入力待機', 'text': '文字入力待機',
                'number_reply': '数値入力', 'text_reply': '文字入力', 'close': '終了待機',
                'dismiss': '終了操作', 'cutin': 'カットイン', 'clear': '会話消去', 'map_changed': 'マップ移動',
-               'shop_opened': 'ショップ遷移', 'post_close_warp': 'close応答後のマップ移動',
+               'shop_opened': 'ショップ遷移', 'barter_opened': '拡張barter遷移',
+               'post_close_warp': 'close応答後のマップ移動',
                'classchange': '外見変更', 'progressbar': 'プログレスバー', 'viewpoint': 'マップマーカー',
                'overhead': '頭上メッセージ'}
 QUALITY_LABELS = {'start_unobserved': '会話開始が未観測', 'incomplete_context': '会話が中断・不完全',

@@ -23,7 +23,7 @@ python -m tools.run_tests shop --dry-run
 - `dialogue`: 会話、close、統合・タイムアウト、書式、インスタンス
 - `presentation`: 会話内アクション、状態異常ID変換、announce、演出、BGM、viewpoint等の観測
 - `npc`: 配置・全件出力、class 45・139接触／warp、初期状態、group/title、ActorID
-- `shop`: 商品一覧、shop/callshop、全件出力
+- `shop`: 商品一覧、shop/callshop、拡張barter（0x0B56）、全件出力
 - `player`: 現在情報、クエスト、個体状態
 - `mob`: 攻撃・性能、スキル、配置・DB候補
 - `display`: 表示変換・ignorepacket

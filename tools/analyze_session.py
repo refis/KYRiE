@@ -14,6 +14,7 @@ from reconstruction.player import PlayerStore
 from reconstruction.dialogue import DialogueStore
 from reconstruction.script_commands import render_command
 from reconstruction.shops import ShopStore
+from reconstruction.barter import BarterStore
 from reconstruction.combat import CombatStore
 from reconstruction.skills import SkillStore
 from reconstruction.mob_spawns import MobSpawnStore
@@ -46,6 +47,7 @@ def analyze(path, definitions):
     spawns = MobSpawnStore(world)
     dialogues = DialogueStore(world=world)
     shops = ShopStore(world, dialogues=dialogues)
+    barters = BarterStore(world, dialogues=dialogues)
     combat, skills = CombatStore(world), SkillStore(world)
     count = 0
     def consume(event):
@@ -53,6 +55,7 @@ def analyze(path, definitions):
         world.apply(event, packet_index=count)
         spawns.apply(event, packet_index=count)
         shops.apply(event, packet_index=count)
+        barters.apply(event, packet_index=count)
         combat.apply(event, packet_index=count)
         skills.apply(event, packet_index=count)
         values = players.apply(event, packet_index=count)
@@ -70,8 +73,8 @@ def analyze(path, definitions):
     if fingerprint(generation_profile('dialogue.json'), 2 * 1024 * 1024) != profile_hash:
         raise ValueError('解析中に会話生成書式が変更されました。再実行してください。')
     sections = dict(world=world.snapshot(), player=players.snapshot(), dialogues=dialogues.snapshot(source_ref),
-                    shops=shops.snapshot(), combat=combat.snapshot(), skills=skills.snapshot(),
-                    mob_spawns=spawns.snapshot())
+                    shops=shops.snapshot(), barters=barters.snapshot(), combat=combat.snapshot(),
+                    skills=skills.snapshot(), mob_spawns=spawns.snapshot())
     definition_text = ''.join(f'{pid:04X} {size}\n' for pid, size in sorted(definitions.items()))
     report = dict(schema_version=1, emulator=active_emulator(), source_log=source_ref,
                 source_sha256=source_hash,

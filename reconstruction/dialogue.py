@@ -701,6 +701,24 @@ class DialogueStore:
                     self.active.pop(key, None)
                     self.revision += 1
             return
+        if packet.direction == 'RECV' and packet.packet_id == 0xb56:
+            # Expanded barter list after close: same 2s shop_recent window as close2/callshop.
+            recent = self.shop_recent.get(key)
+            if (recent and session == self.current_capture and 0 <= packet.timestamp - recent[0] <= 2
+                    and self.active.get(key) is not recent[1]):
+                linked = recent[1]
+                self.shop_recent.pop(key, None)
+                self.after_close.pop(key, None)
+                if linked.status not in ('shop_opened', 'barter_opened'):
+                    linked.status = 'barter_opened'
+                    linked.termination = dict(timestamp=packet.timestamp, packet_index=index,
+                        packet_id=packet.packet_id, direction=packet.direction, connection=packet.connection,
+                        source=packet.source, shop_actor_id=linked.actor_id,
+                        shop_link_basis='same_flow_after_close', after_close_barter=True,
+                        market_kind='expanded_barter')
+                    self.active.pop(key, None)
+                    self.revision += 1
+            return
         if packet.direction == 'RECV' and packet.packet_id in PRESENTATION_ACTOR_OFFSETS:
             # These notifications alone never identify a conversation. Ignore
             # other actors before parsing their text or changing dialogue state.
@@ -1019,7 +1037,7 @@ class DialogueStore:
                 self.close_pending.pop(key, None)
                 self.after_close.pop(key, None)
                 self.shop_recent.pop(key, None)
-            elif not (closing_ack and conversation.status == 'shop_opened'):
+            elif not (closing_ack and conversation.status in ('shop_opened', 'barter_opened')):
                 conversation.status = 'closed' if kind != 'choice' else 'cancelled'
             if kind == 'close' and not cancel_confirmation:
                 if step.get('timeout_suspected'):

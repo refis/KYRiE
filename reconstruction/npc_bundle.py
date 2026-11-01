@@ -13,10 +13,11 @@ from reconstruction.branches import build_merged, conversation_path
 from reconstruction.entity_metadata import render_npc_initialization
 from reconstruction.npc_initial_state import visibility_state
 from reconstruction.shop_export import ShopRenderer, shop_name_for
+from reconstruction.barter_export import BarterRenderer, barter_name_for
 
 
 def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=False, shops=(),
-                     max_chars=64 * 1024 * 1024, identity=None, touch_inferences=None):
+                     barters=(), max_chars=64 * 1024 * 1024, identity=None, touch_inferences=None):
     conversations = list(conversations)
     sources = dict(source_sessions or {})
     renderer = AurigaRenderer(identity=identity)
@@ -79,9 +80,37 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
         else:
             entry['definition'] = definition
         bucket.setdefault('shops', []).append(entry)
+    barter_renderer = BarterRenderer() if barters else None
+    for record in barters:
+        record = deepcopy(record)
+        linked = lookup.get((record['capture_session'], record.get('conversation_id')))
+        dialogue = linked is not None and any(step['kind'] not in ('open', 'dismiss') for step in linked.steps)
+        if not dialogue:
+            excluded.append(dict(kind='barter', record=record, reason='本文を伴う対応会話が必要です。'))
+            continue
+        try:
+            name, definition = barter_renderer.hidden_definition(record, linked.npc)
+            # Validate linkage the same way as individual export.
+            barter_renderer.render(record, conversation=linked, review_unconfirmed=True)
+        except (ValueError, OSError) as exc:
+            excluded.append(dict(kind='barter', record=record, reason=str(exc)))
+            continue
+        bucket = add(linked.npc, dict(kind='barter', record=record, actor_id=record.get('actor_id'),
+                                      capture_session=record['capture_session']))
+        if bucket is None:
+            continue
+        entry = dict(record=record, mode='callbarter', item_ids_confirmed=False, name=name, definition=definition)
+        for item in bucket['conversations']:
+            if (item.capture_session, item.id) == (linked.capture_session, linked.id):
+                previous = item.termination.get('barter_call_name')
+                if previous and previous != name:
+                    entry['conflict'] = True
+                item.termination['barter_call_name'] = name
+        bucket.setdefault('barters', []).append(entry)
     entries, size = [], 0
     for _, bucket in sorted(buckets.items(), key=lambda item: (item[1]['sort_key'], item[0])):
         shop_entries = bucket.get('shops', [])
+        barter_entries = bucket.get('barters', [])
         direct_keys = {(row['record']['capture_session'], row['record'].get('conversation_id'))
                        for row in shop_entries if row['mode'] == 'shop'}
         items = [item for item in bucket['conversations'] if (item.capture_session, item.id) not in direct_keys]
@@ -138,7 +167,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
         touches = [row['touch'] for row in bucket['metadata'] if is_touch(row)]
         if touches:
             npc['touch'] = merge_contexts(touches)
-        if (touches and items and not initialization and not shop_entries
+        if (touches and items and not initialization and not shop_entries and not barter_entries
                 and all(not item.actions and not item.resource_observations and not item.parallel_presentations
                         and not item.external_presentations for item in items)):
             paths = [conversation_path('', item, strict=False) for item in items]
@@ -154,6 +183,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
                 npc.update(initial_options=observed['initial_options'], initial_state_evidence=deepcopy(observed.get('initial_state_evidence', {})))
             direct = list(dict.fromkeys(row['definition'].rstrip() for row in shop_entries if row['mode'] == 'shop'))
             hidden = list(dict.fromkeys(row['definition'].rstrip() for row in shop_entries if row['mode'] == 'callshop'))
+            commented_barters = list(dict.fromkeys(row['definition'].rstrip() for row in barter_entries))
             if direct and not bodies:
                 code = '\n\n'.join(direct) + '\n'
                 if initialization:
@@ -162,25 +192,33 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
                 code = renderer._wrap_npc(npc, body)
                 if direct:
                     code += '\n' + '\n\n'.join(direct) + '\n'
+            preface = []
             if hidden:
-                code = renderer.templates['npc_shop_ids_review'] + '\n' + '\n\n'.join(hidden) + '\n\n' + code
+                preface.append(renderer.templates['npc_shop_ids_review'] + '\n' + '\n\n'.join(hidden))
+            if commented_barters:
+                preface.append('\n\n'.join(commented_barters))
+            if preface:
+                code = '\n\n'.join(preface) + '\n\n' + code
         except ValueError as exc:
             excluded.append(dict(kind='npc_initial_state', reason=str(exc), npc=npc,
                 observations=bucket['metadata'], entities=bucket['entities'], shops=shop_entries,
-                conversations=[asdict(item) for item in items]))
+                barters=barter_entries, conversations=[asdict(item) for item in items]))
             continue
         size += len(code)
         if size > max_chars:
             raise ValueError('NPC一括出力が上限を超えています。')
         entries.append(dict(npc=npc, rendered_names=instance_projection(npc), entities=bucket['entities'],
-            conversations=[asdict(item) for item in bucket['conversations']], shops=shop_entries, dialogue_mode='merged' if merge else 'individual',
+            conversations=[asdict(item) for item in bucket['conversations']], shops=shop_entries,
+            barters=barter_entries, dialogue_mode='merged' if merge else 'individual',
             rendered_paths=len(bodies), auriga=code,
             touch_trial_comparison=touch_trial_comparison,
             touch_trial_caption=touch_trial_caption,
             review_only=any(row['mode'] == 'shop' and (visibility_state(row['record']['npc'])
-                            in ('hidden', 'cloaked', 'ambiguous') or player_class((row['record']['npc'].get('initial_display') or {}).get('class_id',row['record']['npc'].get('class_id')))) for row in shop_entries),
+                            in ('hidden', 'cloaked', 'ambiguous') or player_class((row['record']['npc'].get('initial_display') or {}).get('class_id',row['record']['npc'].get('class_id')))) for row in shop_entries)
+                or bool(barter_entries),
             initial_state_conflict=len(states) > 1,
-            shop_conflict=len(direct) > 1 or bool(direct and bodies) or any(row.get('conflict') for row in shop_entries)))
+            shop_conflict=len(direct) > 1 or bool(direct and bodies) or any(row.get('conflict') for row in shop_entries)
+                or any(row.get('conflict') for row in barter_entries)))
         entries[-1]['merge_exclusions'] = merge_exclusions
     names = Counter(entry['npc']['name'] for entry in entries)
     texts = []

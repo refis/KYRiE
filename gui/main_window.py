@@ -25,6 +25,7 @@ from reconstruction.player import PlayerStore
 from reconstruction.skills import SkillStore
 from reconstruction.combat import CombatStore
 from reconstruction.shops import ShopStore
+from reconstruction.barter import BarterStore
 from reconstruction.mob_spawns import MobSpawnStore
 from parser.ignorepacket import IgnorePacket, observation_tags
 from gui.ignorepacket import IgnorePacketDialog
@@ -72,11 +73,13 @@ class MainWindow(QMainWindow):
         self.world = WorldStore()
         self.mob_spawns = MobSpawnStore(self.world)
         self.shops = ShopStore(self.world)
+        self.barters = BarterStore(self.world)
         self.players = PlayerStore()
         self.skills = SkillStore(self.world)
         self.combat = CombatStore(self.world)
         self.dialogues = DialogueStore(world=self.world)
         self.shops.dialogues = self.dialogues
+        self.barters.dialogues = self.dialogues
         self.world_sources = {}
         from reconstruction.client_names import load_client_names, empty_client_names
         try:
@@ -474,9 +477,9 @@ class MainWindow(QMainWindow):
             if large:
                 from reconstruction.report_snapshot import freeze_npc_report
                 prepared=freeze_npc_report(entities,self.dialogues.sessions,sources,merge=merge,
-                                          shops=self.shops.records,identity=identity)
+                                          shops=self.shops.records,barters=self.barters.records,identity=identity)
             report=None if prepared is not None else build_npc_bundle(entities,self.dialogues.sessions,
-                sources,merge=merge,shops=self.shops.records,identity=identity)
+                sources,merge=merge,shops=self.shops.records,barters=self.barters.records,identity=identity)
             if report is not None and not report['entries'] and not report['excluded']:
                 raise ValueError('NPCの観測がありません。')
             mode = '統合' if merge else '個別'
@@ -1173,6 +1176,7 @@ class MainWindow(QMainWindow):
         self.observation_tags.append(tags)
         self.mob_spawns.apply(event, session=session, packet_index=index)
         self.shops.apply(event, session=session, packet_index=index)
+        self.barters.apply(event, session=session, packet_index=index)
         self.combat.apply(event, session=session, packet_index=index)
         self.skills.apply(event, session=session, packet_index=index)
         player_observation = self.players.apply(event, session=session, packet_index=index)

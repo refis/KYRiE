@@ -65,6 +65,14 @@ close/close2の元の命令は通信だけで確定せず、出力では会話�
 編集用構造としてclose2を使用する。タッチ範囲・タイマー・スクリプト移動は復元しない。
 callshopのtypeは省略して取引メニューを開く。購入専用や売却専用の元コードを推測しない。
 
+## 拡張barter（0x0B56）
+
+RECV 0x0B56（旧レイアウト）をデコードし、close応答後2秒以内ならafter_close_listとして会話へ結ぶ。
+非配置の`//- barter GPA_B…`を配置NPCの前へ出し、本文側は`close2`と`// callbarter`コメントを置く。
+在庫`0xFFFFFFFF`は`-1`、通貨精錬`0`は脚本慣例の`-1`へ写す。Auriga未実装のため常にコメント。
+0x0B79新レイアウト・exchange専用形式は未対応。未観測行は作らない。
+書式はconfig/auriga/barters.json。
+
 ## 書式と検証
 
 shop宣言と注意文はconfig/auriga/shops.json、callshopや本文はconfig/auriga/dialogue.jsonで変更できる。

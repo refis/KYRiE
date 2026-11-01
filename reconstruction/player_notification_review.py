@@ -32,7 +32,7 @@ def review_player_notification_repeats(contributions, rows, sources=None):
         if steps>100000:raise ValueError('本人通知の比較は合計100000ステップ以内にしてください。')
         try:
             item=Conversation(**data)
-            if item.status not in ('closed','map_changed','shop_opened'):
+            if item.status not in ('closed','map_changed','shop_opened','barter_opened'):
                 raise ValueError('incomplete_conversation')
             if any(step.get('timeout_suspected') for step in item.steps):
                 raise ValueError('unanswered_termination')

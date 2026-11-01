@@ -39,14 +39,8 @@ cutincardはユーザー指定により実装対象外。既存のcutin（表示
 入力待ち中に届いた命令は実際の返信後のブロックへ仮配置し、その旨をコメントに残す。
 通常close後の無関係な入手・状態通知から会話を再開しない。
 openstorage／openreformは既存のclose応答後2秒以内の帰属候補へ関連付けるが、タイムアウト疑いのcloseは再開しない。
+拡張barter（0x0B56）も同じclose応答後2秒枠で会話へ帰属し、`//- barter`候補を出す（[shop出力](shop-export.md)）。
 送信・受信の半接続名が異なってもflowで照合する。接続・capture・MAP世代を越えて操作を借用しない。
-
-## 交換系（未実装）
-
-RECV 0x0B56（ZC_NPC_EXPANDED_BARTER_MARKET_ITEMINFO、可変長）はKYRiE未デコード。
-rAthenaのpackets.hppではitems_count付きの拡張barter一覧（nameid/type/amount/weight/index/zenyと
-通貨配列）として定義され、新しいPACKETVERでは0x0B79へ移行する。
-Aurigaの`- barter`宣言やcallshop相当の復元経路はまだない。未観測行を捏造しない。
 
 ## 床アイテム
 
