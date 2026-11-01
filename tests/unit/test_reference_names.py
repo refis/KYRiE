@@ -114,10 +114,9 @@ class ReferenceNameTests(unittest.TestCase):
     def test_optional_japanese_descriptions_stay_separate_from_symbols_and_sc(self):
         catalog=load_reference_names()
         self.assertEqual(catalog['descriptions']['visual_effect'],{})
-        self.assertEqual(catalog['descriptions']['status_icon'],{})
         labels=reference_labels(catalog,'status_icon',0)
         self.assertEqual(labels['reference_symbols'],'EFST_PROVOKE')
-        self.assertEqual(labels['reference_description'],DESCRIPTION_MISSING)
+        # Live catalog may include descript-title labels; fixture below still covers missing IDs.
         fixture=copy.deepcopy({key:catalog[key] for key in catalog if not key.startswith('_')})
         fixture['descriptions']={'status_icon':{'0':'挑発'},'visual_effect':{}}
         fixture['description_sources']=[{
@@ -152,6 +151,18 @@ class ReferenceNameTests(unittest.TestCase):
              '}\n').encode('utf-8')
         self.assertEqual(status_descriptions(raw,symbol_to_id,encoding='utf-8'),
                          {'0':'挑発','1':'忍耐'})
+        indexed=('StateIconList={}\n'
+                 'StateIconList[EFST_IDs.EFST_PROVOKE]={descript={{"挑発",{1,2,3}},{"追加行"}}}\n'
+                 'StateIconList[EFST_IDs.EFST_ENDURE]={descript={{"忍耐"}}}\n').encode('utf-8')
+        self.assertEqual(status_descriptions(indexed,symbol_to_id,encoding='utf-8'),
+                         {'0':'挑発','1':'忍耐'})
+        colored=('StateIconList={}\n'
+                 'StateIconList[EFST_IDs.EFST_PROVOKE]='
+                 '{descript={{"マジカルバレット",COLOR_TITLE_BUFF},{"追加行"}}}\n'
+                 'StateIconList[EFST_IDs.EFST_ENDURE]={descript={{"忍耐",COLOR_TITLE_DEBUFF}}}\n'
+                 ).encode('utf-8')
+        self.assertEqual(status_descriptions(colored,symbol_to_id,encoding='utf-8'),
+                         {'0':'マジカルバレット','1':'忍耐'})
         with self.assertRaises(ValueError):
             status_descriptions(
                 b'StateIconList={[EFST_IDs.EFST_PROVOKE]={descriptive="a\\nb"}}\n',
