@@ -549,6 +549,8 @@ class EventTrialPanel(QWidget):
             if context['actor_role']=='marker_npc':return f'通知NPC: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='effect_target':return f'効果対象: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='speech_source':return f'色付き発言: {name} / ID {row.get("actor_id")}'
+            if context['actor_role']=='status_enter_target':return f'入場時状態: {name} / ID {row.get("actor_id")}'
+            if context['actor_role']=='map_property':return 'マップ属性: 対象ID未記録'
             return 'BGM: 対象ID未記録' if row['kind']=='music' else '進捗: 対象ID未記録'
         npc = row.get('npc', {})
         if row.get('anchor_type') == 'map_arrival':
