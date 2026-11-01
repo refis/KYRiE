@@ -7,6 +7,14 @@ Status: design only; no DLL injection, game hook or native producer implemented.
 Use an authorized application integration point immediately before application
 encryption, after the complete game packet (including ID and any length) exists.
 Winsock send/WSASend may see ciphertext and is not an assumed plaintext boundary.
+
+Server RECV `0x02A3` (lingo key) and `0x02BD` (deform / srcryptor2 init) arm
+client-side SEND encryption. After they arrive, Npcap wire SEND is often
+ciphertext. Observing those keying packets does not decrypt later SEND; KYRiE
+records them for display only and does not claim a working lingo/deform
+recoverer (MARiA's path remains unresolved). Prefer this pre-encrypt capture
+boundary when plaintext SEND is required.
+
 Before implementing an adapter, determine executable version, calling convention,
 argument ownership/lifetime, threading, and whether the call contains one packet,
 several packets or a partial packet. Never assume x86 register or stack layouts.

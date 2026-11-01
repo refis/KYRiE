@@ -18,6 +18,24 @@ Named PipeやDLLは使わず、ネットワーク上の送信バイトを受動�
 暗号化されていれば平文には戻せない。ログインの一部が読めることだけで、
 ゲーム中のすべての送信も平文と判断しない。未知IDや不正長は当該方向の解析を停止する。
 
+## 送信暗号化の鍵通知（RECV 0x02A3 / 0x02BD）
+
+MARiA相当の観測では、サーバーから次の受信が来たあと、以降の**回線上のSEND**が
+暗号化されることがある。KYRiEはこれらのIDを長さ定義と表示定義へ載せ、鍵パラメータを
+観測表示する。回線上の暗号文SENDを平文へ戻す処理は**未解決・未実装**である。
+
+| ID | MARiA呼称 | 固定長 | フィールド（いずれも LE） |
+|----|-----------|--------|---------------------------|
+| 0x02A3 | gameguard_lingo_key | 18 | alg_num, key1, key2, seed（各 u32、offset 2/6/10/14） |
+| 0x02BD | srcryptor2_init | 10 | deform seed, add（各 u32、offset 2/6） |
+
+MARiA側は `set_lingo_key` / `set_deform_key` のあと `decrypt_payload` を試行しているが、
+解析は未解決のままである。未完成の復号器をKYRiEへ移植したり、失敗した平文を
+正しいSENDとして公開したりしない。
+
+Npcapで見える暗号化後SENDは、ゲームPacketID境界としては信頼しない。
+平文SENDが必要な復元は、暗号化前の取得境界（[ネイティブ送信設計](../../hook/DESIGN.md)）を使う。
+
 ## 方向と接続管理
 
 プロセスモードではpsutilで取得したlocal→remoteをSEND、remote→localをRECVとする。

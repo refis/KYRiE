@@ -2141,6 +2141,50 @@
       "fields": {},
       "template": "{command_text}",
       "min_length": 6
+    },
+    {
+      "ids": [
+        "02A3"
+      ],
+      "name": "SEND crypto lingo key (gameguard_lingo_key)",
+      "fields": {
+        "alg_num": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "key1": {
+          "offset": 6,
+          "type": "u32"
+        },
+        "key2": {
+          "offset": 10,
+          "type": "u32"
+        },
+        "seed": {
+          "offset": 14,
+          "type": "u32"
+        }
+      },
+      "template": "@send_crypto_lingo_key alg:{alg_num} key1:{key1} key2:{key2} seed:{seed}; // subsequent wire SEND may be ciphertext; decrypt unresolved",
+      "min_length": 18
+    },
+    {
+      "ids": [
+        "02BD"
+      ],
+      "name": "SEND crypto deform init (srcryptor2_init)",
+      "fields": {
+        "seed": {
+          "offset": 2,
+          "type": "u32"
+        },
+        "add": {
+          "offset": 6,
+          "type": "u32"
+        }
+      },
+      "template": "@send_crypto_deform_key seed:{seed} add:{add}; // subsequent wire SEND may be ciphertext; decrypt unresolved",
+      "min_length": 10
     }
   ],
   "actor_change_template": "@{actor_kind} ID={actor_id} 変更: {changes_text}",

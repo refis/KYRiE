@@ -220,3 +220,19 @@ class DisplayTests(unittest.TestCase):
             self.assertEqual(result.fields['effect_id'], icon)
             self.assertFalse(result.fields['status_mapped'])
 
+    def test_send_crypto_keying_packets_display_without_claiming_decrypt(self):
+        from parser.definitions import load_lengths
+        lengths = load_lengths(Path(__file__).resolve().parents[2] / 'PacketLength.txt')
+        self.assertEqual(lengths[0x2A3], 18)
+        self.assertEqual(lengths[0x2BD], 10)
+        lingo = self.display.decode(event(0x2A3, struct.pack('<IIII', 1, 2, 3, 4)))
+        self.assertEqual(lingo.status, 'decoded')
+        self.assertEqual(lingo.fields['alg_num'], 1)
+        self.assertIn('@send_crypto_lingo_key', lingo.text)
+        self.assertIn('decrypt unresolved', lingo.text)
+        deform = self.display.decode(event(0x2BD, struct.pack('<II', 5, 6)))
+        self.assertEqual(deform.status, 'decoded')
+        self.assertEqual(deform.fields['seed'], 5)
+        self.assertEqual(deform.fields['add'], 6)
+        self.assertIn('@send_crypto_deform_key', deform.text)
+
