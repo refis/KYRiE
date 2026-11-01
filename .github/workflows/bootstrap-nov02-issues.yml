@@ -1,0 +1,176 @@
+# One-shot: register 2026-11-02 backlog after display_only observe wave; no-op on rerun.
+name: Bootstrap Nov 2026-11-02 backlog issues
+
+on:
+  push:
+    branches: [cursor/bootstrap-nov02-issues-d40d]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Ensure optional labels exist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const wanted = [
+              { name: 'capture', color: '0E8A16', description: 'Raw packet capture / re-observation tasks' },
+              { name: 'npc', color: '1D76DB', description: 'NPC restoration / shop / dialogue' },
+            ];
+            for (const label of wanted) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: label.name });
+                core.info(`label exists: ${label.name}`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({ owner, repo, ...label });
+                core.info(`label created: ${label.name}`);
+              }
+            }
+
+      - name: Create Nov 02 backlog issues if missing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issues = [
+              {
+                title: '[documentation] 11/02到達点と次の着手単位の再同期',
+                labels: ['documentation'],
+                body: `## 目的
+            open Issue が再び空になったため、development-roadmap.md の「次の着手単位」を
+            2026-11-02 時点（display_only 個別配線完了後）へ書き直し、採取必須と文書／辞書作業を区別する。
+
+            ## 観測境界
+            - 観測する: development-roadmap.md、unsupported-notifications.md、直近マージPR（#62–#66）
+            - 推測しない / 自動補完しない: 未採取経路の完了扱い、実機確認済みへの格上げ
+            - 生データ採取は不要
+
+            ## 領域
+            documentation
+
+            ## 完了条件
+            - 「次の着手単位」が現状の残作業だけを列挙する
+            - display_only 完了と採取必須（文字input／0x0B79実機）を明示
+            - 文書のみ（テスト実行は任意）
+
+            ## 優先
+            P0
+
+            ## 根拠
+            2026-11-02 / open Issue 空 / display_only 配線波完了`
+              },
+              {
+                title: '[capture] P0-A 文字input（01D4／01D5）採取セッション',
+                labels: ['capture'],
+                body: `## 目的
+            チェックリストで次の最小1本とされた文字input（01D4→01D5）について、
+            正常完了→同じ経路で未応答終了→正常完了の順で採取し、ハッシュとメモだけを残す。
+
+            ## 観測境界
+            - 観測する: RECV 01D4／SEND 01D5、timeout／close、会話対応付け、セッション品質
+            - 推測しない / 自動補完しない: 未応答を合成で正常完了扱いしない、文字コードの推測修正
+            - 生データ採取が主成果（ログ本体はリポジトリへ上げない）
+
+            ## 領域
+            capture-stack / documentation
+
+            ## 完了条件
+            - 採取セッションID・capture.jsonl／PacketLength.used.txt の sha256
+            - raw-packet-collection-checklist.md の該当項と「次の最小1本」更新
+            - ログ自体はIssueに添付しない
+
+            ## 優先
+            P0
+
+            ## 根拠
+            development-roadmap.md P0-A / checklist「次の最小1本＝文字input」`
+              },
+              {
+                title: '[enhancement] stateicon 画像名辞書の取り込み（stateiconimginfo）',
+                labels: ['enhancement', 'documentation'],
+                body: `## 目的
+            提供 stateiconimginfo.lua の画像ファイル名を表示補助カタログへ取り込む。
+            EFST→SC変換や命令生成は変えない。日本語タイトル（descript）とは別レイヤ。
+
+            ## 観測境界
+            - 観測する: ローカル .reference の stateiconimginfo（読取専用）、既存 reference_names
+            - 推測しない / 自動補完しない: 欠落画像の捏造、優先度定数の意味断定、未デコード文字列の強制解釈
+            - 生データ採取は不要（符号化不正バイトは失敗または該当エントリ除外）
+
+            ## 領域
+            config-dict / documentation
+
+            ## 完了条件
+            - 生成CLIまたは既存 build_reference_names 拡張と出典SHA記録
+            - 選択テスト（カタログ検証）
+            - client-data-utilization-plan / receive-display の画像名注記更新
+            - .reference をコミットしない
+
+            ## 優先
+            P1
+
+            ## 根拠
+            client-data-utilization-plan.md「画像名対応は別作業」／.reference 利用許可`
+              },
+              {
+                title: '[capture] 0x0B79／exchange 実機ログ採取（レイアウト再確認）',
+                labels: ['capture', 'npc'],
+                body: `## 目的
+            合成契約済みの 0x0B79 拡張barter／exchange について、実機ログでレイアウトと
+            close後2秒枠の帰属を再確認する。未観測フィールドは発明しない。
+
+            ## 観測境界
+            - 観測する: 実パケット長・項目境界、0x0B0E／0x0B56との差、close後関連付け
+            - 推測しない / 自動補完しない: 旧レイアウト流用断定、未採取値の補完
+            - 生データ採取が必須（採取できるまで復元実装を広げない）
+
+            ## 領域
+            capture-stack / npc
+
+            ## 完了条件
+            - セッションIDと sha256（ログ本体は添付しない）
+            - shop-export／checklist への採取メモ
+            - 既存コメント候補契約との差分があれば docs のみ更新（命令発明なし）
+
+            ## 優先
+            P1（採取ブロック）
+
+            ## 根拠
+            development-roadmap.md「0x0B79実機ログでのレイアウト再確認」／#51 後継`
+              },
+            ];
+
+            function normalizeBody(text) {
+              return text.replace(/^[ \t]+/gm, '').trim() + '\n';
+            }
+
+            const open = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', per_page: 100,
+            });
+            const openTitles = new Set(open.filter(i => !i.pull_request).map(i => i.title));
+            let created = 0;
+            for (const issue of issues) {
+              if (openTitles.has(issue.title)) {
+                core.info(`skip existing open: ${issue.title}`);
+                continue;
+              }
+              const result = await github.rest.issues.create({
+                owner, repo,
+                title: issue.title,
+                labels: issue.labels,
+                body: normalizeBody(issue.body),
+              });
+              created += 1;
+              core.info(`created #${result.data.number}: ${issue.title}`);
+            }
+            core.info(`created ${created} issue(s)`);
