@@ -1,12 +1,13 @@
-# KYRiE v0.0.5 (Windows)
+# KYRiE v0.0.6 (Windows)
 
-v0.0.5はMAP・クエスト・ナビゲーション資料の表示・検索までを含むソース保存版です。現在の作業ツリーには保存後の開発も含みます。過去のv0.0.4 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
+v0.0.6はGitHub運用・NPC/MOB復元・辞書／接触比較などの到達点を含むソース保存版です。現在の作業ツリーには保存後の開発（拡張barter・openreform・close後callshopなど）も含みます。過去のv0.0.4／v0.0.5 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
 
 Auriga形式のNPCコード復元と、MOB性能・使用スキルの観測解析を目的とする開発スナップショットです。
 MARiAを参考に、受信・観測可能な非暗号化送信パケットから編集用コードと根拠を生成します。
 完成した元スクリプトやサーバー設定を保証するものではありません。
 
-- [v0.0.5の変更点・検証・残作業](docs/releases/v0.0.5.md)
+- [v0.0.6の変更点・検証・残作業](docs/releases/v0.0.6.md)
+- [保存済みv0.0.5の記録](docs/releases/v0.0.5.md)
 - [保存済みv0.0.4の記録](docs/releases/v0.0.4.md)
 - [目的別ドキュメント一覧](docs/README.md)
 - [GUI操作](docs/guide/gui-workspace.md) / [開発計画](docs/development/development-roadmap.md)
@@ -34,7 +35,7 @@ python -m venv .venv
 
 [取得の診断](docs/capture/capture-analysis.md) / [非暗号化SEND](docs/capture/send-capture.md)
 
-## v0.0.5でできること
+## v0.0.6でできること
 
 - プロセス選択、複数接続追跡、TCP再構成、送受信共通PacketEvent、観測ログと生パケット保存。
 - マップ・XY・所持品・Zeny、NPC/MOBの初回と差分、サーバー別ActorID順の一覧・出力。
@@ -44,6 +45,11 @@ python -m venv .venv
 - MOBの性能・使用スキル・再観測の整理、手動確認した配置／スキルDB候補。
 - 演出・会話開始・マップ到着を基準とした比較、根拠保存・再開。タイマー候補は既存の手動採用と全時刻入力で作成。
 - 生ログの単独／複数再解析、作業プロジェクト保存、観測ログだけを対象とするignorepacket。
+- MAP・クエスト・ナビ資料の検索、状態／エフェクト辞書の任意日本語説明、接触試行比較表示。
+- rAthena向け生成／表示プロファイル切替（`--emulator`／GUI）。Auriga優先は維持。
+
+保存後の作業ツリーでは、close後2秒枠の一覧→callshop、拡張barter（0x0B56）コメント候補、
+openreform（0x0B8F）コメント候補なども利用できます。詳細は各 docs とリリース記録を参照してください。
 
 [全NPC一括出力](docs/npc/npc-bundle-export.md) / [イベント比較](docs/npc/event-trials.md) /
 [MOB解析](docs/mob/mob-performance.md) / [保存ログの再解析](docs/guide/offline-replay.md)
@@ -53,6 +59,7 @@ python -m venv .venv
 - `config/auriga/display.json`: 受信文章、差分表示。送信は`config/send_display.json`。
 - `config/auriga/dialogue.json`: Aurigaコード書式。
 - `config/auriga/entity_metadata.json`: group/title・waitingroom・外見初期化。
+- `config/auriga/barters.json`: 拡張barterコメント候補の書式。
 - `config/player_classes.json`: 職業外見class一覧。変更後は再起動・再解析。
 - `config/auriga/status_ids.json`: 状態異常ID変換。未確認の引数は自動補完しません。
 - `config/auriga/script_commands.json`: 命令候補の条件。床アイテムの総寿命は60000ms。
@@ -79,8 +86,9 @@ C++ x86による暗号化前取得は未実装です。任意の外部producer�
 再解析には「設定 → 記録」で生バイト記録を有効にします。生ログ・DBにはゲーム内情報が含まれ得るため、
 ソースと別に管理してください。パケットDBはWAL＋FULL同期・1件commitを使用し、単体コピーはアプリ終了後に行います。
 使用中の-wal／-shmは個別削除しないでください。[保存方式](docs/capture/capture-analysis.md)に詳細があります。
-スナップショットZIPにはlogs、DB、クライアントEXE、参照リポジトリ、生成コードを含めません。
+スナップショットZIPにはlogs、DB、クライアントEXE、参照リポジトリ、生成コード、`config/user_settings.json`を含めません。
 ローカルのignorepacket設定はZIP内で空の既定値へ戻します。作業側の設定・データは変更しません。
+版を進めるときは`version.py`と**直下README.mdの版見出し**を同じ値へ揃え、手順は[スナップショット手順](docs/releases/README.md)に従います。
 
 ```powershell
 python -m tools.build_snapshot --output-dir dist
@@ -99,13 +107,13 @@ python -m tools.run_tests --list
 python -m tools.run_tests npc events
 ```
 
-全件テストが必要な場合の手動実行（v0.0.5では対象テストのみ実行）:
+全件テストが必要な場合の手動実行（v0.0.6作成時は選択グループのみ実行）:
 
 ```powershell
 python -m unittest discover -s tests -t . -q
 ```
 
-[テスト方針](tests/README.md)と[v0.0.5の検証記録](docs/releases/v0.0.5.md)を参照してください。
+[テスト方針](tests/README.md)と[v0.0.6の検証記録](docs/releases/v0.0.6.md)を参照してください。
 合成・GUIテストの通過はWindowsゲーム実機／Auriga本体での動作確認を代替しません。
 旧v0.2/v0.3の開発経緯は[DEVELOPMENT.md](DEVELOPMENT.md)に保存しています。
 

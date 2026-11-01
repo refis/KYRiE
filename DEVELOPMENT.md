@@ -2306,6 +2306,14 @@ and gui-restoration+gui-display+offline+storage (153); total 579. Not full disco
 Artifacts: dist/KYRiE-v0.0.6-source.zip (+.sha256, verification.json; gitignored).
 See docs/releases/v0.0.6.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.
 
+### 2026-11-01: Snapshot rules require root README version sync
+
+v0.0.6 metadata advanced version.py and release notes, but root README.md stayed on the v0.0.5 banner
+(and the frozen ZIP embedded that stale README). Updated docs/releases/README.md checklist,
+aligned root README / SNAPSHOT.json to 0.0.6, and gated `build_snapshot` plus `release` tests on
+matching `# KYRiE v{version} (Windows)` and the release-note link. Existing v0.0.6 ZIP SHA is unchanged.
+Selected: `python -m tools.run_tests release` (4). Not full discover.
+
 ### 2026-10-31: Packet structure overlay and field index tags (#35 P0)
 
 Explicit version-1 JSON overlays merge into PacketLength and display for unknown/extended IDs only.

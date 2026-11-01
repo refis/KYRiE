@@ -17,12 +17,27 @@ SUFFIXES = {'.py','.md','.json','.txt','.yml','.yaml'}
 DEFAULT_IGNORE = dict(version=1,packet_ids=[],mob_combat=False,npc_actor_ids=[],npc_names=[])
 
 
+def require_versioned_readme(root):
+    """Refuse packaging when the root README banner lags version.py."""
+    readme = root / 'README.md'
+    if not readme.is_file():
+        raise ValueError('Snapshot source root is incomplete')
+    first = next((line.strip() for line in readme.read_text(encoding='utf-8').splitlines() if line.strip()), '')
+    expected = f'# KYRiE v{__version__} (Windows)'
+    if first != expected:
+        raise ValueError(f'Root README.md must start with {expected!r} (found {first!r})')
+    body = readme.read_text(encoding='utf-8')
+    if f'docs/releases/v{__version__}.md' not in body:
+        raise ValueError(f'Root README.md must link docs/releases/v{__version__}.md')
+
+
 def build_snapshot(root, output_dir):
     root = Path(root).resolve()
     if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', __version__):
         raise ValueError('Invalid snapshot version')
-    if not (root/'README.md').is_file() or not (root/'main.py').is_file():
+    if not (root/'main.py').is_file():
         raise ValueError('Snapshot source root is incomplete')
+    require_versioned_readme(root)
     files = {}
     candidates = [root/name for name in ROOT_FILES if (root/name).is_file()]
     for name in DIRECTORIES:
