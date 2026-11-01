@@ -1,0 +1,258 @@
+# One-shot: register 2026-11-01 backlog issues (empty open queue), then no-op on rerun.
+name: Bootstrap Nov 2026 backlog issues
+
+on:
+  push:
+    branches: [cursor/bootstrap-nov01-issues-d40d]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Ensure optional labels exist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const wanted = [
+              { name: 'capture', color: '0E8A16', description: 'Raw packet capture / re-observation tasks' },
+              { name: 'npc', color: '1D76DB', description: 'NPC restoration / shop / dialogue' },
+            ];
+            for (const label of wanted) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: label.name });
+                core.info(`label exists: ${label.name}`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({ owner, repo, ...label });
+                core.info(`label created: ${label.name}`);
+              }
+            }
+
+      - name: Create Nov 2026 backlog issues if missing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issues = [
+              {
+                title: '[documentation] 11/01到達点と次の着手単位の再同期',
+                labels: ['documentation'],
+                body: `## 目的
+            open Issue が空のまま機能追加が続いているため、development-roadmap.md の
+            「次の着手単位」を 2026-11-01 時点（barter／openreform／after_close callshop／
+            README版同期など）へ書き直し、完了済みと残作業を区別する。
+
+            ## 観測境界
+            - 観測する: development-roadmap.md、関連 releases／shop／capture docs、直近マージPR
+            - 推測しない / 自動補完しない: 未採取経路の完了扱い、実機確認済みへの格上げ
+            - 生データ採取は不要
+
+            ## 領域
+            documentation
+
+            ## 完了条件
+            - 「次の着手単位」が現状の残作業だけを列挙する
+            - 完了済み #5–#44 相当の参照を整理し、docs/README.md リンク整合を確認
+            - 文書のみ（テスト実行は任意）
+
+            ## 優先
+            P0
+
+            ## 根拠
+            2026-11-01 計画検討 / development-roadmap.md「次の着手単位」が 10/31 のまま`
+              },
+              {
+                title: '[capture] P0-A 未採取経路の再優先付けと採取メモ更新',
+                labels: ['capture', 'documentation'],
+                body: `## 目的
+            raw-packet-collection-checklist.md の未採取（数値／文字input未応答、
+            0BA1/0BA3/0BB5、02F2/09D1 等）を現状ログ根拠で再優先し、採取メモ欄を更新する。
+            比較可能な反復観測セット（S01–S04）整備の入口にする。
+
+            ## 観測境界
+            - 観測する: 既存セッションログの有無・件数・ハッシュ、チェックリスト項目
+            - 推測しない / 自動補完しない: 未採取項目を合成だけで実機確認済みにしない
+            - 生データ採取は本Issueの主成果（ログ本体はリポジトリへ上げない）
+
+            ## 領域
+            capture-stack / documentation
+
+            ## 完了条件
+            - チェックリスト末尾の優先順と採取済み／未採取がログ根拠付きで更新される
+            - 次に採る最小セッション（1本でよい）が明記される
+            - ログ自体はIssueに添付しない（保管場所・ハッシュのみ）
+
+            ## 優先
+            P0
+
+            ## 根拠
+            development-roadmap.md P0-A / raw-packet-collection-checklist.md`
+              },
+              {
+                title: '[enhancement] 通常shop候補への識別済品名併記',
+                labels: ['enhancement', 'npc'],
+                body: `## 目的
+            通常shop／callshopの編集用候補および観測一覧で、client_item_id に対し
+            既存 client_names（識別済品名）を併記する。コード引数の数値IDは維持する。
+
+            ## 観測境界
+            - 観測する: 既存 shop 記録・client_names・表示／生成テンプレート
+            - 推測しない / 自動補完しない: 未登録IDの名称発明、未鑑定名称の採用、DB ID変換
+            - 生データ採取は必須としない（合成＋既存辞書で足りる範囲）
+
+            ## 領域
+            npc / config-dict / gui
+
+            ## 完了条件
+            - 品名併記の書式契約（コメントまたはGUI欄）と未登録時の数値維持
+            - shop 関連の選択テスト
+            - shop-export / shop-observations docs 更新
+
+            ## 優先
+            P1
+
+            ## 根拠
+            development-roadmap.md「次は通常shopへの品名併記」 /
+            client-data-utilization-plan.md`
+              },
+              {
+                title: '[enhancement] 未確認shop一覧長（35/68）と鑑定フラグの検証境界',
+                labels: ['enhancement', 'npc'],
+                body: `## 目的
+            通常商品一覧の未確認レイアウト長（35／68 byte 等）と鑑定フラグ位置について、
+            断定せず検証境界をdocs／decode方針へ明示する。確認できた範囲だけ観測を広げる。
+
+            ## 観測境界
+            - 観測する: 既存 0B09/0B0A/0B39 の確認済みフラグ、未確認長の実パケット（あれば）
+            - 推測しない / 自動補完しない: 0B38 等の未確認フラグ位置の断定、未検証長への自動切替
+            - 生データ採取は任意（実例があれば優先）
+
+            ## 領域
+            npc / capture-stack / documentation
+
+            ## 完了条件
+            - 確認済み／未確認の長さとフラグ位置を docs に表で残す
+            - decode は確認済み経路のみ。未確認はエラーまたは非構造化を維持
+            - shop / player 関連の選択テスト
+
+            ## 優先
+            P1
+
+            ## 根拠
+            development-roadmap.md「未確認35/68byte一覧の鑑定フラグ検証」 /
+            docs/releases/v0.0.5.md`
+              },
+              {
+                title: '[enhancement] プロジェクトログの追加・削除・並べ替え',
+                labels: ['enhancement'],
+                body: `## 目的
+            作業プロジェクトで参照する生ログの追加・削除・並べ替えと、
+            内容の異なるファイルへの差替えを明示操作できるようにする。
+            ライブ取得との混同や入力ファイル破壊を防ぐ。
+
+            ## 観測境界
+            - 観測する: 既存 project 参照・source_ref・世代／ハッシュ照合
+            - 推測しない / 自動補完しない: 欠落ログの中身復元、自動差替え
+            - 生データ採取は不要
+
+            ## 領域
+            gui / storage
+
+            ## 完了条件
+            - 追加・削除・並べ替え／差替えのUIまたはAPI契約
+            - 差替え時にハッシュ不一致を明示し、古い根拠移動を拒否
+            - storage / offline / gui 関連の選択テスト
+            - offline-project docs 更新
+
+            ## 優先
+            P0
+
+            ## 根拠
+            development-roadmap.md「ログの追加・削除・並べ替え／内容差替えは未対応」`
+              },
+              {
+                title: '[enhancement] display_only 残IDの必要時構造化（0A24等）',
+                labels: ['enhancement', 'documentation'],
+                body: `## 目的
+            unsupported-notifications.md の display_only 残（0A24 Achievement 等）について、
+            実ログまたは合成で必要になった ID から個別に decode／構造化保持する。
+            #18 で 0A3B は完了済み。一括配線しない。
+
+            ## 観測境界
+            - 観測する: 表示定義・合成パケット・必要になった ID のフィールド
+            - 推測しない / 自動補完しない: 起因NPC、実行命令の発明、未確認 ID の一括配線
+            - 生データ採取は ID により任意（合成で足りるもの優先）
+
+            ## 領域
+            npc / config-dict / documentation
+
+            ## 完了条件
+            - 対象 ID を1件以上、observed / not_adopted / display_only の方針付きで配線または明示見送り
+            - unsupported-notifications.md を更新
+            - presentation 関連の選択テスト
+            - 実行命令化は別途確認があるまでコメント／未生成
+
+            ## 優先
+            P2
+
+            ## 根拠
+            #18 残「display_onlyの個別配線は必要時」 / unsupported-notifications.md`
+              },
+              {
+                title: '[enhancement] 0x0B79／exchange の実パケット後復元',
+                labels: ['enhancement', 'npc', 'capture'],
+                body: `## 目的
+            拡張barterの新レイアウト（0x0B79）と exchange 専用形式を、通常shop／0x0B56 と分離して
+            観測・コメント候補化する。未観測行は作らない。
+
+            ## 観測境界
+            - 観測する: 実パケットの長さ・項目境界・close後帰属（2秒枠）の有無
+            - 推測しない / 自動補完しない: 0x0B56旧レイアウトの流用断定、未採取フィールドの発明
+            - 生データ採取は必須（採取できるまで実装Issueはブロック）
+
+            ## 領域
+            npc / capture-stack
+
+            ## 完了条件
+            - 採取ログ（ハッシュ・保管場所）とレイアウトメモが揃う
+            - decode／関連付け／常コメント出力の契約と選択テスト
+            - shop-export docs 更新。Auriga未実装なら常コメントを維持
+
+            ## 優先
+            P1（採取ブロック中）
+
+            ## 根拠
+            development-roadmap.md P1-A④ / shop-export.md「0x0B79・exchangeは未対応」`
+              },
+            ];
+
+            function normalizeBody(text) {
+              return text.replace(/^[ \t]+/gm, '').trim() + '\n';
+            }
+
+            for (const issue of issues) {
+              const q = `repo:${owner}/${repo} is:issue in:title "${issue.title.replace(/"/g, '')}"`;
+              const search = await github.rest.search.issuesAndPullRequests({ q });
+              const hit = (search.data.items || []).find((it) => it.title === issue.title);
+              if (hit) {
+                core.info(`exists #${hit.number}: ${issue.title}`);
+                continue;
+              }
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title: issue.title,
+                labels: issue.labels,
+                body: normalizeBody(issue.body),
+              });
+              core.info(`created #${created.data.number}: ${created.data.html_url}`);
+            }
