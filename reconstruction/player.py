@@ -4,7 +4,11 @@ from dataclasses import dataclass, field, asdict
 
 from reconstruction.decoder import Reader, ObservationError, TextDecodingError
 
+# Record sizes (bytes after the 5-byte inventory header). Stride mismatch fails closed.
 LIST_STRIDES = {0xb09: 34, 0xb0a: 67, 0xb38: 35, 0xb39: 68}
+# Confirmed identify flag = bit0 at these offsets within each record. 0x0B38 omitted on purpose:
+# flag location is unconfirmed; identified stays None (GUI「不明」). Never copy 0B09/0B39 offsets onto 0B38.
+IDENTIFY_FLAG_OFFSETS = {0xb09: 33, 0xb0a: 66, 0xb39: 67}
 CHARACTER_STRIDES = {0x99d: (155, 88, 118), 0xb72: (175, 108, 138)}
 PLAYER_IDS = {0x179, 0x71, 0x91, 0x92, 0x87, 0x88, 0x283, 0x2eb, 0xa18, *CHARACTER_STRIDES,
               0xb0, 0xb1, 0xacb, 0xb08, 0xb0b, 0xa37, 0xb41, 0xaf, 0x7fa, *LIST_STRIDES}
@@ -73,8 +77,8 @@ def decode_player(packet):
             amount = r.number(offset + 7, 'H') if pid in (0xb09, 0xb38) else 1
             if index in items or item_id == 0 or amount == 0:
                 raise ObservationError('Invalid or duplicate inventory entry')
-            flag_offset={0xb09:33,0xb0a:66,0xb39:67}.get(pid)
-            flags=r.number(offset+flag_offset,'B') if flag_offset is not None else None
+            flag_offset = IDENTIFY_FLAG_OFFSETS.get(pid)
+            flags = r.number(offset + flag_offset, 'B') if flag_offset is not None else None
             items[index] = dict(item_id=item_id, amount=amount,
                 identified=bool(flags & 1) if flags is not None else None,
                 inventory_flags=flags,identification_packet_id=pid,

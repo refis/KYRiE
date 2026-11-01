@@ -3,7 +3,8 @@ from dataclasses import replace
 import struct
 import unittest
 
-from reconstruction.player import PlayerStore, LIST_STRIDES
+from reconstruction.player import PlayerStore, LIST_STRIDES, IDENTIFY_FLAG_OFFSETS, decode_player
+from reconstruction.decoder import ObservationError
 from parser.display import DisplayProfile, ReceiveDisplay
 from tests.support.world import actor_packet, map_packet
 
@@ -327,6 +328,24 @@ class PlayerTests(unittest.TestCase):
         for pid in (0xb38,):
             store=PlayerStore();store.apply(listing(pid))
             self.assertIsNone(store.states[(0,'game')].items[2]['identified'])
+
+    def test_inventory_list_identify_boundary_keeps_unconfirmed_0b38_unstructured(self):
+        self.assertEqual(LIST_STRIDES, {0xb09: 34, 0xb0a: 67, 0xb38: 35, 0xb39: 68})
+        self.assertEqual(IDENTIFY_FLAG_OFFSETS, {0xb09: 33, 0xb0a: 66, 0xb39: 67})
+        self.assertNotIn(0xb38, IDENTIFY_FLAG_OFFSETS)
+        for pid, offset in IDENTIFY_FLAG_OFFSETS.items():
+            self.assertLess(offset, LIST_STRIDES[pid])
+        store = PlayerStore()
+        store.apply(listing(0xb38))
+        item = store.states[(0, 'game')].items[2]
+        self.assertIsNone(item['identified'])
+        self.assertIsNone(item['inventory_flags'])
+        # Wrong stride / length must fail closed; never reinterpret as another confirmed layout.
+        bad = listing(0xb09)
+        with self.assertRaises(ObservationError):
+            decode_player(replace(bad, raw=bad.raw[:-1]))
+        # Normal shop product rows (00C6) are outside player inventory decode.
+        self.assertIsNone(decode_player(packet(0xc6, struct.pack('<IIBI', 100, 76, 0, 501))))
 
     def test_pickup_identification_and_success_ack_do_not_change_observed_quantity(self):
         store=PlayerStore();event=pickup();raw=bytearray(event.raw);raw[10]=0

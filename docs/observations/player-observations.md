@@ -59,6 +59,24 @@ HP/SPも受信していればJSONへ保持する。
 - 1接続4096枠、接続64件、マップ引継ぎ候補16件、直近の問題100件で保持量を制限する。
   全ゲームバージョンの消費・取引・倉庫移動パケットを網羅したものではない。
 
+### 一覧ストライドと鑑定フラグの検証境界（#48）
+
+通常shopの商品行（00C6=13byte／0B77=19byte）とは別経路。ここは所持品一覧のみ。
+Issue表記の「35／68byte」は 0B38／0B39 のレコード長を指す。未検証長への自動切替はしない。
+
+| PacketID | 種別 | レコード長 | 鑑定フラグ | 状態 |
+|----------|------|------------|------------|------|
+| 0x0B09 | 通常一覧 | 34 | offset 33 の bit0 | 確認済み |
+| 0x0B0A | 装備一覧 | 67 | offset 66 の bit0 | 確認済み |
+| 0x0B39 | 装備一覧 | 68 | offset 67 の bit0（offset 66 は grade） | 確認済み |
+| 0x0B38 | 通常一覧 | 35 | 位置未確認 | **未確認**（`identified=None`／GUI「不明」） |
+
+根拠: ローカル Auriga `clif.c` の 0B09／0B0A、[rAthena NORMALITEM_INFO／EQUIPITEM_INFO](https://github.com/rathena/rathena/blob/master/src/map/packets_struct.hpp)、
+既存実ログ末尾照合（0B39）。0B38 は MARiA も Index／ItemID／個数のみでフラグ根拠なし。
+採取状況は[採取リスト I01](../capture/raw-packet-collection-checklist.md#i01-未確認0b38所持品一覧の鑑定フラグ)。
+0B09 実例を 0B38 検証済みへ流用しない。他ビットが立っても bit0 以外で鑑定済みとしない。
+decode 定数は `LIST_STRIDES`／`IDENTIFY_FLAG_OFFSETS`（0B38 は後者に載せない）。
+
 ## ログの外部書式
 
 config/auriga/display.jsonを73 IDから93 IDへ拡充した。
