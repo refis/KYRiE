@@ -65,27 +65,29 @@ close/close2の元の命令は通信だけで確定せず、出力では会話�
 編集用構造としてclose2を使用する。タッチ範囲・タイマー・スクリプト移動は復元しない。
 callshopのtypeは省略して取引メニューを開く。購入専用や売却専用の元コードを推測しない。
 
-## 拡張barter（0x0B56）
+## barter一覧（0x0B0E / 0x0B56）
 
-RECV 0x0B56（旧レイアウト）をデコードし、close応答後2秒以内ならafter_close_listとして会話へ結ぶ。
+いずれも close 応答後2秒以内なら after_close_list として会話へ結ぶ。
 非配置の`//- barter GPA_B…`を配置NPCの前へ出し、本文側は`close2`と`// callbarter`コメントを置く。
 在庫`0xFFFFFFFF`は`-1`、通貨精錬`0`は脚本慣例の`-1`へ写す。Auriga未実装のため常にコメント。
-0x0B79新レイアウト・exchange専用形式は未対応。未観測行は作らない。
-20261101-194609-edbe9ab0でも 0x0B56／0x0B79／shops／barters は0件。
-0x09CF／0x09D0があっても exchange とは扱わない（Issue #51 は採取ブロック継続）。
 
-### 候補: RECV 0x0B0E（exchange 上位互換の仮説）
+### RECV 0x0B0E（clif_barterlist）
 
-同ログに RECV 0x0B0E が1件（長さ504、定義 `-1`）。
-悔恨の侯爵#tor 会話#4の close 応答（SEND 0x0146）の約0.15秒後で、
-既存の after_close 2秒枠に入る。0x0B56旧レイアウトとしての項目走査は成立しない。
-公開エミュ定義に 0x0B0E の確定名は見当たらず、項目境界は未確定。
-利用者仮説では exchange の上位互換一覧の可能性があるが、デコードや
-`//- exchange` 行はレイアウト確定まで行わない。
+ヘッダ4byte（ID・長さ）のあと、商品行は固定25byte。
+`nameid u32` / `type u8` / `stock u32` / `currency_itemid u32` / `currency_amount u32` /
+`weight u32` / `index u32`。長さは `4 + 件数×25`。zeny欄はなく、出力では zeny=0・通貨1件として写す。
+20261101-194609-edbe9ab0で悔恨の侯爵#tor 会話#4の close 直後に1件（504byte＝20商品）を確認。
 
-近傍の RECV 0x0A30（固定106）は名前応答（ZC_ACK_REQNAMEALL2 相当）で、
-SEND 0x0368（名前要求）の直後に複数回出現する。会話NPCの ActorID とは一致せず、
-exchange 一覧とは扱わない。
+### RECV 0x0B56（拡張barter・旧レイアウト）
+
+件数 u32 のあと、商品26byte＋通貨12byte×N（viewSprite／locationなし）。
+
+### 未対応
+
+0x0B79（拡張barter新レイアウト）は未デコード。提供された `clif_expanded_barterlist` では
+PACKETVERにより 0x0B79／0x0B56 を切り替え、商品ヘッダに look／equip／refine と可変通貨が付く。
+実パケット採取後に境界を確定する。0x09CF／0x09D0は barter としない。
+近傍の 0x0A30（106byte）は名前応答であり一覧ではない。
 
 書式はconfig/auriga/barters.json。
 

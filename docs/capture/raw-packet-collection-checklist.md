@@ -41,11 +41,9 @@ record_payload は True（生バイトは tcp_segment／stream_chunk）。
 - getitem2 review: item 100736×3（identified=1、期限あり、options_summary 全0）。
   grade／期限／binding／ランダムオプション規則により review_only。未鑑定入手（identified=0）はなし。
 - 所持品: 0x0B09×4・0x0B39×5あり。0x0B38／0x0B0Aは0件。I01の未鑑定フラグ検証には使わない。
-- exchange／拡張barter: 0x0B56・0x0B79・shops／barters いずれも0件。
-  0x09CF×5／0x09D0×5はあるが shop／barter／exchange としては未デコード・未帰属。
-  **RECV 0x0B0E×1**（504byte、定義 `-1`）が悔恨の侯爵#tor 会話#4の close 応答直後（約0.15秒、after_close枠内）にあり、
-  exchange 上位互換一覧の**候補**として記録（項目境界未確定・デコードしない）。
-  近傍の 0x0A30×8（106byte）は名前応答で、SEND 0x0368 に続く。exchange とはしない。
+- barter: **RECV 0x0B0E×1**（504byte＝20商品）が悔恨の侯爵#tor 会話#4の close 直後（約0.15秒）。
+  `clif_barterlist` の25byte行としてデコード対象。0x0B56／0x0B79／通常shopsは0件。
+  0x09CF／0x09D0・近傍0x0A30（名前応答）は barter としない。
 
 ローカル確認物: collection-notes.md、checklist-evidence.json、session-analysis.json、inventory-layout-review.json。
 
@@ -433,9 +431,8 @@ python -m tools.audit_inventory logs/SESSION/capture.jsonl --output logs/SESSION
 - C03の位置0BA3/0BB5・整列0BA1: 本ログも0件（0BA2は13件あり、追加必須としない）。
 - C04の途中中断02F2・個体対象09D1: 本ログも0件。
 - I01の0B38／未鑑定入手: 本ログも0B38=0、getitem2は identified=1 のみ。0B09を0B38検証済み扱いにしない。
-- exchange／0x0B79／実機0x0B56: 本ログで 0x0B56／0x0B79 は0件。09CF／09D0だけでは exchange としない。
-  **0x0B0E×1**を exchange 候補としてメモ（レイアウト未確定のため Issue #51 のデコードは継続ブロック）。
-  追加採取は同じ悔恨の侯爵#tor経路の再試行（購入／閉じる／空一覧）と、別NPCでの再出現を優先。
+- 0x0B0E barterlist: 本ログ1件でレイアウト照合済み。0x0B79／実機0x0B56は0件のまま。
+  追加採取は購入応答・閉じる操作・別NPCでの再出現を優先（Issue #51の0x0B79側）。
 
 優先順（1本だけ取る場合）: 文字inputの正常→未応答→正常。
-0x0B0E／exchange の再試行が自然に取れるなら Issue #51 側を先にする。
+0x0B79拡張barterが自然に取れるなら Issue #51 側を先にする。

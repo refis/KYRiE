@@ -1,4 +1,4 @@
-"""Expanded barter market lists (ZC_NPC_EXPANDED_BARTER_MARKET_ITEMINFO / 0x0B56)."""
+"""Barter market lists: simple 0x0B0E (clif_barterlist) and expanded 0x0B56."""
 from collections import deque
 from copy import deepcopy
 import math
@@ -8,6 +8,9 @@ from reconstruction.decoder import Reader, ObservationError
 # Old PACKETVER layout used by 0x0B56 (no viewSprite/location/item refine).
 ITEM_HEADER = 26
 CURRENCY_SIZE = 12
+# clif_barterlist / 0x0B0E: fixed 25-byte rows after a 4-byte header.
+BARTERLIST_ITEM = 25
+BARTERLIST_HEADER = 4
 
 
 def decode_expanded_barter(packet):
@@ -61,6 +64,54 @@ def decode_expanded_barter(packet):
     return items
 
 
+def decode_barterlist(packet):
+    """Decode RECV 0x0B0E from clif_barterlist (single currency item per row)."""
+    if packet.direction != 'RECV' or packet.packet_id != 0xb0e:
+        return None
+    r = Reader(packet.raw)
+    if len(packet.raw) < BARTERLIST_HEADER or r.number(2, 'H') != len(packet.raw):
+        raise ObservationError('Barter list length does not match the packet header')
+    body = len(packet.raw) - BARTERLIST_HEADER
+    if body % BARTERLIST_ITEM:
+        raise ObservationError('Barter list body is not a multiple of the 25-byte item row')
+    count = body // BARTERLIST_ITEM
+    if count > 2048:
+        raise ObservationError('Barter list item capacity exceeded')
+    items = []
+    for i in range(count):
+        offset = BARTERLIST_HEADER + i * BARTERLIST_ITEM
+        nameid = r.number(offset, 'I')
+        item_type = r.number(offset + 4, 'B')
+        amount_raw = r.number(offset + 5, 'I')
+        currency_id = r.number(offset + 9, 'I')
+        currency_amount = r.number(offset + 13, 'I')
+        weight = r.number(offset + 17, 'I')
+        index = r.number(offset + 21, 'I')
+        if not nameid:
+            raise ObservationError('Zero barter list item ID')
+        if not currency_id:
+            raise ObservationError('Zero barter list currency ID')
+        if not 1 <= currency_amount <= 2147483647:
+            raise ObservationError('Barter list currency amount out of range')
+        stock = -1 if amount_raw == 0xffffffff else amount_raw
+        if stock != -1 and not 0 <= stock <= 2147483647:
+            raise ObservationError('Barter list stock out of range')
+        items.append(dict(
+            client_item_id=nameid, item_type=item_type, stock=stock, amount_raw=amount_raw,
+            weight=weight, index=index, zeny=0,
+            currencies=[dict(client_item_id=currency_id, refine_level=0,
+                             amount=currency_amount, item_type=None)]))
+    return items
+
+
+def _decode_barter_packet(packet):
+    if packet.packet_id == 0xb0e:
+        return decode_barterlist(packet), 'barterlist', '0x0B0E clif_barterlist; item=25 bytes'
+    if packet.packet_id == 0xb56:
+        return decode_expanded_barter(packet), 'expanded_barter', '0x0B56 without viewSprite/location'
+    return None, None, None
+
+
 class BarterStore:
     def __init__(self, world=None, max_records=1000, max_items=20000, dialogues=None):
         self.world, self.max_records, self.max_items = world, max_records, max_items
@@ -77,7 +128,7 @@ class BarterStore:
         self.begin_capture(session)
         if session != self.current_capture:
             return
-        if packet.direction != 'RECV' or packet.packet_id != 0xb56:
+        if packet.direction != 'RECV' or packet.packet_id not in (0xb0e, 0xb56):
             return
         key = (session, packet.flow_id or packet.connection)
         evidence = dict(packet_index=packet_index, packet_id=packet.packet_id, timestamp=packet.timestamp,
@@ -85,7 +136,7 @@ class BarterStore:
         try:
             if not math.isfinite(packet.timestamp):
                 raise ObservationError('Invalid barter observation timestamp')
-            items = decode_expanded_barter(packet)
+            items, market_kind, layout = _decode_barter_packet(packet)
             if len(self.records) >= self.max_records or self.item_count + len(items) > self.max_items:
                 raise ObservationError('Barter observation capacity exceeded')
             association, conversation_id, link_basis, actor = 'unresolved', None, None, None
@@ -109,7 +160,7 @@ class BarterStore:
                 actor_id=actor, npc=npc, association=association, conversation_id=conversation_id,
                 conversation_link_basis=link_basis, items=items, item_id_kind='client_item_id',
                 packet=evidence, association_evidence=[evidence] if association != 'unresolved' else [],
-                market_kind='expanded_barter', layout='0x0B56 without viewSprite/location',
+                market_kind=market_kind, layout=layout,
                 cause_confirmed=False))
             self.item_count += len(items)
             self.revision += 1
@@ -121,4 +172,4 @@ class BarterStore:
     def snapshot(self):
         return dict(schema_version=1, records=deepcopy(self.records), issue_count=self.issue_count,
                     issues=list(self.issues),
-                    layout='0x0B56 expanded barter; item=26 bytes, currency=12 bytes')
+                    layout='0x0B0E barterlist item=25 bytes; 0x0B56 expanded item=26 bytes currency=12 bytes')

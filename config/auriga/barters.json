@@ -1,6 +1,6 @@
 {
-  "review_unconfirmed": "// 拡張barterの編集用候補。Auriga未実装のためコメント。商品IDはクライアント観測値で出力先DBとの対応は未照合。配置元: {map_origin}",
-  "review": "// 拡張barterの編集用候補。Auriga未実装のためコメント。元のNPC種・隠れたショップ名・起因条件を確定するものではありません。\n// 商品IDは出力先DBで利用者が確認。マップ値の出典: {map_origin}",
+  "review_unconfirmed": "// barterの編集用候補。Auriga未実装のためコメント。商品IDはクライアント観測値で出力先DBとの対応は未照合。配置元: {map_origin}",
+  "review": "// barterの編集用候補。Auriga未実装のためコメント。元のNPC種・隠れたショップ名・起因条件を確定するものではありません。\n// 商品IDは出力先DBで利用者が確認。マップ値の出典: {map_origin}",
   "hidden_barter": "//-\tbarter\t{shop_name}\t-1,{items}",
-  "callbarter_review": "// callbarter {shop_name}; // Auriga未実装。拡張barter一覧を観測。"
+  "callbarter_review": "// callbarter {shop_name}; // Auriga未実装。barter一覧を観測。"
 }

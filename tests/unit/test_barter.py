@@ -2,7 +2,7 @@ import struct
 import unittest
 
 from events import PacketEvent
-from reconstruction.barter import BarterStore, decode_expanded_barter
+from reconstruction.barter import BarterStore, decode_barterlist, decode_expanded_barter
 from reconstruction.barter_export import BarterRenderer, format_barter_items, script_refine
 from reconstruction.dialogue import DialogueStore
 from reconstruction.decoder import ObservationError
@@ -11,7 +11,7 @@ from tests.support.branches import NPC
 
 def message(pid, body=b'', direction='recv', flow='game', timestamp=1.0):
     direction = {'recv': 'RECV', 'send': 'SEND'}.get(direction, direction)
-    if pid == 0xb56:
+    if pid in (0xb0e, 0xb56):
         raw = struct.pack('<HH', pid, 4 + len(body)) + body
     else:
         raw = struct.pack('<H', pid)
@@ -32,12 +32,21 @@ def barter_body(entries):
     return b''.join(chunks)
 
 
-def observe_barter(*, gap=1.0, items=None):
-    """Close then 0x0B56 within the after-close window; returns record and conversation."""
+def barterlist_body(entries):
+    """entries: (nameid, type, stock_or_neg1, currency_id, currency_amount, weight, index)"""
+    chunks = []
+    for nameid, typ, stock, currency_id, currency_amount, weight, index in entries:
+        amount = 0xffffffff if stock < 0 else stock
+        chunks.append(struct.pack('<I', nameid) + struct.pack('<B', typ) + struct.pack(
+            '<IIIII', amount, currency_id, currency_amount, weight, index))
+    return b''.join(chunks)
+
+
+def observe_barter(*, gap=1.0, items=None, packet_id=0xb56):
+    """Close then barter list within the after-close window; returns record and conversation."""
     dialogues = DialogueStore()
     store = BarterStore(dialogues=dialogues)
     now = 1.0
-    entries = items or [(450206, 4, -1, 0, [(1000608, 0, 100, 3)])]
 
     def consume(pid, body=b'', direction='recv'):
         nonlocal now
@@ -51,7 +60,12 @@ def observe_barter(*, gap=1.0, items=None):
     consume(0xb6, struct.pack('<I', 42))
     consume(0x146, struct.pack('<I', 42), 'SEND')
     now += gap
-    consume(0xb56, barter_body(entries))
+    if packet_id == 0xb0e:
+        entries = items or [(600014, 9, -1, 1000367, 8000, 3400, 0)]
+        consume(0xb0e, barterlist_body(entries))
+    else:
+        entries = items or [(450206, 4, -1, 0, [(1000608, 0, 100, 3)])]
+        consume(0xb56, barter_body(entries))
     conversation = dialogues.sessions[0]
     conversation.npc = dict(NPC)
     return store.records[0], conversation
@@ -89,3 +103,29 @@ class BarterTests(unittest.TestCase):
         late_record, late_conversation = observe_barter(gap=3.0)
         self.assertEqual(late_record['association'], 'unresolved')
         self.assertEqual(late_conversation.status, 'closed')
+
+    def test_decode_barterlist_0b0e_and_after_close_export(self):
+        body = barterlist_body([
+            (600014, 9, -1, 1000367, 8000, 3400, 0),
+            (640014, 9, -1, 1000367, 8000, 2400, 1),
+        ])
+        items = decode_barterlist(message(0xb0e, body))
+        self.assertEqual([row['client_item_id'] for row in items], [600014, 640014])
+        self.assertEqual(items[0]['stock'], -1)
+        self.assertEqual(items[0]['zeny'], 0)
+        self.assertEqual(items[0]['currencies'][0]['client_item_id'], 1000367)
+        self.assertEqual(items[0]['currencies'][0]['amount'], 8000)
+        self.assertEqual(format_barter_items(items),
+                         '600014:-1:0 { 1000367:-1:8000 },640014:-1:0 { 1000367:-1:8000 }')
+        with self.assertRaises(ObservationError):
+            decode_barterlist(message(0xb0e, body + b'\0'))
+
+        record, conversation = observe_barter(packet_id=0xb0e)
+        self.assertEqual(record['market_kind'], 'barterlist')
+        self.assertEqual(record['association'], 'after_close_list')
+        self.assertEqual(conversation.status, 'barter_opened')
+        self.assertEqual(conversation.termination.get('market_kind'), 'barterlist')
+        code = BarterRenderer().render(record, item_ids_confirmed=True, conversation=conversation)
+        self.assertIn('//-\tbarter\tGPA_B', code)
+        self.assertIn('600014:-1:0 { 1000367:-1:8000 }', code)
+        self.assertIn('// callbarter "', code)
