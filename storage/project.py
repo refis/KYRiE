@@ -236,3 +236,136 @@ def save_relocated_project(destination, document):
         raise ValueError('ログ合計がGUI再生上限を超えています。')
     verify_project(document)
     _write_project(destination, document)
+
+
+def _log_reference(path):
+    source = Path(path).resolve()
+    if not source.is_file():
+        raise FileNotFoundError('参照先が通常のファイルではありません。')
+    return dict(path=str(source), sha256=fingerprint(source, 128 * 1024 * 1024))
+
+
+def _definitions_reference(path):
+    source = Path(path).resolve()
+    if not source.is_file():
+        raise FileNotFoundError('参照先が通常のファイルではありません。')
+    return dict(path=str(source), sha256=fingerprint(source, config_limit('definitions')))
+
+
+def project_as_schema2(document):
+    """Return a schema=2 copy. schema=1 becomes a single-source project."""
+    result = deepcopy(document)
+    if result.get('schema') == 2:
+        return result
+    if result.get('schema') != 1:
+        raise ValueError('未対応または不正なプロジェクト形式です。')
+    files = result['files']
+    log, definitions = files['log'], files['definitions']
+    common = {key: files[key] for key in ('recv', 'send', 'dialogue')}
+    result = dict(schema=2, kind=result['kind'], files=common, view=deepcopy(result['view']),
+                  note=result['note'],
+                  sources=[dict(capture_session=1, log=deepcopy(log), definitions=deepcopy(definitions))])
+    if 'catalogs' in document:
+        result['catalogs'] = deepcopy(document['catalogs'])
+    return result
+
+
+def _validate_sources(sources):
+    if not isinstance(sources, list) or not 1 <= len(sources) <= 20:
+        raise ValueError('ログ件数が不正です。')
+    sessions = [row['capture_session'] for row in sources]
+    if (any(type(value) is not int or not 1 <= value <= 20 for value in sessions)
+            or sessions != sorted(set(sessions))):
+        raise ValueError('取得世代が不正です。')
+    hashes = [row['log']['sha256'] for row in sources]
+    if len(set(hashes)) != len(hashes):
+        raise ValueError('同じ内容のログが重複しています。')
+
+
+def add_project_source(document, log_path, definitions_path, *, capture_session=None):
+    """Append one log/definitions pair. Converts schema=1 to schema=2 when needed."""
+    result = project_as_schema2(document)
+    log_ref = _log_reference(log_path)
+    definitions_ref = _definitions_reference(definitions_path)
+    if any(row['log']['sha256'] == log_ref['sha256'] for row in result['sources']):
+        raise ValueError('同じ内容のログが既に含まれています。')
+    used = {row['capture_session'] for row in result['sources']}
+    if capture_session is None:
+        free = [value for value in range(1, 21) if value not in used]
+        if not free:
+            raise ValueError('ログ件数が上限に達しています。')
+        capture_session = free[0] if not used else max(used) + 1
+        if capture_session > 20 or capture_session in used:
+            capture_session = free[0]
+    if type(capture_session) is not int or not 1 <= capture_session <= 20 or capture_session in used:
+        raise ValueError('取得世代が不正です。')
+    result['sources'].append(dict(capture_session=capture_session, log=log_ref, definitions=definitions_ref))
+    result['sources'].sort(key=lambda row: row['capture_session'])
+    _validate_sources(result['sources'])
+    return result
+
+
+def remove_project_source(document, source_index):
+    """Remove one sources[] row. Remaining capture_session values keep gaps."""
+    result = project_as_schema2(document)
+    if type(source_index) is not int or not 0 <= source_index < len(result['sources']):
+        raise ValueError('ログ番号が不正です。')
+    if len(result['sources']) == 1:
+        raise ValueError('最後のログは削除できません。')
+    del result['sources'][source_index]
+    _validate_sources(result['sources'])
+    return result
+
+
+def reorder_project_sources(document, order):
+    """Permute sources and renumber capture_session to 1..N in the new order.
+
+    Evidence bound to previous session numbers is invalid until the project is reopened.
+    """
+    result = project_as_schema2(document)
+    if (not isinstance(order, list) or len(order) != len(result['sources'])
+            or sorted(order) != list(range(len(result['sources'])))):
+        raise ValueError('並び順が不正です。')
+    rows = [deepcopy(result['sources'][index]) for index in order]
+    for session, row in enumerate(rows, start=1):
+        row['capture_session'] = session
+    result['sources'] = rows
+    _validate_sources(result['sources'])
+    return result
+
+
+def replace_project_source_content(document, source_index, log_path, *, definitions_path=None):
+    """Replace a log (and optional definitions) with different content.
+
+    This is not path repair: the stored SHA-256 changes. Old offline evidence must be
+    discarded by reopening the project; silent republish is not performed here.
+    """
+    result = project_as_schema2(document)
+    if type(source_index) is not int or not 0 <= source_index < len(result['sources']):
+        raise ValueError('ログ番号が不正です。')
+    log_ref = _log_reference(log_path)
+    row = result['sources'][source_index]
+    if log_ref['sha256'] == row['log']['sha256'] and definitions_path is None:
+        raise ValueError('内容が変わっていません。移動のみなら参照先の修復を使ってください。')
+    if any(i != source_index and other['log']['sha256'] == log_ref['sha256']
+           for i, other in enumerate(result['sources'])):
+        raise ValueError('同じ内容のログが既に含まれています。')
+    row['log'] = log_ref
+    if definitions_path is not None:
+        row['definitions'] = _definitions_reference(definitions_path)
+    _validate_sources(result['sources'])
+    return result
+
+
+def save_edited_project(destination, document):
+    """Persist an edited schema=2 project after verify. Same overwrite guards as relocate."""
+    destination = Path(destination).resolve()
+    document = project_as_schema2(document)
+    _validate_sources(document['sources'])
+    refs = list(project_references(document))
+    if any(Path(ref['path']).resolve() == destination for _, ref in refs):
+        raise ValueError('入力ファイルへの上書きはできません。')
+    if sum(Path(ref['path']).stat().st_size for key, ref in refs if key == 'log') > 128 * 1024 * 1024:
+        raise ValueError('ログ合計がGUI再生上限を超えています。')
+    verify_project(document)
+    _write_project(destination, document)

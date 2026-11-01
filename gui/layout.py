@@ -65,6 +65,7 @@ def build_workspace(window):
     work_menu.addAction('MAP・クエスト・ナビ資料…',lambda:show_panel(w.reference_browser))
     work_menu.addSeparator()
     w.repair_project_action = work_menu.addAction('プロジェクトの参照先を修復…', w.repair_project)
+    w.edit_project_sources_action = work_menu.addAction('プロジェクトのログ一覧を編集…', w.edit_project_sources)
     w.save_project_action.setEnabled(False)
     w.project_note_action.setEnabled(False)
     header.addWidget(QLabel('対象EXE'))

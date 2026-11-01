@@ -525,10 +525,12 @@ after_close callshop・README版同期・0x0B0E barterlist デコードは完了
 残作業（採取必須のものは採取後）:
 
 1. **P0-A 採取**: 文字input（01D4／01D5）の正常→未応答→正常（[採取リスト](../capture/raw-packet-collection-checklist.md)）
-2. **ログ操作**: プロジェクトへのログ追加・削除・並べ替え／内容差替え（#49）
-3. **必要時のみ**: 残 display_only（0A24等）、未確認shop長35/68・鑑定フラグ（#48）、
+2. **必要時のみ**: 残 display_only（0A24等）、未確認shop長35/68・鑑定フラグ（#48）、
    通常shop品名併記（#47）、0x0B79実機ログでのレイアウト再確認（合成契約は済み）
-4. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
+3. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
+
+プロジェクトログの追加・削除・並べ替え／内容差替えは実装済み（#49）。
+[作業プロジェクト](../guide/offline-project.md)を参照。
 
 湧き数 amount・delay1／delay2 は今後も観測自動補完しない。
 手動編集と確認フラグ付き保存のみとし、詳細は[配置・再観測](../mob/mob-spawn-observations.md)。

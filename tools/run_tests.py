@@ -57,7 +57,8 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
  'gui-display': ['tests.integration.test_gui_display'],
  'gui-restoration': ['tests.integration.test_gui_restoration'],
  'gui-timing': ['tests.integration.test_gui_timing'],
- 'offline': ['tests.integration.test_offline', 'tests.integration.test_project_references'],
+ 'offline': ['tests.integration.test_offline', 'tests.integration.test_project_references',
+             'tests.integration.test_project_sources'],
  'pipe': ['tests.integration.test_pipe_server'],
  'selection': ['tests.unit.test_test_selection']}
 
