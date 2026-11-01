@@ -8,11 +8,13 @@ from string import Formatter
 
 from reconstruction.auriga import AurigaRenderer
 from reconstruction.branches import conversation_path
+from reconstruction.client_names import empty_client_names, item_name
 from reconstruction.npc_initial_state import visibility_state
 from reconstruction.actor_appearance import player_class
 
 DEFAULT_SHOP_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'shops.json'
 FIELDS = {'review': {'map_origin'},
+          'item_names_review': {'item_names'},
           'placed_shop': {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id', 'items'},
           'hidden_shop': {'shop_name', 'items'}}
 FIELDS['initial_display_review'] = set()
@@ -27,14 +29,32 @@ def shop_name_for(npc, items):
     return 'GPA_S' + hashlib.sha256(identity).hexdigest()[:12]
 
 
+def format_shop_item_names(catalog, items):
+    """Reference labels only; never rewrite client_item_id or price in the script line."""
+    labels = []
+    for item in items:
+        item_id = item['client_item_id']
+        if type(item_id) is not int or not 1 <= item_id <= 2147483647:
+            raise ValueError('商品IDを確認してください。')
+        name = item_name(catalog, item_id)
+        if not isinstance(name, str) or not name or len(name) > 256:
+            raise ValueError('品名資料が不正です。')
+        labels.append(f'{item_id}={name}')
+    text = '; '.join(labels)
+    if len(text) > 65536:
+        raise ValueError('品名併記が出力上限を超えています。')
+    return text
+
+
 class ShopRenderer:
-    def __init__(self, path=None):
+    def __init__(self, path=None, *, client_names=None):
         from reconstruction.emulator_profiles import profile
         path = Path(path) if path is not None else profile('shops.json')
         self.templates = read_render_json(path)
         if isinstance(self.templates, dict):
             defaults = read_render_json(DEFAULT_SHOP_PROFILE)
-            for key in ('initial_state_review', 'review_unconfirmed', 'initial_display_review'):
+            for key in ('initial_state_review', 'review_unconfirmed', 'initial_display_review',
+                        'item_names_review'):
                 self.templates.setdefault(key, defaults[key])
         if not isinstance(self.templates, dict) or set(self.templates) != set(FIELDS):
             raise ValueError('ショップ書式の項目が不正です。')
@@ -44,6 +64,13 @@ class ShopRenderer:
             for _, name, spec, conversion in Formatter().parse(value):
                 if name is not None and (name not in FIELDS[key] or spec or conversion):
                     raise ValueError('ショップ書式の引数が不正です。')
+        if client_names is None:
+            try:
+                from reconstruction.client_names import load_client_names
+                client_names = load_client_names()
+            except (OSError, ValueError, KeyError, TypeError):
+                client_names = empty_client_names()
+        self.client_names = client_names
 
     def render(self, record, mode, *, item_ids_confirmed=False, map_name=None, conversation=None, review_unconfirmed=False):
         if mode not in ('shop', 'callshop') or (item_ids_confirmed is not True and review_unconfirmed is not True):
@@ -95,7 +122,11 @@ class ShopRenderer:
             seen.add(item_id)
             products.append(f'{item_id}:{price}')
         items = ','.join(products)
-        review = self.templates['review' if item_ids_confirmed else 'review_unconfirmed'].format_map(dict(map_origin='利用者入力' if manual_map else '観測'))
+        names_line = self.templates['item_names_review'].format_map(
+            dict(item_names=format_shop_item_names(self.client_names, record['items'])))
+        review = (self.templates['review' if item_ids_confirmed else 'review_unconfirmed']
+                  .format_map(dict(map_origin='利用者入力' if manual_map else '観測'))
+                  + '\n' + names_line)
         if mode == 'shop':
             result = review + '\n' + self.templates['placed_shop'].format_map(dict(placement, items=items)) + '\n'
             if player_class((npc.get('initial_display') or {}).get('class_id',npc.get('class_id'))):

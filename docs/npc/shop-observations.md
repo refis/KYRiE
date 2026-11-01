@@ -23,6 +23,8 @@ NPCタブ下側の「ショップ観測」で、一覧通知ごとに商品と�
 
 受信IDはclient_item_idとして保存する。表示用IDをサーバーDBのアイテムIDへ
 自動変換しない。ID対応と配置を確認した場合の[shop/callshop候補生成](shop-export.md)を追加した。
+観測表の「品名（資料）」列と編集用候補の品名コメントは、識別済 client_names の参照表示のみ。
+観測モデルのID・価格は上書きしない。未登録は「未登録」。
 売却一覧、キャッシュは対象外。barter一覧（RECV 0x0B0E／0x0B56）は別経路で観測し、
 [shop/callshop候補生成](shop-export.md)のコメント付き`- barter`候補へ出す。
 
