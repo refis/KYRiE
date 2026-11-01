@@ -22,6 +22,10 @@ def presentation_context(row):
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='アイテムプレビューは対象ActorID未記録。所持Indexの観測メモでありgetitemへは出しません。',
             summary='0x0AB9（47バイト）／0x0B13（48バイト）は表示定義どおり index@2（生値-2）だけを保持します。他バイトは未解釈です。会話中に届いてもNPCの発生元とせず、getitem／itempreview 実行命令やタイマーへ変換しません。')
+    elif kind=='mercenary':
+        result.update(actor_role='mercenary_actor',
+            short='傭兵表示の対象IDです。NPC復元の主経路外で、makemerc命令へは出しません。',
+            summary='0x029Bは対象ActorID・名前・durationを保持します。他バイトは未解釈です。NPC本文の傭兵生成命令やタイマーへ変換せず、コメント観測のみとします。')
     elif kind=='progress_action' or kind=='progressbar' and packet==0x2f0:
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='進捗対象のActorIDは未記録。会話元NPCのIDと同一視しません。',

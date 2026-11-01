@@ -531,8 +531,8 @@ after_close callshop・README版同期・0x0B0E barterlist デコードは完了
 残作業（採取必須のものは採取後）:
 
 1. **P0-A 採取**: 文字input（01D4／01D5）の正常→未応答→正常（[採取リスト](../capture/raw-packet-collection-checklist.md)）
-2. **必要時のみ**: 残 display_only（01D6／099B、029B、08FF／0984 等）、0x0B79実機ログでのレイアウト再確認（合成契約は済み）。
-   0A24 Achievement・02C1 colored_speech・0AB9／0B13 item_preview は観測保持・命令非生成まで完了。
+2. **必要時のみ**: 残 display_only（01D6／099B、08FF／0984。並行PRで map_property／status_enter 配線中）、0x0B79実機ログでのレイアウト再確認（合成契約は済み）。
+   0A24／02C1／0AB9・0B13／029B mercenary は観測保持・命令非生成まで完了。
    未登録 effect／状態の根拠付き辞書拡充は、手元の `.reference`／`client` を読取専用で用いてよい（原資料の Git 持ち出し禁止。
    [クライアント資料計画](client-data-utilization-plan.md)）。状態アイコン日本語タイトル792件は取り込み済み。
    通常shop品名併記（#47）と所持品鑑定フラグ境界の文書化（#48）は完了。0B38 は定義なし／廃止候補のため追採取しない。

@@ -20,6 +20,8 @@
   "external_hat_effect": "// 帽子エフェクトの外部候補: enabled={enabled}, effect={effect_id}, target={target}。呼出し元・命令対応は未確定。",
   "colored_speech": "// 色付きユニット発言観測: color=0x{color_hex}, text={text}。unittalkと混同せず実行命令は未生成。",
   "external_colored_speech": "// 色付きユニット発言の外部候補: color=0x{color_hex}, text={text}, target={target}。unittalkへは変換しない。",
+  "mercenary": "// 傭兵表示観測: name={name}, duration={duration}。makemerc等の実行命令は未生成。",
+  "external_mercenary": "// 傭兵表示の外部候補: name={name}, duration={duration}, target={target}。実行命令は未生成。",
   "effect_remove": "// delmisceffect相当はrAthena未確認。観測値 value={value} を確認用コメントとして保持。",
   "external_effect_remove": "// delmisceffect相当はrAthena未確認。value={value}, target={target}。外部NPC呼出し候補・未採用",
   "npc_file_header_hidden": "// NPC初回観測状態: HIDDEN\n{map_name},{x},{y},{direction}\tscript(HIDDEN)\t{npc_name}\t{class_id},{{",

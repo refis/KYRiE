@@ -25,6 +25,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
                   'tests.unit.test_colored_speech_observations',
                   'tests.unit.test_achievement_observations',
                   'tests.unit.test_item_preview_observations',
+                  'tests.unit.test_mercenary_observations',
                   'tests.unit.test_external_presentations',
                   'tests.unit.test_music_observations',
                   'tests.unit.test_overhead_observations',
