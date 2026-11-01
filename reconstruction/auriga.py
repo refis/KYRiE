@@ -38,6 +38,8 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'external_hat_effect': {'enabled', 'effect_id', 'target'},
                        'colored_speech': {'color_hex', 'text'},
                        'external_colored_speech': {'color_hex', 'text', 'target'},
+                       'status_enter': {'effect_id', 'remaining_ms', 'value1', 'value2', 'value3', 'tick'},
+                       'external_status_enter': {'effect_id', 'remaining_ms', 'value1', 'value2', 'value3', 'tick', 'target'},
                        'external_effect_remove': {'value', 'target'},
                        'classchange': {'class_id', 'kind'},
                        'progressbar': {'seconds', 'color'},
@@ -215,8 +217,11 @@ class AurigaRenderer:
             if kind == 'colored_speech':
                 values['color_hex'] = f"{values.pop('color'):08X}"
             adopted = row.get('adoption_confirmed') is True and kind in self.ADOPTABLE_EXTERNAL_KINDS
+            if kind == 'status_enter' and 'tick' not in values:
+                values['tick'] = 'n/a'
             if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
-                            'sound', 'effect_value', 'event_marker', 'hat_effect', 'colored_speech'):
+                            'sound', 'effect_value', 'event_marker', 'hat_effect', 'colored_speech',
+                            'status_enter'):
                 continue
             if adopted:
                 adopted_any = True
@@ -553,6 +558,11 @@ class AurigaRenderer:
                      state=fields['state'], kind=fields['kind'])
             elif kind == 'hat_effect':
                 emit('hat_effect', depth, enabled=fields['enabled'], effect_id=fields['effect_id'])
+            elif kind == 'status_enter':
+                emit('status_enter', depth, effect_id=fields['effect_id'],
+                     remaining_ms=fields['remaining_ms'], value1=fields['value1'],
+                     value2=fields['value2'], value3=fields['value3'],
+                     tick=fields.get('tick', 'n/a'))
             elif kind == 'classchange':
                 if npc_name:
                     emit('script_rendered',depth,text=render_display(dict(name=npc_name,map_name=map_name),{'class_id':fields['class_id']},self.templates))

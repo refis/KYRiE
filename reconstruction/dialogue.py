@@ -16,8 +16,9 @@ from reconstruction.actor_appearance import declaration_class
 WALK_SEND_IDS = {0x85, 0x35f}
 PRESENTATION_ACTOR_OFFSETS = {0xc0: 2, 0x19b: 2, 0x1f3: 2, 0x1d3: 31,
                               0x1b0: 2, 0x9d1: 2, 0x144: 2, 0x8b3: 4, 0x8d: 4, 0x2c1: 4, 0xb0d: 2, 0x284: 2,
-                              0x446: 2, 0xa3b: 4}
-EXTERNAL_PRESENTATION_IDS = {0xc0, 0x19b, 0x1f3, 0x1d3, 0x8b3, 0x8d, 0x2c1, 0xb0d, 0x284, 0x446, 0xa3b}
+                              0x446: 2, 0xa3b: 4, 0x8ff: 2, 0x984: 2}
+EXTERNAL_PRESENTATION_IDS = {0xc0, 0x19b, 0x1f3, 0x1d3, 0x8b3, 0x8d, 0x2c1, 0xb0d, 0x284, 0x446, 0xa3b,
+                             0x8ff, 0x984}
 DIALOGUE_LAYOUT_IDS = {0xba1, 0xba2, 0xba3, 0xbb5}
 DIALOGUE_LAYOUT_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment'}
 
@@ -36,7 +37,9 @@ def decode_dialogue(packet):
                  0x144: 'viewpoint', 0x8b3: 'overhead', 0x8d: 'unittalk', 0x2c1: 'colored_speech',
                  0xb0d: 'effect_remove', 0x284: 'effect_value',
                  0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement',
-                 0xab9: 'item_preview', 0xb13: 'item_preview'}
+                 0xab9: 'item_preview', 0xb13: 'item_preview',
+                 0x1d6: 'map_property', 0x99b: 'map_property',
+                 0x8ff: 'status_enter', 0x984: 'status_enter'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
         expected = 3 if pid == 0xba1 else 10
@@ -83,6 +86,28 @@ def decode_dialogue(packet):
         if not 0 <= index <= 65533:
             raise ObservationError('Item preview index is out of supported range')
         return kind, None, dict(index=index)
+    if kind == 'map_property':
+        # PacketLength 01D6=4 / 099B=8. No actor; map属性のみ。NPC本文命令へは出さない。
+        expected = 4 if pid == 0x1d6 else 8
+        if len(packet.raw) != expected:
+            raise ObservationError('Map property length does not match supported layout')
+        fields = dict(kind=r.number(2, 'H'))
+        if pid == 0x99b:
+            fields['flags'] = r.number(4, 'I')
+        return kind, None, fields
+    if kind == 'status_enter':
+        # PacketLength 08FF=24 / 0984=28. Separate from STATUS_IDS (0196/043F/0983); never sc_start.
+        expected = 24 if pid == 0x8ff else 28
+        if len(packet.raw) != expected:
+            raise ObservationError('Status-enter length does not match supported layout')
+        actor = r.number(2, 'I')
+        fields = dict(effect_id=r.number(6, 'H'), remaining_ms=r.number(8, 'I'),
+                      value1=r.number(12 if pid == 0x8ff else 16, 'I'),
+                      value2=r.number(16 if pid == 0x8ff else 20, 'I'),
+                      value3=r.number(20 if pid == 0x8ff else 24, 'I'))
+        if pid == 0x984:
+            fields['tick'] = r.number(12, 'I')
+        return kind, actor, fields
     if kind == 'announcement':
         offset = 4 if pid == 0x9a else 16
         if (not offset + 1 <= len(packet.raw) <= 65535
@@ -660,7 +685,7 @@ class DialogueStore:
                 return
             self._retain_presentation(packet, session, index, None, 'during_dialogue')
         elif packet.direction == 'RECV' and packet.packet_id in (
-                0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13):
+                0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13, 0x1d6, 0x99b):
             # No actor ID: never assign this notification to the active NPC.
             context = 'during_dialogue' if conversation else 'outside_dialogue'
             if key in self.close_pending:

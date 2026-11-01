@@ -22,6 +22,14 @@ def presentation_context(row):
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='アイテムプレビューは対象ActorID未記録。所持Indexの観測メモでありgetitemへは出しません。',
             summary='0x0AB9（47バイト）／0x0B13（48バイト）は表示定義どおり index@2（生値-2）だけを保持します。他バイトは未解釈です。会話中に届いてもNPCの発生元とせず、getitem／itempreview 実行命令やタイマーへ変換しません。')
+    elif kind=='map_property':
+        result.update(actor_role='map_property',observed_actor_id=None,player_context_required=True,
+            short='マップ属性通知です。対象ActorIDは未記録で、NPC本文命令へは出しません。',
+            summary='0x01D6／0x099Bはマップ種別・フラグのみを保持します。会話中に届いてもNPCの発生元とせず、mapproperty相当の実行命令やタイマーへ変換しません。')
+    elif kind=='status_enter':
+        result.update(actor_role='status_enter_target',
+            short='入場時状態の対象IDです。0196／043F／0983のstatus付与とは別観測です。',
+            summary='0x08FF／0x0984は対象ActorIDと effect_id／残時間／付加値を保持します。既存 status（sc_start相当）と混同せず、自動補完・実行命令・タイマー化はしません。コメント観測のみです。')
     elif kind=='progress_action' or kind=='progressbar' and packet==0x2f0:
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='進捗対象のActorIDは未記録。会話元NPCのIDと同一視しません。',
