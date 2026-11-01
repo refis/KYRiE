@@ -35,7 +35,8 @@ def decode_dialogue(packet):
                  0x2f0: 'progressbar', 0x9d1: 'progressbar', 0x7fe: 'music', 0xb8c: 'music',
                  0x144: 'viewpoint', 0x8b3: 'overhead', 0x8d: 'unittalk', 0x2c1: 'colored_speech',
                  0xb0d: 'effect_remove', 0x284: 'effect_value',
-                 0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement'}
+                 0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement',
+                 0xab9: 'item_preview', 0xb13: 'item_preview'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
         expected = 3 if pid == 0xba1 else 10
@@ -73,6 +74,15 @@ def decode_dialogue(packet):
         if len(packet.raw) != 66:
             raise ObservationError('Achievement length does not match supported layout')
         return kind, None, dict(achievement_id=r.number(16, 'I'))
+    if kind == 'item_preview':
+        # PacketLength 0AB9=47 / 0B13=48. Display JSON only documents index@2 (add -2); rest opaque.
+        expected = 47 if pid == 0xab9 else 48
+        if len(packet.raw) != expected:
+            raise ObservationError('Item preview length does not match supported layout')
+        index = r.number(2, 'H') - 2
+        if not 0 <= index <= 65533:
+            raise ObservationError('Item preview index is out of supported range')
+        return kind, None, dict(index=index)
     if kind == 'announcement':
         offset = 4 if pid == 0x9a else 16
         if (not offset + 1 <= len(packet.raw) <= 65535
@@ -649,7 +659,8 @@ class DialogueStore:
                 self._retain_presentation(packet, session, index, None, 'input_wait', conversation, prompt_index)
                 return
             self._retain_presentation(packet, session, index, None, 'during_dialogue')
-        elif packet.direction == 'RECV' and packet.packet_id in (0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24):
+        elif packet.direction == 'RECV' and packet.packet_id in (
+                0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13):
             # No actor ID: never assign this notification to the active NPC.
             context = 'during_dialogue' if conversation else 'outside_dialogue'
             if key in self.close_pending:
