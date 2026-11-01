@@ -264,14 +264,17 @@ MAPの空名8件は未登録として記録し、異なる名称を持つクエ�
 
 GUIの所持品・基本MAP情報・クエストタイムラインへ併記し、観測モデルの名称やコードのIDを上書きしない。
 所持品の鑑定は、確認済み一覧のbit0、取得時の専用値、鑑定結果から保持する。
-未確認の35/68byte一覧は不明表示。確認済み形式の根拠はローカルAuriga clif.cの0B09/0B0Aと
+確認済み／未確認のストライドと鑑定フラグは
+[所持品観測の検証境界](../observations/player-observations.md#一覧ストライドと鑑定フラグの検証境界48)へ集約。
+確認済み形式の根拠はローカルAuriga clif.cの0B09/0B0Aと
 [rAthenaのNORMALITEM_INFO/EQUIPITEM_INFO](https://github.com/rathena/rathena/blob/master/src/map/packets_struct.hpp)。
 未鑑定名称なし・他フラグの併存・成功／失敗通知・数量保持・GUI・元IDとコード不変等を関連13項目で確認。
 既存2ログの最終所持品265/336枠はすべて名称解決、Player解析問題0件。
 鑑定状態は旧ログ106枠確認／159枠不明、新ログ156枠確認／180枠不明（未確認一覧形式を推測しない）。
 ログと定義のハッシュは不変。logs/client-name-identification-review.jsonへ記録した。
-通常shopへの品名併記を追加。商品ID・価格・復元コードは変更しない。
-0B39は参照実装と実ログ末尾を照合し、68byteレコードoffset67のbit0に対応した。上記の不明枠数は対応前の履歴。0B38のフラグ位置確認は残作業。
+通常shopへの品名併記は実装済み。商品ID・価格・復元コードは変更しない。
+0B39は参照実装と実ログ末尾を照合し、68byteレコードoffset67のbit0に対応済み。
+0B38のフラグ位置は未確認のまま不明を維持し、採取リスト I01 待ち。
 参照: https://github.com/rathena/rathena/blob/master/src/map/packets_struct.hpp （EQUIPITEM_INFO）。
 
 会話タイムラインのアイテム授受（getitem/getitem2/delitem）にも資料品名を反映済み。ID・数量、未登録ID、装備属性、観測モデルと生成コードの維持を関連3項目で確認。
