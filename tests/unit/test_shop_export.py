@@ -5,7 +5,8 @@ import unittest
 from events import PacketEvent
 from reconstruction.dialogue import DialogueStore
 from reconstruction.shops import ShopStore
-from reconstruction.shop_export import ShopRenderer
+from reconstruction.client_names import empty_client_names, load_client_names
+from reconstruction.shop_export import ShopRenderer, format_shop_item_names
 from tests.support.branches import NPC
 
 
@@ -160,3 +161,26 @@ class ShopExportTests(unittest.TestCase):
         direct['items'].append(deepcopy(direct['items'][0]))
         with self.assertRaises(ValueError):
             renderer.render(direct, 'shop', item_ids_confirmed=True, conversation=opened, map_name='test.gat')
+
+    def test_shop_candidate_annotates_identified_names_without_rewriting_ids(self):
+        catalog = load_client_names()
+        empty = empty_client_names()
+        direct, opened = observe_shop(False)
+        before = deepcopy(direct)
+        named = ShopRenderer(client_names=catalog).render(
+            direct, 'shop', item_ids_confirmed=True, conversation=opened)
+        self.assertIn('501:100', named)
+        self.assertIn('// 品名（資料）: 501=赤ポーション', named)
+        self.assertLess(named.index('品名（資料）'), named.index('501:100'))
+        missing = ShopRenderer(client_names=empty).render(
+            direct, 'shop', item_ids_confirmed=True, conversation=opened)
+        self.assertIn('501:100', missing)
+        self.assertIn('// 品名（資料）: 501=未登録', missing)
+        self.assertEqual(format_shop_item_names(catalog, direct['items']), '501=赤ポーション')
+        self.assertEqual(direct, before)
+        record, conversation = observe_shop(True)
+        callshop = ShopRenderer(client_names=catalog).render(
+            record, 'callshop', item_ids_confirmed=True, conversation=conversation)
+        self.assertIn('// 品名（資料）: 501=赤ポーション', callshop)
+        self.assertIn('501:100', callshop)
+        self.assertRegex(callshop, r'-\tshop\tGPA_S[0-9a-f]{12}\t-1,501:100')

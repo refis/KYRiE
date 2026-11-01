@@ -33,19 +33,21 @@ class NpcReportSnapshot:
     rendering: object
     text_output: bool=False
     identity: dict | None=None
+    client_names: dict | None=None
 
     def build(self):
         from reconstruction.npc_bundle import build_npc_bundle
         with self.rendering.activate():
             report=build_npc_bundle(self.entities,self.conversations,self.sources,merge=self.merge,shops=self.shops,
-                                   barters=self.barters, identity=self.identity)
+                                   barters=self.barters, identity=self.identity, client_names=self.client_names)
         if not report['entries'] and not report['excluded']:raise ValueError('NPCの観測がありません。')
         return report
 
 
-def freeze_npc_report(entities,conversations,sources,*,merge,shops=(),barters=(),identity=None):
+def freeze_npc_report(entities,conversations,sources,*,merge,shops=(),barters=(),identity=None,client_names=None):
     from reconstruction.render_inputs import freeze_npc_render_inputs
     entities,conversations,sources,shops,barters=deepcopy(
         (list(entities),list(conversations),dict(sources),list(shops),list(barters)))
+    # Share the already-loaded catalog; never reopen client_names.json during build().
     return NpcReportSnapshot(entities,conversations,sources,merge,shops,barters,freeze_npc_render_inputs(),
-                             identity=dict(identity or {}))
+                             identity=dict(identity or {}), client_names=client_names)

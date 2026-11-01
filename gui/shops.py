@@ -16,9 +16,10 @@ ASSOCIATION_LABELS = {'selector_and_buy_reply': '対象選択と購入応答を�
 
 
 class ShopExportDialog(QDialog):
-    def __init__(self, record, conversation, parent=None):
+    def __init__(self, record, conversation, parent=None, *, names=None):
         super().__init__(parent)
         self.record, self.conversation, self.result_text = deepcopy(record), deepcopy(conversation), None
+        self.names = names if names is not None else empty_client_names()
         self.setWindowTitle('通常ショップのAuriga編集用候補')
         self.resize(650, 250)
         form = QFormLayout(self)
@@ -36,7 +37,8 @@ class ShopExportDialog(QDialog):
         form.addRow('マップ', self.map_name)
         self.confirm_ids = QCheckBox('表示アイテムIDが出力先DBと一致することを確認済み')
         form.addRow(self.confirm_ids)
-        form.addRow(QLabel('基本価格を使用します。元のNPC種・隠れたショップ名・条件式を確定する出力ではありません。'))
+        form.addRow(QLabel('基本価格を使用します。元のNPC種・隠れたショップ名・条件式を確定する出力ではありません。'
+                           '品名は識別済資料の併記のみで、宣言の数値IDは変えません。'))
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.button(QDialogButtonBox.Save).setText('候補を生成')
         buttons.button(QDialogButtonBox.Cancel).setText('取消')
@@ -55,7 +57,8 @@ class ShopExportDialog(QDialog):
 
     def generate(self):
         try:
-            self.result_text = ShopRenderer().render(self.record, self.mode.currentData(),
+            self.result_text = ShopRenderer(client_names=self.names).render(
+                self.record, self.mode.currentData(),
                 item_ids_confirmed=self.confirm_ids.isChecked(), map_name=self.map_name.text().strip() or None,
                 conversation=self.conversation)
             self.accept()
@@ -156,7 +159,7 @@ class ShopPanel(QWidget):
         record = self.store.records[index]
         conversation = next((item for item in self.store.dialogues.sessions
             if item.capture_session == record['capture_session'] and item.id == record.get('conversation_id')), None) if self.store.dialogues else None
-        dialog = ShopExportDialog(record, conversation, self)
+        dialog = ShopExportDialog(record, conversation, self, names=self.names)
         protected = self.export_protected_paths()
         if dialog.exec() != QDialog.Accepted:
             return
