@@ -2,7 +2,8 @@ import struct
 import unittest
 
 from events import PacketEvent
-from reconstruction.barter import BarterStore, decode_barterlist, decode_expanded_barter
+from reconstruction.barter import (
+    BarterStore, decode_barterlist, decode_expanded_barter, decode_expanded_barter_b79)
 from reconstruction.barter_export import BarterRenderer, format_barter_items, script_refine
 from reconstruction.dialogue import DialogueStore
 from reconstruction.decoder import ObservationError
@@ -11,7 +12,7 @@ from tests.support.branches import NPC
 
 def message(pid, body=b'', direction='recv', flow='game', timestamp=1.0):
     direction = {'recv': 'RECV', 'send': 'SEND'}.get(direction, direction)
-    if pid in (0xb0e, 0xb56):
+    if pid in (0xb0e, 0xb56, 0xb79):
         raw = struct.pack('<HH', pid, 4 + len(body)) + body
     else:
         raw = struct.pack('<H', pid)
@@ -42,7 +43,33 @@ def barterlist_body(entries):
     return b''.join(chunks)
 
 
-def observe_barter(*, gap=1.0, items=None, packet_id=0xb56):
+def b79_currency(chunks, currencies):
+    for currency_id, refine, currency_amount, currency_type in currencies:
+        chunks.append(struct.pack('<IHIH', currency_id, refine, currency_amount, currency_type))
+
+
+def b79_body(entries, *, variant='20210203'):
+    """entries: (nameid, type, stock, zeny, look, equip, refine_or_none, currencies)."""
+    chunks = [struct.pack('<I', len(entries))]
+    for nameid, typ, stock, zeny, look, equip, refine, currencies in entries:
+        amount = 0xffffffff if stock < 0 else stock
+        base = (struct.pack('<I', nameid) + struct.pack('<H', typ) + struct.pack('<I', amount)
+                + struct.pack('<III', 0, 0, zeny) + struct.pack('<H', look) + struct.pack('<I', equip))
+        if variant == '20210203':
+            chunks.append(base + struct.pack('<I', len(currencies)))
+            b79_currency(chunks, currencies)
+        elif variant == '20250402':
+            chunks.append(base + struct.pack('<II', refine if refine is not None else 0, len(currencies)))
+            b79_currency(chunks, currencies)
+        elif variant == '20260107':
+            chunks.append(base + struct.pack('<II', len(currencies), refine if refine is not None else 0))
+            b79_currency(chunks, currencies)
+        else:
+            raise ValueError(variant)
+    return b''.join(chunks)
+
+
+def observe_barter(*, gap=1.0, items=None, packet_id=0xb56, b79_variant='20260107'):
     """Close then barter list within the after-close window; returns record and conversation."""
     dialogues = DialogueStore()
     store = BarterStore(dialogues=dialogues)
@@ -63,6 +90,9 @@ def observe_barter(*, gap=1.0, items=None, packet_id=0xb56):
     if packet_id == 0xb0e:
         entries = items or [(600014, 9, -1, 1000367, 8000, 3400, 0)]
         consume(0xb0e, barterlist_body(entries))
+    elif packet_id == 0xb79:
+        entries = items or [(450206, 4, -1, 0, 1, 0, 7, [(1000608, 0, 100, 3)])]
+        consume(0xb79, b79_body(entries, variant=b79_variant))
     else:
         entries = items or [(450206, 4, -1, 0, [(1000608, 0, 100, 3)])]
         consume(0xb56, barter_body(entries))
@@ -129,3 +159,36 @@ class BarterTests(unittest.TestCase):
         self.assertIn('//-\tbarter\tGPA_B', code)
         self.assertIn('600014:-1:0 { 1000367:-1:8000 }', code)
         self.assertIn('// callbarter "', code)
+
+    def test_decode_0b79_layouts_and_after_close_export(self):
+        sample = [(450206, 4, -1, 0, 1, 0, 7, [(1000608, 0, 100, 3)])]
+        for variant, needle in (
+                ('20260107', '20260107'),
+                ('20250402', '20250402'),
+                ('20210203', '20210203')):
+            body = b79_body(sample, variant=variant)
+            items, label = decode_expanded_barter_b79(message(0xb79, body))
+            self.assertIn(needle, label)
+            self.assertEqual(items[0]['client_item_id'], 450206)
+            self.assertEqual(items[0]['view_sprite'], 1)
+            self.assertEqual(items[0]['currencies'][0]['amount'], 100)
+            if variant == '20210203':
+                self.assertNotIn('refine_level', items[0])
+            else:
+                self.assertEqual(items[0]['refine_level'], 7)
+            with self.assertRaises(ObservationError):
+                decode_expanded_barter_b79(message(0xb79, body + b'\0\0'))
+
+        # 20250402 writes refine=0; keep refine distinguishable via non-zero for 20260107 only.
+        zero_refine = [(450206, 4, -1, 0, 1, 0, 0, [(1000608, 0, 100, 3)])]
+        items, label = decode_expanded_barter_b79(message(0xb79, b79_body(zero_refine, variant='20250402')))
+        self.assertIn('20250402', label)
+        self.assertEqual(items[0]['refine_level'], 0)
+
+        record, conversation = observe_barter(packet_id=0xb79, b79_variant='20260107')
+        self.assertEqual(record['market_kind'], 'expanded_barter')
+        self.assertIn('20260107', record['layout'])
+        self.assertEqual(record['association'], 'after_close_list')
+        code = BarterRenderer().render(record, item_ids_confirmed=True, conversation=conversation)
+        self.assertIn('//-\tbarter\tGPA_B', code)
+        self.assertIn('450206:-1:0 { 1000608:-1:100 }', code)

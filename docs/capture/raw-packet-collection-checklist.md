@@ -431,8 +431,7 @@ python -m tools.audit_inventory logs/SESSION/capture.jsonl --output logs/SESSION
 - C03の位置0BA3/0BB5・整列0BA1: 本ログも0件（0BA2は13件あり、追加必須としない）。
 - C04の途中中断02F2・個体対象09D1: 本ログも0件。
 - I01の0B38／未鑑定入手: 本ログも0B38=0、getitem2は identified=1 のみ。0B09を0B38検証済み扱いにしない。
-- 0x0B0E barterlist: 本ログ1件でレイアウト照合済み。0x0B79／実機0x0B56は0件のまま。
-  追加採取は購入応答・閉じる操作・別NPCでの再出現を優先（Issue #51の0x0B79側）。
+- 0x0B0E barterlist: 本ログ1件でレイアウト照合・デコード済み。実機0x0B56／0x0B79は0件。
+  0x0B79は提供ソースに基づくデコードを合成確認済み。実機での再出現・購入応答があれば追加採取。
 
 優先順（1本だけ取る場合）: 文字inputの正常→未応答→正常。
-0x0B79拡張barterが自然に取れるなら Issue #51 側を先にする。
