@@ -545,7 +545,8 @@ class DialogueStore:
         action_conversation = conversation
         recent = self.after_close.get(key)
         after_reply = False
-        if action_conversation is None and recent and packet.direction == 'RECV' and packet.packet_id == 0xf2 and 0 <= packet.timestamp - recent[0] <= 2:
+        if (action_conversation is None and recent and packet.direction == 'RECV'
+                and packet.packet_id in (0xf2, 0xb8f) and 0 <= packet.timestamp - recent[0] <= 2):
             action_conversation = recent[1]
             after_reply = True
         try:
@@ -682,6 +683,23 @@ class DialogueStore:
                     self.revision += 1
                 except ObservationError as exc:
                     self._issue(packet, index, str(exc))
+            return
+        if packet.direction == 'RECV' and packet.packet_id in (0xc6, 0xb77):
+            # Callshop/list open after close without 00C4: same 2s shop_recent window as close2.
+            recent = self.shop_recent.get(key)
+            if (recent and session == self.current_capture and 0 <= packet.timestamp - recent[0] <= 2
+                    and self.active.get(key) is not recent[1]):
+                linked = recent[1]
+                self.shop_recent.pop(key, None)
+                self.after_close.pop(key, None)
+                if linked.status != 'shop_opened':
+                    linked.status = 'shop_opened'
+                    linked.termination = dict(timestamp=packet.timestamp, packet_index=index,
+                        packet_id=packet.packet_id, direction=packet.direction, connection=packet.connection,
+                        source=packet.source, shop_actor_id=linked.actor_id,
+                        shop_link_basis='same_flow_after_close', after_close_list=True)
+                    self.active.pop(key, None)
+                    self.revision += 1
             return
         if packet.direction == 'RECV' and packet.packet_id == 0xb56:
             # Expanded barter list after close: same 2s shop_recent window as close2/callshop.

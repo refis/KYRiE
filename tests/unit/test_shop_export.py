@@ -9,7 +9,8 @@ from reconstruction.shop_export import ShopRenderer
 from tests.support.branches import NPC
 
 
-def observe_shop(with_dialogue, close_first=False, gap=0, acknowledge=False, followup=False):
+def observe_shop(with_dialogue, close_first=False, gap=0, acknowledge=False, followup=False,
+                 selector=True):
     dialogues = DialogueStore()
     shops = ShopStore(dialogues=dialogues)
     now = 1
@@ -35,8 +36,9 @@ def observe_shop(with_dialogue, close_first=False, gap=0, acknowledge=False, fol
             consume(0x19b, struct.pack('<II', 42, 123))
             if followup == 'reopen':
                 consume(0xb4, struct.pack('<I', 42) + b'reopened dialogue\0')
-    consume(0xc4, struct.pack('<I', 42))
-    consume(0xc5, struct.pack('<IB', 42, 0), 'SEND')
+    if selector:
+        consume(0xc4, struct.pack('<I', 42))
+        consume(0xc5, struct.pack('<IB', 42, 0), 'SEND')
     consume(0xc6, struct.pack('<IIBI', 100, 76, 0, 501))
     item = dialogues.sessions[0]
     item.npc = dict(NPC)
@@ -106,6 +108,31 @@ class ShopExportTests(unittest.TestCase):
         self.assertEqual(code.count('close2;'), 2)
         self.assertLess(code.index('mes "reopened dialogue";'), code.rindex('close2;'))
         self.assertLess(code.rindex('close2;'), code.index('callshop "'))
+
+    def test_after_close_list_without_selector_is_callshop_within_two_seconds(self):
+        from reconstruction.npc_bundle import build_npc_bundle
+        record, conversation = observe_shop(True, close_first=True, acknowledge=True, selector=False)
+        self.assertEqual(record['association'], 'after_close_list')
+        self.assertEqual(record['conversation_link_basis'], 'same_flow_after_close')
+        self.assertEqual(conversation.status, 'shop_opened')
+        self.assertTrue(conversation.termination.get('after_close_list'))
+        self.assertEqual(conversation.termination.get('packet_id'), 0xc6)
+        before = deepcopy((record, conversation))
+        code = ShopRenderer().render(record, 'callshop', item_ids_confirmed=True, conversation=conversation)
+        self.assertIn('-\tshop\tGPA_S', code)
+        self.assertIn('close2;', code)
+        self.assertIn('callshop "GPA_S', code)
+        self.assertLess(code.index('-\tshop\t'), code.index('\tscript\t'))
+        with self.assertRaises(ValueError):
+            ShopRenderer().render(record, 'shop', item_ids_confirmed=True, conversation=conversation)
+        report = build_npc_bundle([], [conversation], shops=[record])
+        self.assertIn('callshop "GPA_S', report['auriga'])
+        self.assertLess(report['auriga'].index('-\tshop\t'), report['auriga'].index('\tscript\t'))
+        self.assertEqual((record, conversation), before)
+        expired, closed = observe_shop(True, close_first=True, gap=3, acknowledge=True, selector=False)
+        self.assertEqual(expired['association'], 'unresolved')
+        self.assertIsNone(expired['conversation_id'])
+        self.assertEqual(closed.status, 'closed')
 
     def test_confirmation_placement_and_observed_transition_are_required(self):
         renderer = ShopRenderer()
