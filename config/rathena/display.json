@@ -2157,6 +2157,16 @@
       "fields": {},
       "template": "{command_text}",
       "min_length": 6
+    },
+    {
+      "ids": [
+        "0B8F"
+      ],
+      "name": "Item reform UI open",
+      "decoder": "script_command",
+      "fields": {},
+      "template": "{command_text}",
+      "min_length": 6
     }
   ]
 }

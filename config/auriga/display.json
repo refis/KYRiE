@@ -2131,6 +2131,16 @@
       "fields": {},
       "template": "{command_text}",
       "min_length": 6
+    },
+    {
+      "ids": [
+        "0B8F"
+      ],
+      "name": "Item reform UI open",
+      "decoder": "script_command",
+      "fields": {},
+      "template": "{command_text}",
+      "min_length": 6
     }
   ],
   "actor_change_template": "@{actor_kind} ID={actor_id} 変更: {changes_text}",

@@ -545,7 +545,8 @@ class DialogueStore:
         action_conversation = conversation
         recent = self.after_close.get(key)
         after_reply = False
-        if action_conversation is None and recent and packet.direction == 'RECV' and packet.packet_id == 0xf2 and 0 <= packet.timestamp - recent[0] <= 2:
+        if (action_conversation is None and recent and packet.direction == 'RECV'
+                and packet.packet_id in (0xf2, 0xb8f) and 0 <= packet.timestamp - recent[0] <= 2):
             action_conversation = recent[1]
             after_reply = True
         try:

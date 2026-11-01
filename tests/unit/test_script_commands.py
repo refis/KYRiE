@@ -59,6 +59,30 @@ class ScriptCommandTests(unittest.TestCase):
         self.assertTrue(all(render_command(r['fields'],AurigaRenderer().templates)=='openstorage;' for r in records))
         self.assertFalse(store.sessions)
 
+    def test_openreform_is_always_commented_and_keeps_trigger_item_id(self):
+        _,store,consume=self.setup_store()
+        consume(raw_packet(0xb8f,struct.pack('<I',101186)))
+        self.close(consume)
+        code=self.code(store)
+        self.assertIn('// openreform 101186; // 要確認: Auriga未実装のopenreform',code)
+        self.assertFalse(any(line.startswith('openreform ') for line in code.splitlines()))
+        record=store.commands.observations[-1]
+        self.assertEqual(record['fields']['command'],'openreform')
+        self.assertEqual(record['fields']['arguments']['item_id'],101186)
+        self.assertTrue(record['fields']['review_only'])
+        _,outside,consume=self.setup_store(opened=False)
+        consume(raw_packet(0xb8f,struct.pack('<I',101638)))
+        records=outside.snapshot()['script_command_observations']
+        self.assertEqual(len(records),1)
+        self.assertTrue(records[0]['fields']['review_only'])
+        self.assertIn('openreform 101638;',render_command(records[0]['fields'],AurigaRenderer().templates))
+        for bad in (raw_packet(0xb8f,b'\0\0\0'),raw_packet(0xb8f,struct.pack('<I',0))):
+            _,broken,consume=self.setup_store(opened=False)
+            before=broken.issue_count
+            consume(bad)
+            self.assertGreater(broken.issue_count,before)
+            self.assertFalse(broken.commands.observations)
+
     def test_getitem_getitem2_and_delitem_keep_attributes_and_gate_on_dialogue(self):
         _,store,consume=self.setup_store()
         consume(pickup(index=2,item_id=501,amount=3))
@@ -305,6 +329,20 @@ class ScriptCommandTests(unittest.TestCase):
             code=self.code(store)
             self.assertEqual('close2;' in code,not timeout)
             self.assertEqual(any(line=='openstorage;' for line in code.splitlines()),not timeout)
+
+    def test_openreform_after_close_reply_is_close2_comment_candidate(self):
+        _,store,consume=self.setup_store()
+        self.close(consume)
+        consume(packet(0x146,struct.pack('<I',42),direction='SEND'))
+        consume(raw_packet(0xb8f,struct.pack('<I',101186)))
+        code=self.code(store)
+        self.assertIn('close2;',code)
+        self.assertIn('// openreform 101186;',code)
+        from parser.display import ReceiveDisplay,DisplayProfile
+        display=ReceiveDisplay(DisplayProfile.load())
+        text=display.decode(raw_packet(0xb8f,struct.pack('<I',101638))).text
+        self.assertIn('// openreform 101638;',text)
+        self.assertIn('Auriga未実装のopenreform',text)
 
     def test_configured_drop_time_is_explicit_and_later_death_suppresses_candidate(self):
         _,store,consume=self.setup_store()

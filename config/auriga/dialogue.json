@@ -137,6 +137,7 @@
   "action_observation": "// 会話内アクション観測（起因未確定）: {evidence}",
   "action_wait_review": "// 入力待ち中の通知。観測した応答後へ仮配置。実際の並行実行順序は要確認。",
   "script_openstorage": "openstorage;",
+  "script_openreform": "openreform {item_id};",
   "script_getitem": "getitem {item_id},{amount};",
   "script_getitem2": "getitem2 {item_id},{amount},{identified},{refine},{attribute},{card1},{card2},{card3},{card4};",
   "script_delitem": "delitem {item_id},{amount};",
