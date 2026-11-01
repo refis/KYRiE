@@ -44,6 +44,10 @@ def presentation_context(row):
         result.update(actor_role='hat_effect_target',
             short='帽子エフェクトの対象IDです。起因・装備条件・実行命令は未確定です。',
             summary='0x0A3Bは対象ActorID・enabled・effect_idを保持します。表示JSONの@hat_effect雛形とは別で、会話命令やNPCタイマーへ実行命令は出しません。コメント採用のみとし、hateffect等の未確認命令へ置き換えません。')
+    elif kind=='colored_speech':
+        result.update(actor_role='speech_source',
+            short='色付きユニット発言の対象IDです。通常unittalkとは別観測で命令化しません。',
+            summary='0x02C1は対象ActorID・color・textを保持します。表示JSONのwire色値を明示し、008D unittalkと混同しません。会話命令やNPCタイマーへ実行unittalkは出さず、コメント採用のみとします。')
     elif kind=='mapcell':
         result.update(actor_role='map_cell',observed_actor_id=None,
             short='マップセル変更の観測です。呼出元NPCのIDは含まれていません。',

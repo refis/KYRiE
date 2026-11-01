@@ -15,9 +15,9 @@ from reconstruction.actor_appearance import declaration_class
 
 WALK_SEND_IDS = {0x85, 0x35f}
 PRESENTATION_ACTOR_OFFSETS = {0xc0: 2, 0x19b: 2, 0x1f3: 2, 0x1d3: 31,
-                              0x1b0: 2, 0x9d1: 2, 0x144: 2, 0x8b3: 4, 0x8d: 4, 0xb0d: 2, 0x284: 2,
+                              0x1b0: 2, 0x9d1: 2, 0x144: 2, 0x8b3: 4, 0x8d: 4, 0x2c1: 4, 0xb0d: 2, 0x284: 2,
                               0x446: 2, 0xa3b: 4}
-EXTERNAL_PRESENTATION_IDS = {0xc0, 0x19b, 0x1f3, 0x1d3, 0x8b3, 0x8d, 0xb0d, 0x284, 0x446, 0xa3b}
+EXTERNAL_PRESENTATION_IDS = {0xc0, 0x19b, 0x1f3, 0x1d3, 0x8b3, 0x8d, 0x2c1, 0xb0d, 0x284, 0x446, 0xa3b}
 DIALOGUE_LAYOUT_IDS = {0xba1, 0xba2, 0xba3, 0xbb5}
 DIALOGUE_LAYOUT_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment'}
 
@@ -33,7 +33,8 @@ def decode_dialogue(packet):
                  0x142: 'number', 0x1d4: 'text', 0x1b3: 'cutin',
                  0xc0: 'emotion', 0x1d3: 'sound', 0x19b: 'effect', 0x1f3: 'effect', 0x1b0: 'classchange',
                  0x2f0: 'progressbar', 0x9d1: 'progressbar', 0x7fe: 'music', 0xb8c: 'music',
-                 0x144: 'viewpoint', 0x8b3: 'overhead', 0x8d: 'unittalk', 0xb0d: 'effect_remove', 0x284: 'effect_value',
+                 0x144: 'viewpoint', 0x8b3: 'overhead', 0x8d: 'unittalk', 0x2c1: 'colored_speech',
+                 0xb0d: 'effect_remove', 0x284: 'effect_value',
                  0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
@@ -88,6 +89,11 @@ def decode_dialogue(packet):
         if not 9 <= len(packet.raw) <= 65535 or r.number(2, 'H') != len(packet.raw):
             raise ObservationError('Overhead message total length does not match raw bytes')
         return kind, r.number(4, 'I'), dict(text=r.text(8))
+    if kind == 'colored_speech':
+        # PacketLength -1. Display JSON: actor_id@4, color@8, text@12. Do not treat as unittalk.
+        if not 13 <= len(packet.raw) <= 65535 or r.number(2, 'H') != len(packet.raw):
+            raise ObservationError('Colored speech total length does not match raw bytes')
+        return kind, r.number(4, 'I'), dict(color=r.number(8, 'I'), text=r.text(12))
     if kind == 'viewpoint':
         if len(packet.raw) != 23:
             raise ObservationError('Viewpoint packet length does not match supported layout')
@@ -319,7 +325,7 @@ class DialogueStore:
         record['npc'] = ({name: getattr(entity, name) for name in
                           ('name', 'map_name', 'class_id', 'x', 'y', 'direction', 'appearance', 'map_generation')}
                          if entity and entity.kind == 'NPC' else {})
-        if kind in ('unittalk', 'player_chat', 'overhead'):
+        if kind in ('unittalk', 'player_chat', 'overhead', 'colored_speech'):
             self_actor = self._self_actor(packet, session)
             record['speech_origin'] = self.speech.received(packet, session, index, actor, self_actor)
             if self_actor is not None and actor == self_actor:

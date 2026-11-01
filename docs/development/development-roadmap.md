@@ -389,7 +389,7 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
 - 最初は候補と根拠を保存。利用者が採用した観測に限り、編集用の待機／タイマー形式へ出力する。
   [手動採用・全時刻手入力のNPCタイマー候補](../npc/event-timer-candidates.md)を追加済み。
   実行採用: emotion／effect／effect_remove／announce／unittalk／対象NPC自身のoverhead。
-  コメント採用: effect_value／event_marker／hat_effect／classchange。
+  コメント採用: effect_value／event_marker／hat_effect／colored_speech／classchange。
   sound／music／viewpoint／progressbar／mapcell等は明示拒否。開始条件は生成しない。
   本体での読込・実行確認は残る。OnTimer値・sleep命令・イベントラベルが元コードと一致するとは扱わない。
 - 完了条件: 単発や欠損ログを自動でタイマー化せず、演出の相違が注意として残り、
@@ -531,10 +531,10 @@ after_close callshop・README版同期・0x0B0E barterlist デコードは完了
 残作業（採取必須のものは採取後）:
 
 1. **P0-A 採取**: 文字input（01D4／01D5）の正常→未応答→正常（[採取リスト](../capture/raw-packet-collection-checklist.md)）
-2. **必要時のみ**: 残 display_only（0AB9／02C1 等）、0x0B79実機ログでのレイアウト再確認（合成契約は済み）。
-   0A24 Achievement は観測保持・命令非生成まで完了（#50）。未登録 effect／状態の根拠付き辞書拡充は、
+2. **必要時のみ**: 残 display_only（0AB9／0B13 等）、0x0B79実機ログでのレイアウト再確認（合成契約は済み）。
+   0A24 Achievement・02C1 colored_speech は観測保持・命令非生成まで完了。未登録 effect／状態の根拠付き辞書拡充は、
    手元の `.reference`／`client` を読取専用で用いてよい（原資料の Git 持ち出し禁止。
-   [クライアント資料計画](client-data-utilization-plan.md)）。
+   [クライアント資料計画](client-data-utilization-plan.md)）。状態アイコン日本語タイトル792件は取り込み済み。
    通常shop品名併記（#47）と所持品鑑定フラグ境界の文書化（#48）は完了。0B38 は定義なし／廃止候補のため追採取しない。
 3. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
 
