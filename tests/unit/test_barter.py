@@ -175,7 +175,7 @@ class BarterTests(unittest.TestCase):
             if variant == '20210203':
                 self.assertNotIn('refine_level', items[0])
             else:
-                self.assertEqual(items[0]['refine_level'], 7 if variant == '20260107' else 7)
+                self.assertEqual(items[0]['refine_level'], 7)
             with self.assertRaises(ObservationError):
                 decode_expanded_barter_b79(message(0xb79, body + b'\0\0'))
 
