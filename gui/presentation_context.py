@@ -18,6 +18,10 @@ def presentation_context(row):
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='実績通知は対象ActorID未記録。プレイヤー向け観測でありNPC命令へは出しません。',
             summary='0x0A24は固定66バイトのうち表示定義どおり achievement_id@16 だけを保持します。他バイトは未解釈です。会話中に届いてもNPCの発生元とせず、achievement 実行命令やタイマーへ変換しません。')
+    elif kind=='item_preview':
+        result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
+            short='アイテムプレビューは対象ActorID未記録。所持Indexの観測メモでありgetitemへは出しません。',
+            summary='0x0AB9（47バイト）／0x0B13（48バイト）は表示定義どおり index@2（生値-2）だけを保持します。他バイトは未解釈です。会話中に届いてもNPCの発生元とせず、getitem／itempreview 実行命令やタイマーへ変換しません。')
     elif kind=='progress_action' or kind=='progressbar' and packet==0x2f0:
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='進捗対象のActorIDは未記録。会話元NPCのIDと同一視しません。',
