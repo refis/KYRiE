@@ -76,6 +76,8 @@
 | 外部候補 | 会話中の別既知NPCへ届いた場合は `external_presentations` へ保持。呼出し元は未確定 |
 
 表示定義の wire 色値を明示し、008D `unittalk` と混同しない。合成パケットで decode・保持・コメント出力を確認。
+20261102-173136-edcd6b68で実機 RECV×1（MOB actor 732、会話外、color wire `0x000000FF`、
+map `pay_d03_i.gat`）。presentation_observations に保持し、会話 auriga 本文へ unittalk は出さない。
 
 ## アイテムプレビュー（0AB9／0B13）
 

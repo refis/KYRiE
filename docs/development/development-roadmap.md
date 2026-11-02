@@ -528,13 +528,14 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 2026-11-02時点。#45–#66 相当（プロジェクトログ編集、display_only 個別配線、
 状態アイコン日本語タイトル792件、barter／openreform／callshop 等）は完了またはPR反映済み。
+文字input（01D4／01D5）の正常→未応答→正常と実機 0x0B56／通常shop、および 02C1 MOB 実例は
+20261102-171318-9aba07f0／20261102-173136-edcd6b68で確認（[採取リスト](../capture/raw-packet-collection-checklist.md)）。
 残作業（採取必須のものは採取後）:
 
-1. **P0-A 採取**: 文字input（01D4／01D5）の正常→未応答→正常（[採取リスト](../capture/raw-packet-collection-checklist.md)）
-2. **採取ブロック**: 0x0B79／exchange 実機ログでのレイアウト再確認（合成契約は済み。未採取のままレイアウトを広げない）
-3. **辞書（読取専用 `.reference`）**: stateicon 画像名など、確認済み出典だけの表示補助。視覚エフェクト日本語は出典確認まで空のまま。
+1. **採取ブロック**: 0x0B79／exchange 実機ログでのレイアウト再確認（合成契約は済み。未採取のままレイアウトを広げない）
+2. **辞書（読取専用 `.reference`）**: stateicon 画像名など、確認済み出典だけの表示補助。視覚エフェクト日本語は出典確認まで空のまま。
    原資料の Git 持ち出し禁止（[クライアント資料計画](client-data-utilization-plan.md)）
-4. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
+3. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
 
 display_only の個別配線（0A24／02C1／0AB9・0B13／01D6・099B／08FF・0984／029B）は
 観測保持・命令非生成まで完了（[未対応通知](../npc/unsupported-notifications.md)）。
@@ -660,7 +661,7 @@ JSON/TXTのSHA-256は従来の生成・保存と一致した。会話・通常sh
 MAP・クエスト・ナビゲーションの名称／参考資料検索を完了。詳細は[保存記録](../releases/v0.0.5.md)。
 資料と実観測は分離し、ナビID・MOB複合値や説明からサーバー側処理を推定しない。
 次は未登録効果の根拠付き辞書拡充（手元 `.reference`／`client` を読取専用利用可・原資料はリポジトリ外）、
-実パケット採取リストの未検証経路（文字input等）を優先する。
+実パケット採取リストの未検証経路（0x0B79／exchange 等）を優先する。
 0B38 は PacketLength 未登録のため構造追認の優先対象にしない。
 経路探索・クエスト説明全文表示は任意の後続機能。実機・Auriga・新規環境確認の保留は維持する。
 
@@ -681,6 +682,13 @@ MAP・クエスト・ナビゲーションの名称／参考資料検索を完�
 0x0B79は `clif_expanded_barterlist` に基づくデコードを合成で契約確認（実機ログは未採取）。
 近傍 0x0A30 は名前応答。次の最小1本は文字inputの正常→未応答→正常。
 ハッシュと採取メモは[採取リスト](../capture/raw-packet-collection-checklist.md)の 2026-11-01 節。ログ本体はリポジトリ外。
+
+### 文字input／shop・barter／02C1実機（2026-11-02）
+
+20261102-171318-9aba07f0で文字inputの正常→未応答（約180秒）→正常、通常shop（00C6×2）、
+0x0B0E×2、実機 0x0B56×3 を確認。20261102-173136-edcd6b68で 02C1 MOB colored_speech×1
+（会話外・unittalk非生成）を確認。0x0B79／exchange は未採取のまま次の最小1本。
+ハッシュと採取メモは[採取リスト](../capture/raw-packet-collection-checklist.md)の 2026-11-02 節。ログ本体はリポジトリ外。
 
 
 ### O2: 会話JSONの必要時整形（2026-10-30）
