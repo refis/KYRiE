@@ -2208,5 +2208,6 @@
     "robe": "肩",
     "style": "スタイル"
   },
-  "walk_npc_speed_template": "setnpcspeed {speed},{actor_name:q};\t// {actor_id}"
+  "walk_npc_speed_template": "setnpcspeed {speed},{actor_name:q};\t// {actor_id}",
+  "walk_npc_wait_template": "npcwalkwait {walk_wait_extra},{actor_name:q};\t// {actor_id}: walk≈{walk_wait_ms}ms (距離×speed+{walk_wait_extra}; sleep/sleep2相当で会話継続)"
 }

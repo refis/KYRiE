@@ -2213,5 +2213,6 @@
       "min_length": 10
     }
   ],
-  "walk_npc_speed_template": "setnpcspeed {speed},{actor_name:q};\t// {actor_id}"
+  "walk_npc_speed_template": "setnpcspeed {speed},{actor_name:q};\t// {actor_id}",
+  "walk_npc_wait_template": "// sleep2({walk_wait_ms});\t// {actor_id}: npcwalkwait相当の歩行待ち候補。rAthenaにnpcwalkwaitなし。会話継続のsleep2相当"
 }
