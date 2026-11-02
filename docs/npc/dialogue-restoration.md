@@ -13,6 +13,7 @@
 0x02C1は PacketLength `-1`。表示定義どおり actor_id@4・color@8・text@12 を
 `colored_speech` として構造化保持する。008D `unittalk` とは別観測で、実行命令は出さない
 （コメントのみ。詳細は[未対応通知](unsupported-notifications.md)）。
+実機例: 20261102-173136-edcd6b68（MOB／会話外・color `0x000000FF`）。
 
 ## 帽子エフェクト（0A3B）
 

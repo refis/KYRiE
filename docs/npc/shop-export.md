@@ -84,10 +84,14 @@ callshopのtypeは省略して取引メニューを開く。購入専用や売�
 `nameid u32` / `type u8` / `stock u32` / `currency_itemid u32` / `currency_amount u32` /
 `weight u32` / `index u32`。長さは `4 + 件数×25`。zeny欄はなく、出力では zeny=0・通貨1件として写す。
 20261101-194609-edbe9ab0で悔恨の侯爵#tor 会話#4の close 直後に1件（504byte＝20商品）を確認。
+20261102-171318-9aba07f0で追加: ホヨヨ#ep19trader 会話#4（29byte＝1商品）、
+悔恨の侯爵#tor 会話#24（504byte＝20商品）。いずれも after_close_list・issues 0。
 
 ### RECV 0x0B56（拡張barter・旧レイアウト）
 
 件数 u32 のあと、商品26byte＋通貨12byte×N（viewSprite／locationなし）。
+20261102-171318-9aba07f0で実機3件を確認（マラム#ep19trader 会話#6＝11商品／#7＝25商品、
+会話未帰属1件＝16商品）。レイアウト照合・デコード issues 0。購入応答や 0x0B79 は未採取。
 
 ### RECV 0x0B79（拡張barter・clif_expanded_barterlist）
 

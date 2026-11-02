@@ -47,6 +47,30 @@ record_payload は True（生バイトは tcp_segment／stream_chunk）。
 
 ローカル確認物: collection-notes.md、checklist-evidence.json、session-analysis.json、inventory-layout-review.json。
 
+## 採取済み項目の更新（2026-11-02）
+
+20261102-171318-9aba07f0（解析コピー `logs/20261102-171318-9aba07f0-upload/`）で文字inputと
+shop／barterを追加確認した。ログ本体はリポジトリに含めない。capture.jsonl sha256
+`2773cfbf9143e41e9523a8da138a5aa367d5e17997a060e2b1593dd5cfe03dc8`。
+PacketLength.used.txt は未添付。workspace `PacketLength.txt` sha256
+`756f8e5b8ad8bac44722232bc9426f9007036032fe74f6b306dcd4632506b97d` で 7666 packets をフレーミング。
+session_start の definitions_sha256（`f13f5c64…`）は workspace 定義と一致しない。
+record_payload は True（生バイトは tcp_segment／stream_chunk）。
+
+- A05（文字）: 手荷物管理者#Well_Baked 会話#32／#34で RECV 0x01D4×2 と SEND 0x01D5×2（本文長4、同一 sha）。
+  01D5 は `npc_id@4 u32`＋`text@8`（本ログは末尾 NUL なし）。数値inputの反復セットとは別NPC。
+- A06（文字未応答）: 会話#33で text 待ちのままサーバー close（待機約179.7秒）。close 約3.7秒後の遅延 01D5 は text_reply 非紐づけ。
+- 通常shop: RECV 0x00C6×2（ホヨヨ#ep19trader 1商品、マラム#ep19trader 14商品）。いずれも after_close_list。
+- barter: RECV 0x0B0E×2（29byte＝1商品、504byte＝20商品）と **RECV 0x0B56×3**（11／25／16商品、issues 0）。
+  16商品の1件は会話未帰属。0x0B79は0件。
+
+同日の 20261102-173136-edcd6b68（`logs/20261102-173136-edcd6b68-upload/`）で colored_speech（02C1）を確認。
+capture.jsonl sha256 `231ce4fcbf647919e2c62ce3532e65aeed908080adf9c20f8f402c147bcf912d`。
+RECV 0x02C1×1（len=38、actor 732、entity_kind=MOB、color wire `0x000000FF`、復号 text_len=14、
+context=outside_dialogue、map=pay_d03_i.gat）。unittalk 実行命令は出さない。
+
+ローカル確認物: 各フォルダの collection-notes.md、checklist-evidence.json、dialogues.json。
+
 ## 最小構成と優先順
 
 まず次の4セッションで、P0項目から採取する。途中でログが分かれても構わない。
@@ -57,8 +81,8 @@ record_payload は True（生バイトは tcp_segment／stream_chunk）。
 4. **S04・MOBと状態変化**: 同種MOB複数個体 → HP割合・使用スキル → 死亡／視界離脱 → 再観測。
 
 本人への発言イベント、特殊shop、外見変更等は、該当場面があれば追加する。
-1回で全項目を揃える必要はない。**次の最小1本は文字input（01D4→01D5）の正常完了→未応答終了→正常完了**。
-0x0B0E／exchange 候補の再試行が自然に取れる場合は Issue #51 をその1本より優先する。
+1回で全項目を揃える必要はない。**次の最小1本は 0x0B79／exchange の実機ログ**（Issue #70）。
+文字inputの正常→未応答→正常は20261102-171318-9aba07f0で追加済み。
 本人入力との照合は20261029-215033-0a6328faで確認済み。数値inputの代表例は20261101-194609-edbe9ab0で追加済み。
 
 ## 共通の採取設定・終了方法
@@ -422,11 +446,22 @@ python -m tools.audit_inventory logs/SESSION/capture.jsonl --output logs/SESSION
 
 - A05／A06の**数値**inputと数値未応答終了: 本ログで実例あり（部分）。追加必須ではない。
   同一経路の N1→N1→N2 を揃えた反復セットはまだ弱い。必要なら式#evh1相当で追記採取。
-- A05／A06の**文字**input（01D4／01D5）とその未応答終了: 引き続き0件。**次の最小セッション**とする。
+- A05／A06の**文字**input（01D4／01D5）とその未応答終了: 当時0件（2026-11-02の9aba07f0で追加済み）。
 - C03の位置0BA3/0BB5・整列0BA1: 本ログも0件（0BA2は13件あり、追加必須としない）。
 - C04の途中中断02F2・個体対象09D1: 本ログも0件。
 - I01の0B38／未鑑定入手: 本ログも0B38=0、getitem2は identified=1 のみ。PacketLength 未登録のため追加採取優先外（2026-11-02）。
-- 0x0B0E barterlist: 本ログ1件でレイアウト照合・デコード済み。実機0x0B56／0x0B79は0件。
-  0x0B79は提供ソースに基づくデコードを合成確認済み。実機での再出現・購入応答があれば追加採取。
+- 0x0B0E barterlist: 本ログ1件でレイアウト照合・デコード済み。実機0x0B56／0x0B79は当時0件
+  （0x0B56は2026-11-02の9aba07f0で追加。0x0B79は未採取のまま）。
 
-優先順（1本だけ取る場合）: 文字inputの正常→未応答→正常。I01（0B38）は含めない。
+## 未採取部分の再確認（2026-11-02 / 9aba07f0・edcd6b68追加後）
+
+上記に 20261102-171318-9aba07f0 と 20261102-173136-edcd6b68 を加えた。
+詳細は本章「採取済み項目の更新（2026-11-02）」と各ローカル collection-notes.md。
+
+- A05／A06の**文字**inputと文字未応答終了: 9aba07f0で実例あり。追加必須ではない。
+- 通常shop（00C6）と 0x0B0E／**実機0x0B56**: 9aba07f0でデコード済み（issues 0）。
+- 02C1 colored_speech（MOB／会話外）: edcd6b68で1件。合成契約どおり unittalk 非生成を実ログでも確認。
+- 0x0B79／exchange: 引き続き0件。**次の最小セッション**とする。
+- C03の位置0BA3/0BB5・整列0BA1、C04の02F2／09D1: 追加必須としない（自然な実例があれば）。
+
+優先順（1本だけ取る場合）: 0x0B79／exchange 実機。I01（0B38）は含めない。
