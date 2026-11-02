@@ -25,7 +25,7 @@ def presentation_context(row):
     elif kind=='map_property':
         result.update(actor_role='map_property',observed_actor_id=None,player_context_required=True,
             short='マップ属性通知です。対象ActorIDは未記録で、NPC本文命令へは出しません。',
-            summary='0x01D6／0x099Bはマップ種別・フラグのみを保持します。会話中に届いてもNPCの発生元とせず、mapproperty相当の実行命令やタイマーへ変換しません。')
+            summary='0x01D6／0x099B／0x02E7はマップ種別・フラグ（または mapInfoTable）を保持します。カタログ外 type と flags は手動確認メモのみです。会話中に届いてもNPCの発生元とせず、mapproperty相当の実行命令やタイマーへ変換しません。')
     elif kind=='status_enter':
         result.update(actor_role='status_enter_target',
             short='入場時状態の対象IDです。0196／043F／0983のstatus付与とは別観測です。',

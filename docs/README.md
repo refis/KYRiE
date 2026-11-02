@@ -50,6 +50,7 @@
 - [演出の基準点比較](npc/event-trials.md)
 - [手動確認したタイマー候補](npc/event-timer-candidates.md)
 - [未対応通知の対象と構造化保持](npc/unsupported-notifications.md)
+- [MapTypeProperty と mapflag コメント候補](npc/maptype-property-mapflags.md)
 - [配置付きNPCファイル出力](npc/npc-file-export.md)
 - [全NPCの一括出力](npc/npc-bundle-export.md)
 - [通常ショップの観測](npc/shop-observations.md)

@@ -26,6 +26,8 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
                   'tests.unit.test_achievement_observations',
                   'tests.unit.test_item_preview_observations',
                   'tests.unit.test_map_property_observations',
+                  'tests.unit.test_maptype_property_catalog',
+                  'tests.unit.test_zc_mapproperty_review',
                   'tests.unit.test_status_enter_observations',
                   'tests.unit.test_mercenary_observations',
                   'tests.unit.test_external_presentations',

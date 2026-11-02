@@ -38,7 +38,7 @@ def decode_dialogue(packet):
                  0xb0d: 'effect_remove', 0x284: 'effect_value',
                  0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement',
                  0xab9: 'item_preview', 0xb13: 'item_preview',
-                 0x1d6: 'map_property', 0x99b: 'map_property',
+                 0x1d6: 'map_property', 0x99b: 'map_property', 0x2e7: 'map_property',
                  0x8ff: 'status_enter', 0x984: 'status_enter', 0x29b: 'mercenary'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
@@ -87,7 +87,18 @@ def decode_dialogue(packet):
             raise ObservationError('Item preview index is out of supported range')
         return kind, None, dict(index=index)
     if kind == 'map_property':
-        # PacketLength 01D6=4 / 099B=8. No actor; map属性のみ。NPC本文命令へは出さない。
+        # 01D6=4 type / 099B=8 type+flags / 02E7=-1 PACKET_ZC_MAPPROPERTY sample len 33.
+        # No actor; map属性のみ。NPC本文命令へは出さない。
+        if pid == 0x2e7:
+            from reconstruction.zc_mapproperty import decode_zc_mapproperty_table, load_default_catalogs
+            try:
+                zc_symbols, _catalog = load_default_catalogs()
+                decoded = decode_zc_mapproperty_table(packet.raw, zc_symbols)
+            except ValueError as exc:
+                raise ObservationError(str(exc)) from exc
+            return kind, None, dict(
+                kind=decoded['type_id'], layout='zc_mapproperty_table',
+                table=decoded['table'], nonzero_properties=decoded['nonzero_properties'])
         expected = 4 if pid == 0x1d6 else 8
         if len(packet.raw) != expected:
             raise ObservationError('Map property length does not match supported layout')
@@ -390,6 +401,18 @@ class DialogueStore:
             record['association_basis'] = 'active_dialogue_same_flow'
             record['conversation_id'] = conversation.id
             record['npc'] = deepcopy(conversation.npc)
+        if kind == 'map_property':
+            from reconstruction.zc_mapproperty import build_map_property_manual_review
+            map_name = (record.get('map_context') or {}).get('map_name')
+            if map_name is None and self.world is not None:
+                state = self.world.player_maps.states.get((session, packet.flow_id or packet.connection))
+                if state is not None and state.map_name:
+                    map_name = state.map_name
+                    record['map_context'] = dict(
+                        map_name=map_name, map_generation=getattr(state, 'map_generation', None),
+                        basis='player_current_map_fallback')
+                    record['instance_mode'] = '@' in map_name
+            record['manual_review'] = build_map_property_manual_review(fields, map_name)
         if context == 'external_candidate' and conversation:
             origin = self.world.find_current(packet, session, conversation.actor_id, kind='NPC')
             record.update(association_basis='same_flow_active_dialogue_external_target',
@@ -690,7 +713,7 @@ class DialogueStore:
                 return
             self._retain_presentation(packet, session, index, None, 'during_dialogue')
         elif packet.direction == 'RECV' and packet.packet_id in (
-                0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13, 0x1d6, 0x99b):
+                0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13, 0x1d6, 0x99b, 0x2e7):
             # No actor ID: never assign this notification to the active NPC.
             context = 'during_dialogue' if conversation else 'outside_dialogue'
             if key in self.close_pending:
