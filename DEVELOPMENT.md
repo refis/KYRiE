@@ -723,8 +723,9 @@ including current-visible/initial-hidden shop observation and both candidate mod
 NPC initial options/evidence are fixed per capture/server/ActorID across updates,
 visibility intervals and reconnects; unknown server identity stays connection-local.
 Current options remain separate. Single, merged, metadata-only and bulk placement
-exports use external HIDDEN/CLOAKED header templates (user-requested script(HIDDEN)
-and script2(CLOAKED)). Conflicting initial observations are not silently selected;
+exports use external HIDDEN/CLOAKED header templates. Auriga type 6 uses
+script[(HIDDEN/CLOAKED)]; type 12 walking NPCs use script2[(HIDDEN/CLOAKED)].
+Reobserved 0x9FD for type 12 emits npcwalkto. Conflicting initial observations are not silently selected;
 bulk candidates are commented, combined unsupported flags retain exclusion evidence.
 Real replay also exposed interrupted external candidates incorrectly bounded by
 their last body step; validation now uses an observed termination when available.

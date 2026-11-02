@@ -15,7 +15,7 @@ from reconstruction.timing import build_timeline
 from reconstruction.entity_metadata import append_initialization, render_npc_initialization, metadata_values
 from reconstruction.menu_loops import fold_menu_loops, share_menu_continuations
 from reconstruction.announcements import template_values as announcement_values
-from reconstruction.npc_initial_state import visibility_state
+from reconstruction.npc_initial_state import visibility_state, declaration_type
 from reconstruction.identity_protection import quote_text
 
 DEFAULT_DIALOGUE_PROFILE = Path(__file__).resolve().parent.parent / 'config' / 'auriga' / 'dialogue.json'
@@ -61,17 +61,18 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'announcement': {'text', 'flag'},
                        'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'},
                        'presentation_warning': {'count'}}
-FILE_FIELDS = {'npc_empty': {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id'},
+_NPC_DECL = {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id', 'declaration'}
+FILE_FIELDS = {'npc_empty': set(_NPC_DECL),
                'touch_label': set(),
                'touch_review': set(), 'touch_provisional': set(),
                'warp_npc': {'map_name', 'x', 'y', 'direction', 'npc_name', 'radius_x', 'radius_y', 'destination', 'destination_x', 'destination_y'},
-               'npc_file_header': {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id'},
+               'npc_file_header': set(_NPC_DECL),
                'timeout_normalized_warning': {'count'},
                'late_reply_warning': {'count'},
                'timeout_warning': {'prompt_kind'}, 'aborted_wait': {'prompt_kind'},
                'quest_set': {'quest_id'}, 'quest_delete': {'quest_id'}, 'quest_wait_review': set(),
-               'npc_file_header_hidden': {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id'},
-               'npc_file_header_cloaked': {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id'},
+               'npc_file_header_hidden': set(_NPC_DECL),
+               'npc_file_header_cloaked': set(_NPC_DECL),
                'npc_initial_state_conflict': set(),
                'npc_shop_ids_review': set(), 'npc_shop_conflict': set(),
                'instance_map_reference': {'name'}, 'instance_npc_reference': {'name'},
@@ -83,8 +84,8 @@ FILE_FIELDS = {'npc_empty': {'map_name', 'x', 'y', 'direction', 'npc_name', 'cla
                'barter_boundary': set(), 'callbarter_review': {'shop_name'},
                'close2_observed': set(), 'post_close_warp': {'map_name', 'x', 'y'}}
 for _suffix in ('', '_hidden', '_cloaked'):
-    FILE_FIELDS['npc_touch_header' + _suffix] = {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id', 'radius_x', 'radius_y'}
-    FILE_FIELDS['npc_empty' + _suffix] = {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id'}
+    FILE_FIELDS['npc_touch_header' + _suffix] = set(_NPC_DECL) | {'radius_x', 'radius_y'}
+    FILE_FIELDS['npc_empty' + _suffix] = set(_NPC_DECL)
 for _command in ('hideonnpc', 'hideoffnpc', 'cloakonnpc', 'cloakoffnpc'):
     FILE_FIELDS[_command] = set()
     FILE_FIELDS[_command + '_target'] = {'target'}
@@ -285,6 +286,11 @@ class AurigaRenderer:
         return dict(map_name=base_map_name(map_name), npc_name=base_npc_name(name, map_name), x=npc['x'], y=npc['y'],
                     direction=npc['direction'], class_id=initial_class)
 
+    def _declared_placement(self, npc, **extra):
+        return dict(self.placement_values(npc),
+                    declaration=declaration_type(npc, walking_script2=self._target == 'auriga'),
+                    **extra)
+
     def render_npc_file(self, conversation, group=None, presentation_check=None, shop_call_name=None):
         """Wrap an existing review body; never supply unknown placement values."""
         npc = group['npc'] if group is not None else conversation.npc
@@ -298,7 +304,8 @@ class AurigaRenderer:
                              if visibility_state(row['conversation'].get('npc', {})) != 'unobserved'), None)
             if observed:
                 npc = dict(npc, initial_options=observed['initial_options'],
-                           initial_state_evidence=observed.get('initial_state_evidence', {}))
+                           initial_state_evidence=observed.get('initial_state_evidence', {}),
+                           actor_type=observed.get('actor_type', npc.get('actor_type')))
         if group is not None:
             touches = [row['conversation']['npc']['touch'] for row in group['contributions']
                        if is_touch(row['conversation'].get('npc', {}))]
@@ -322,9 +329,10 @@ class AurigaRenderer:
         if state == 'ambiguous':
             raise ValueError('NPC初回状態にHIDDENとCLOAKEDの両方を観測。配置状態を手動確認してください。')
         key = 'npc_file_header_' + state if state in ('hidden', 'cloaked') else 'npc_file_header'
-        header = self.templates[key].format_map(self.placement_values(npc))
+        header = self.templates[key].format_map(self._declared_placement(npc))
         if body == '':
-            return self.templates['npc_empty' + ('_' + state if state in ('hidden', 'cloaked') else '')].format_map(self.placement_values(npc)) + '\n'
+            return self.templates['npc_empty' + ('_' + state if state in ('hidden', 'cloaked') else '')].format_map(
+                self._declared_placement(npc)) + '\n'
         if is_touch(npc):
             touch = npc['touch']
             target = npc.get('warp_target')
@@ -341,7 +349,7 @@ class AurigaRenderer:
                 return code
 
             header = self.templates['npc_touch_header' + ('_' + state if state in ('hidden', 'cloaked') else '')].format_map(
-                dict(self.placement_values(npc), radius_x=touch['radius_x'], radius_y=touch['radius_y']))
+                self._declared_placement(npc, radius_x=touch['radius_x'], radius_y=touch['radius_y']))
             notes = self.templates['touch_review'] + '\n'
             if touch.get('range_provisional', True):
                 notes += self.templates['touch_provisional'] + '\n'

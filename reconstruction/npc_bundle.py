@@ -181,7 +181,9 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             states = {visibility_state(item) for item in bucket['metadata']} - {'unobserved'}
             observed = next((item for item in bucket['metadata'] if item.get('initial_options') is not None), None)
             if observed:
-                npc.update(initial_options=observed['initial_options'], initial_state_evidence=deepcopy(observed.get('initial_state_evidence', {})))
+                npc.update(initial_options=observed['initial_options'],
+                           initial_state_evidence=deepcopy(observed.get('initial_state_evidence', {})),
+                           actor_type=observed.get('actor_type', npc.get('actor_type')))
             direct = list(dict.fromkeys(row['definition'].rstrip() for row in shop_entries if row['mode'] == 'shop'))
             hidden = list(dict.fromkeys(row['definition'].rstrip() for row in shop_entries if row['mode'] == 'callshop'))
             commented_barters = list(dict.fromkeys(row['definition'].rstrip() for row in barter_entries))

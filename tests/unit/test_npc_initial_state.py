@@ -41,7 +41,8 @@ class NpcInitialStateTests(unittest.TestCase):
         self.assertEqual(world.find_current(actor(0, first), 1, 42).initial_options, 0)
 
     def test_initial_state_controls_single_merged_and_bundle_declarations(self):
-        for initial, expected in ((0, '\tscript\t'), (2, '\tscript(HIDDEN)\t'), (4, '\tscript2(CLOAKED)\t'),
+        # type 6 uses script[(HIDDEN/CLOAKED)]; CLOAKED must not become script2.
+        for initial, expected in ((0, '\tscript\t'), (2, '\tscript(HIDDEN)\t'), (4, '\tscript(CLOAKED)\t'),
                                   (0x12, '\tscript(HIDDEN)\t')):
             world = WorldStore()
             world.apply(map_packet(connection=connection()))
@@ -60,6 +61,20 @@ class NpcInitialStateTests(unittest.TestCase):
                 self.assertIn(expected, report['auriga'])
                 self.assertEqual(report['review_only_count'], 0)
             self.assertEqual(npc, before)
+
+    def test_walking_npc_type_uses_script2_with_visibility_modifiers(self):
+        for options, expected in ((0, '\tscript2\t'), (2, '\tscript2(HIDDEN)\t'), (4, '\tscript2(CLOAKED)\t')):
+            world = WorldStore()
+            world.apply(map_packet(connection=connection()))
+            event = actor_packet(actor_type=12, connection=connection())
+            raw = bytearray(event.raw)
+            struct.pack_into('<I', raw, 19, options)
+            world.apply(replace(event, raw=bytes(raw)))
+            npc = asdict(world.records()[0])
+            item = conversation()
+            item.npc = deepcopy(npc)
+            self.assertEqual(npc['actor_type'], 12)
+            self.assertIn(expected, AurigaRenderer().render_npc_file(item))
 
     def test_initial_state_conflicts_and_combined_flags_do_not_silently_choose_active_definition(self):
         first, second = conversation(), conversation(identifier=2)
