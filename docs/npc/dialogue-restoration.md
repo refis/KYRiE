@@ -5,7 +5,9 @@
 ## イベントアイコン（0446）
 
 0x0446は14バイト固定。ActorID・座標・state・kindを `event_marker` として構造化保持する。
-実行の showevent 命令は出さない。手動タイマーではコメント採用のみ
+単独の showevent は出さない（手動タイマーもコメント採用のみ）。
+ただし会話中（close2判定中含む）の setquest／delquest の後に観測した場合は関連付けし、
+該当NPCの `OnQuestInfo:` へ `showevent` と `// {quest_id}: {x}, {y}` を追加する。
 （[タイマー候補](event-timer-candidates.md)）。対照表は[未対応通知](unsupported-notifications.md)。
 
 ## 色付きユニット発言（02C1）

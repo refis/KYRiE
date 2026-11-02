@@ -337,6 +337,9 @@ def conversation_path(source_ref, conversation, strict=True):
                 raise ValueError('Map continuation has no matched close reply')
         elif kind not in ({'mes', 'next', 'close', 'clear', 'number', 'text'} | PRESENTATION_KINDS):
             raise ValueError('Unsupported conversation event')
+        if kind == 'event_marker' and (step.get('quest_info_linked') or fields.get('quest_info_linked')):
+            # Linked showevent is emitted under OnQuestInfo, not in the dialogue body path.
+            continue
         reference = _reference(source_ref, conversation, step, i)
         emitted_kind = kind
         if kind == 'close':
@@ -591,7 +594,9 @@ def build_merged(observations, max_nodes=100000, max_observations=2000,
             parent = child
         group['contributions'].append(dict(source_ref=key[0], capture_session=key[1], conversation_id=key[2],
                                            timeline=timing, conversation=original))
-        group['presentation_trials'].append((key, tokens, original['parallel_presentations'] + original['external_presentations']))
+        presentation_rows = [row for row in original['parallel_presentations'] + original['external_presentations']
+                             if not row.get('quest_info_linked')]
+        group['presentation_trials'].append((key, tokens, presentation_rows))
         accepted.add(key)
     wanted = {}
     for identity_key, _, key, identity, tokens, timing, original in timeout_candidates:

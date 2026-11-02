@@ -226,6 +226,7 @@ class Conversation:
     parallel_presentations: list = field(default_factory=list)
     resource_observations: list = field(default_factory=list)
     external_presentations: list = field(default_factory=list)
+    quest_info_links: list = field(default_factory=list)
     late_replies: list = field(default_factory=list)
     actions: list = field(default_factory=list)
 
@@ -426,6 +427,9 @@ class DialogueStore:
                 conversation.external_presentations.append(record)
             else:
                 conversation.parallel_presentations.append(record)
+            if kind == 'event_marker':
+                from reconstruction.quest_info import associate_quest_showevent
+                associate_quest_showevent(conversation, record)
         self.revision += 1
 
     def _retain_action(self, packet, session, index, conversation, kind, fields):
@@ -1113,6 +1117,15 @@ class DialogueStore:
                 conversation.issues.append(dict(packet_index=index, message='Unmatched or invalid reply'))
         conversation.steps.append(step)
         self.step_count += 1
+        if kind == 'event_marker':
+            from reconstruction.quest_info import associate_quest_showevent
+            marker = dict(kind='event_marker', fields=step['fields'], packet_index=step['packet_index'],
+                          timestamp=step['timestamp'], actor_id=conversation.actor_id,
+                          npc=dict(conversation.npc), after_close_reply=step.get('after_close_reply'))
+            if associate_quest_showevent(conversation, marker):
+                step['fields'] = dict(step['fields'], quest_info_linked=True,
+                                      quest_id=marker['quest_info_quest_id'])
+                step['quest_info_linked'] = True
         if packet.timestamp < conversation.started or (len(conversation.steps) > 1 and packet.timestamp < conversation.steps[-2]['timestamp']):
             conversation.issues.append(dict(packet_index=index, message='Timestamp moved backwards'))
         if kind in ('close', 'dismiss') or (kind == 'choice' and fields['value'] == 255):

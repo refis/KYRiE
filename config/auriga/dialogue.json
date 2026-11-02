@@ -8,6 +8,8 @@
   "quest_set": "setquest {quest_id};",
   "quest_delete": "delquest {quest_id};",
   "quest_wait_review": "// 入力待ち中のクエスト通知。応答後の命令候補として配置。受信タイミングの再現は要確認。",
+  "onquestinfo": "OnQuestInfo:",
+  "showevent_quest": "showevent {state}, {kind}, {name};\t// {quest_id}: {x}, {y}",
   "resource_quest_count": "// パケット {packet_index}: クエスト目標更新 layout={layout}, ID種別={objective_kind}, {entry_count}件: {entries}。受信値の記録であり条件式・討伐設定は未生成。",
   "resource_quest_add": "// パケット {packet_index}: クエスト追加 ID={quest_id}, state={state}, start={start_time}, deadline={deadline}, objectives={objective_count}。起因・条件式は未確定。目標部は根拠JSONを参照。",
   "resource_quest_delete": "// パケット {packet_index}: クエスト削除 ID={quest_id}。delquestの起因は未確定。",

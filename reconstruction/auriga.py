@@ -13,6 +13,7 @@ from string import Formatter
 from reconstruction.branches import conversation_path, validate_resources, validate_external
 from reconstruction.timing import build_timeline
 from reconstruction.entity_metadata import append_initialization, render_npc_initialization, metadata_values
+from reconstruction.quest_info import append_quest_info, collect_quest_info_links
 from reconstruction.menu_loops import fold_menu_loops, share_menu_continuations
 from reconstruction.announcements import template_values as announcement_values
 from reconstruction.npc_initial_state import visibility_state, declaration_type
@@ -71,6 +72,7 @@ FILE_FIELDS = {'npc_empty': set(_NPC_DECL),
                'late_reply_warning': {'count'},
                'timeout_warning': {'prompt_kind'}, 'aborted_wait': {'prompt_kind'},
                'quest_set': {'quest_id'}, 'quest_delete': {'quest_id'}, 'quest_wait_review': set(),
+               'onquestinfo': set(), 'showevent_quest': {'state', 'kind', 'name', 'quest_id', 'x', 'y'},
                'npc_file_header_hidden': set(_NPC_DECL),
                'npc_file_header_cloaked': set(_NPC_DECL),
                'npc_initial_state_conflict': set(),
@@ -233,8 +235,10 @@ class AurigaRenderer:
         if not include_initialization:
             return body
         from reconstruction.emulator_profiles import profile
-        return append_initialization(body, [conversation.npc], profile('entity_metadata.json', self._target),
+        body = append_initialization(body, [conversation.npc], profile('entity_metadata.json', self._target),
                                      indent=self.templates['indent'])
+        return append_quest_info(body, conversation.quest_info_links, self.templates,
+                                 map_name=conversation.npc.get('map_name'))
 
     ADOPTABLE_EXTERNAL_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk'))
 
@@ -265,6 +269,9 @@ class AurigaRenderer:
             if kind not in ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk',
                             'sound', 'effect_value', 'event_marker', 'hat_effect', 'colored_speech',
                             'status_enter', 'mercenary'):
+                continue
+            if kind == 'event_marker' and row.get('quest_info_linked'):
+                # Associated showevent is emitted under OnQuestInfo, not as an external comment.
                 continue
             if adopted:
                 adopted_any = True
@@ -408,9 +415,9 @@ class AurigaRenderer:
         flush_tail = False
         for line in body.rstrip('\n').split('\n'):
             if _script_label(line):
-                # OnInit:/OnTouch: and their already-indented bodies stay flush to the script edge.
+                # OnInit:/OnQuestInfo:/OnTouch: and their already-indented bodies stay flush to the script edge.
                 wrapped.append(line)
-                flush_tail = line.rstrip().startswith('OnInit:')
+                flush_tail = line.rstrip().startswith(('OnInit:', 'OnQuestInfo:'))
             elif flush_tail:
                 wrapped.append(line)
             else:
@@ -635,6 +642,9 @@ class AurigaRenderer:
             elif kind == 'effect_value':
                 emit('effect_value', depth, effect_id=fields['effect_id'], value=fields['value'])
             elif kind == 'event_marker':
+                if fields.get('quest_info_linked'):
+                    # Executable showevent belongs in OnQuestInfo for the linked setquest/delquest.
+                    continue
                 emit('event_marker', depth, x=fields['x'], y=fields['y'],
                      state=fields['state'], kind=fields['kind'])
             elif kind == 'hat_effect':
@@ -791,6 +801,10 @@ class AurigaRenderer:
             result = append_initialization(
                 body, [row['conversation'].get('npc', {}) for row in group['contributions']],
                 profile('entity_metadata.json', self._target), indent=self.templates['indent'])
+            links = collect_quest_info_links(*[
+                Conversation(**row['conversation']) if isinstance(row['conversation'], dict)
+                else row['conversation'] for row in group['contributions']])
+            result = append_quest_info(result, links, self.templates, map_name=group['npc'].get('map_name'))
         else:
             result = body
         if len(result) > max_output_chars:
