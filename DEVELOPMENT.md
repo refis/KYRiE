@@ -2334,3 +2334,13 @@ Selected: display + gui-display（overlay editor含む）. Not full discover.
 同一PacketIDの2インスタンスraw差分（フィールド注釈付き）と、確定オーバーレイの
 PacketLength／display断片エクスポート（本体定義は非上書き）。
 Selected: display + gui-display. Not full discover.
+
+### 2026-11-02: v0.0.7 source snapshot
+
+Advanced version.py to 0.0.7 / 2026-11-02. Captures post-v0.0.6 shop/barter/callshop,
+display_only observe paths, MapTypeProperty, history eviction, and docs organize (#81/#82).
+Frozen v0.0.4/v0.0.5/v0.0.6 ZIPs unchanged.
+Selected verification: release+catalog+commands+npc+player+presentation+events+mob+display+dialogue+shop (470)
+and gui-restoration+gui-display+offline+storage (165); total 635. Not full discover.
+Artifacts: dist/KYRiE-v0.0.7-source.zip (+.sha256, verification.json; gitignored).
+See docs/releases/v0.0.7.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.

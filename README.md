@@ -1,12 +1,13 @@
-# KYRiE v0.0.6 (Windows)
+# KYRiE v0.0.7 (Windows)
 
-v0.0.6はGitHub運用・NPC/MOB復元・辞書／接触比較などの到達点を含むソース保存版です。現在の作業ツリーには保存後の開発（拡張barter・openreform・close後callshopなど）も含みます。過去のv0.0.4／v0.0.5 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
+v0.0.7はshop/barter・display_only観測・MapTypeProperty・履歴退避・docs整理などを含むソース保存版です。過去のv0.0.4／v0.0.5／v0.0.6 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
 
 Auriga形式のNPCコード復元と、MOB性能・使用スキルの観測解析を目的とする開発スナップショットです。
 MARiAを参考に、受信・観測可能な非暗号化送信パケットから編集用コードと根拠を生成します。
 完成した元スクリプトやサーバー設定を保証するものではありません。
 
-- [v0.0.6の変更点・検証・残作業](docs/releases/v0.0.6.md)
+- [v0.0.7の変更点・検証・残作業](docs/releases/v0.0.7.md)
+- [保存済みv0.0.6の記録](docs/releases/v0.0.6.md)
 - [保存済みv0.0.5の記録](docs/releases/v0.0.5.md)
 - [保存済みv0.0.4の記録](docs/releases/v0.0.4.md)
 - [目的別ドキュメント一覧](docs/README.md)
@@ -35,21 +36,22 @@ python -m venv .venv
 
 [取得の診断](docs/capture/capture-analysis.md) / [非暗号化SEND](docs/capture/send-capture.md)
 
-## v0.0.6でできること
+## v0.0.7でできること
 
 - プロセス選択、複数接続追跡、TCP再構成、送受信共通PacketEvent、観測ログと生パケット保存。
 - マップ・XY・所持品・Zeny、NPC/MOBの初回と差分、サーバー別ActorID順の一覧・出力。
 - NPCの配置・会話統合、選択肢、反復menuのwhile化、入力応答、close/close2、shop/callshop。
+- close後2秒枠の一覧→callshop、拡張barter（0x0B56）コメント候補、openreform（0x0B8F）コメント候補。
 - HIDDEN/CLOAKED初期状態、group/title・waitingroom・職業外見のOnInit、接触NPCとインスタンス名の投影。
 - 観測条件に応じた所持品・装備・精錬・姿勢・倉庫等の命令候補。未知の引数は確認用コメント。
 - MOBの性能・使用スキル・再観測の整理、手動確認した配置／スキルDB候補。
 - 演出・会話開始・マップ到着を基準とした比較、根拠保存・再開。タイマー候補は既存の手動採用と全時刻入力で作成。
 - 生ログの単独／複数再解析、作業プロジェクト保存、観測ログだけを対象とするignorepacket。
 - MAP・クエスト・ナビ資料の検索、状態／エフェクト辞書の任意日本語説明、接触試行比較表示。
+- display_only 観測保持（実績・色付き発言・アイテムプレビュー・map/status・傭兵等）。命令は生成しない。
+- MapTypeProperty／mapflag コメント候補、通常shop識別済品名、パケット構造オーバーレイ。
 - rAthena向け生成／表示プロファイル切替（`--emulator`／GUI）。Auriga優先は維持。
-
-保存後の作業ツリーでは、close後2秒枠の一覧→callshop、拡張barter（0x0B56）コメント候補、
-openreform（0x0B8F）コメント候補なども利用できます。詳細は各 docs とリリース記録を参照してください。
+- DB確定後の表示履歴メモリ退避（既定上限あり）。詳細は各 docs とリリース記録を参照。
 
 [全NPC一括出力](docs/npc/npc-bundle-export.md) / [イベント比較](docs/npc/event-trials.md) /
 [MOB解析](docs/mob/mob-performance.md) / [保存ログの再解析](docs/guide/offline-replay.md)
@@ -107,13 +109,13 @@ python -m tools.run_tests --list
 python -m tools.run_tests npc events
 ```
 
-全件テストが必要な場合の手動実行（v0.0.6作成時は選択グループのみ実行）:
+全件テストが必要な場合の手動実行（v0.0.7作成時は選択グループのみ実行）:
 
 ```powershell
 python -m unittest discover -s tests -t . -q
 ```
 
-[テスト方針](tests/README.md)と[v0.0.6の検証記録](docs/releases/v0.0.6.md)を参照してください。
+[テスト方針](tests/README.md)と[v0.0.7の検証記録](docs/releases/v0.0.7.md)を参照してください。
 合成・GUIテストの通過はWindowsゲーム実機／Auriga本体での動作確認を代替しません。
 旧v0.2/v0.3の開発経緯は[DEVELOPMENT.md](DEVELOPMENT.md)に保存しています。
 
