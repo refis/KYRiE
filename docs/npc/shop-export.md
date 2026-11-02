@@ -11,7 +11,7 @@ NPC → ショップ観測 → 保存… → Aurigaショップ候補… を選�
 
 初回NPC状態と根拠パケットはショップ観測にも保存し、確認画面の配置元に表示する。
 後続のhideoff/cloakoff相当の状態更新があっても初回値を維持する。
-callshopの会話NPCはscript(HIDDEN)／script2(CLOAKED)の出現定義に対応する。
+callshopの会話NPCはscript(HIDDEN)／script(CLOAKED)（歩行NPC種ならscript2側）の出現定義に対応する。
 会話なしの通常shopにはAuriga上の状態指定構文がないため、初回HIDDEN／CLOAKEDの候補は
 全行コメントで保存する。状態を捨てて通常表示にしたり、未観測の会話やOnInitを追加したりしない。
 注意文はconfig/auriga/shops.jsonのinitial_state_reviewで変更できる。

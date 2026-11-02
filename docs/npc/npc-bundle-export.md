@@ -45,7 +45,7 @@ NPC別aurigaにも同じコメント化済みコードを保存する。review_o
 
 初回HIDDEN／CLOAKEDまたは両ビット併存の通常shopは、コメント化済みの
 コードを保持し、JSONのreview_onlyとGUIの要確認件数にも反映する。
-script(HIDDEN)／script2(CLOAKED)で表現できる会話付きcallshopは、この理由だけでは
+script(HIDDEN)／script(CLOAKED)（歩行NPC種はscript2側）で表現できる会話付きcallshopは、この理由だけでは
 確認用コメントにしない。
 
 JSONのentries内のnpc要約には、配置コード生成に使った初回状態とその根拠を保存する。

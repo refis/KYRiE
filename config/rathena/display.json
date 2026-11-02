@@ -1936,13 +1936,13 @@
             "actor_type": 12,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y}); // 名前解読不可・数値項目のみ保持"
+          "template": "npcwalkto {destination_x},{destination_y},{actor_name:q};\t// {actor_id}: speed:{speed} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12
           },
-          "template": "@NPC(歩行型) 移動 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}), to=({destination_x},{destination_y});"
+          "template": "npcwalkto {destination_x},{destination_y},{actor_name:q};\t// {actor_id}: speed:{speed}"
         }
       ]
     },

@@ -119,7 +119,7 @@ class ShopStore:
             if entity and selector is not None and entity_key != entity.key:
                 entity = None  # Never borrow metadata from a later appearance.
             npc = ({name: deepcopy(getattr(entity, name)) for name in
-                     ('name', 'map_name', 'class_id', 'x', 'y', 'direction', 'appearance', 'map_generation',
+                     ('name', 'map_name', 'class_id', 'x', 'y', 'direction', 'actor_type', 'appearance', 'map_generation',
                         'map_origin', 'map_evidence', 'server_endpoint', 'initial_options', 'initial_state_evidence', 'initial_display', 'appearance_data', 'display_changes', 'waitingrooms')}
                    if entity else {})
             self.records.append(dict(id=len(self.records) + 1, capture_session=session, flow_id=key[1],

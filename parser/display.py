@@ -457,7 +457,10 @@ class ReceiveDisplay:
                 else:
                     template = profile.instance_entry_warp
             record = self.world.last_actor_observation
-            if decoder == 'actor' and values.get('reobserved'):
+            # Known walk NPCs (type 12) keep npcwalkto on every 0x9FD reobservation (MARiA).
+            walk_npc_move = (decoder == 'actor' and event.packet_id == 0x9fd
+                             and values.get('actor_type') == 12 and values.get('reobserved'))
+            if decoder == 'actor' and values.get('reobserved') and not walk_npc_move:
                 if not values['has_changes'] and values.get('name_valid',True):
                     return DisplayResult(rule['name'],'','decoded',fields)
                 if values['has_changes'] and profile.actor_change_template is not None:

@@ -102,7 +102,7 @@ class TouchNpcTests(unittest.TestCase):
 
     def test_empty_placement_preserves_initial_visibility(self):
         world, dialogues, consume = self.scene()
-        for options, keyword in ((2, 'script(HIDDEN)'), (4, 'script2(CLOAKED)')):
+        for options, keyword in ((2, 'script(HIDDEN)'), (4, 'script(CLOAKED)')):
             with self.subTest(options=options):
                 npc = world.snapshot('NPC')['entities'][0]
                 npc.update(initial_options=options, group_id=0, title='', metadata_evidence={})

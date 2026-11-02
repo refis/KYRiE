@@ -51,7 +51,7 @@ def observe_shop(with_dialogue, close_first=False, gap=0, acknowledge=False, fol
 class ShopExportTests(unittest.TestCase):
     def test_initial_hidden_or_cloaked_direct_shop_is_commented_and_callshop_keeps_script_state(self):
         renderer = ShopRenderer()
-        for options, keyword in ((2, 'script(HIDDEN)'), (4, 'script2(CLOAKED)')):
+        for options, keyword in ((2, 'script(HIDDEN)'), (4, 'script(CLOAKED)')):
             record, opened = observe_shop(False)
             record['npc'].update(initial_options=options, options=0)
             before = deepcopy(record)

@@ -9,12 +9,17 @@ initial_optionsとinitial_state_evidenceを保持し、hide/ cloakの状態更�
 取得セッションが変われば基準も分ける。サーバー不明時は接続内だけで保持する。
 現状態のoptionsも別に保持し、NPC個体情報には現在値と初回値を表示する。
 
-初回のHIDDENビット0x2はscript(HIDDEN)、CLOAKEDビット0x4はscript2(CLOAKED)で出力する。
-利用者指定の既定書式であり、Aurigaのscript2には移動NPCの意味もある。変更する場合は
-config/auriga/dialogue.jsonのnpc_file_header_hidden／npc_file_header_cloakedを編集する。
+0x9FE／0x9FF／0x9FDのtype 6は通常NPC、type 12は歩行NPC種とする。
+Aurigaの定義種別はtypeで分岐する: type 6は`script[(HIDDEN/CLOAKED)]`、type 12は`script2[(HIDDEN/CLOAKED)]`。
+HIDDENビット0x2とCLOAKEDビット0x4は修飾子であり、scriptとscript2の選択には使わない。
+rAthenaにはscript2種がないため、typeに関わらず`script[(HIDDEN/CLOAKED)]`とする。
 両ビットが同時に立つ場合は単一状態に決めず、配置出力を停止して根拠を残す。
 未取得状態は現在値から逆算しない。複数ログ間の初回状態不一致は自動採用せず、個別確認とする。
 一括出力では不一致候補を全体コメントとして保持する。会話統合のON/OFF、初期化のみの保存にも対応する。
+
+既知の歩行NPC（type 12）に対する再観測の0x9FDは、観測ログへ
+`npcwalkto {to_x},{to_y},"{name}"; // {aid}: speed:{speed}` を出す（MARiA準拠）。
+初回の0x9FDは出現登録の注釈のままとし、未登録の移動を命令化しない。
 
 全362テスト通過。追加ログでは初回HIDDENが90観測区間、統合出力で38配置。
 CLOAKEDは同ログにはなく合成データで検証。初回観測を出力基準とし、サーバー起動時の状態や状態変更原因は補完しない。
@@ -57,9 +62,9 @@ NPC名はcp932で23バイト以下という保守的な出力制限を設ける�
 
 ## 候補の意味と確認範囲
 
-通常のscript宣言による静的配置の編集用候補。
-起因・条件式・タッチ範囲・移動経路・隠れた変数・タイマーは復元しない。
-OnTouchや範囲の仮値は生成せず、移動NPCのscript2やクエスト制御を確定するものでもない。
+通常NPCはscript、歩行NPC種はscript2宣言による編集用候補。
+起因・条件式・タッチ範囲・隠れた変数・タイマーは復元しない。
+OnTouchや範囲の仮値は生成せず、npcwalkto以外の移動経路やクエスト制御を確定するものでもない。
 未選択の分岐・不一致の無条件ブロック・演出不一致の注意は本文と同じように残る。
 複数ブロックをそのまま実行したときの到達性まで、自動で元のサーバー処理に合わせることはしない。
 候補を確認・編集し、NPC名の衝突や必要なマップ・外見IDを確認してから検証環境で利用する。
