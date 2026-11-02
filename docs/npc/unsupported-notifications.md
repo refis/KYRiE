@@ -97,9 +97,9 @@ map `pay_d03_i.gat`）。presentation_observations に保持し、会話 auriga 
 
 | 項目 | 内容 |
 |------|------|
-| PacketID | `01D6`（4バイト）／`099B`（8バイト） |
+| PacketID | `01D6`（4バイト）／`099B`（8バイト）／`02E7`（`-1`、サンプル33バイト） |
 | 表示名 | Map property / `@mapproperty` |
-| フィールド | kind@2 u16。`099B` は flags@4 u32 を追加 |
+| フィールド | kind@2 u16。`099B` は flags@4 u32。`02E7` は type@4＋mapInfoTable@6 |
 | 状態 | `observed` + `not_adopted` |
 | 観測 kind | `map_property` |
 | 生成 | 出さない。マップ属性の観測であり NPC 本文命令へ変換しない |
@@ -107,7 +107,8 @@ map `pay_d03_i.gat`）。presentation_observations に保持し、会話 auriga 
 
 kind がクライアント `MapTypeProperty.txt` の `MAPTYPE n` に載る場合に限り、
 mapflag **コメント候補**を別ツールで出せる（実行 mapflag の自動採用はしない）。
-map 名→type の表は当該 TXT に無い。詳細は[MapTypeProperty と mapflag](maptype-property-mapflags.md)。
+カタログ外 type と 099B flags は `manual_review` メモとして解析ログへ残し、人手確認用とする。
+詳細は[MapTypeProperty と mapflag](maptype-property-mapflags.md)。
 
 ## 入場時状態（08FF／0984）
 

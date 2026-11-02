@@ -14,9 +14,38 @@
 | type 0–27 の ADD_PROPERTY → 保守的な mapflag コメント候補 | ファイル単体からの **map名→type 割り当て**（行が無い） |
 | 観測 `(map, kind)` とカタログ照合 | kind がカタログ外（実ログの 50／112 等）への発明 |
 | 出典 SHA 付きの type カタログ | 実行用 mapflag／`@mapproperty` 命令の自動採用 |
-| 099B の type 欄の利用 | 099B `flags` ビットの意味推定（未解読のまま） |
+| カタログ外 type／099B flags の**手動確認メモ** | 099B flags を mapInfoTable と断定すること |
 
 クライアントの ADD_PROPERTY とエミュレータ mapflag は対応が近いが同一ではない。候補は review only。
+
+## PACKET_ZC_MAPPROPERTY（0x02E7）
+
+利用者提供の `PACKET_ZC_MAPPROPERTY.txt` は可変長 `0x02E7` の構造定義。
+
+- `type@4` — `MAPTYPE_*`（例: VILLAGE=0 … UNUSED=0x1D、LAST=0x1E）
+- `mapInfoTable@6` — `MAPPROPERTY_*` 各1バイト（サンプル長33＝表27）。多くは 0/1だが `SHOW_HP_BAR` は非ブール値あり
+- 現行JP採取ログは主に `01D6`／`099B`。`02E7` が来た場合のみ表を構造化保持する
+
+シンボルカタログ: `config/zc_mapproperty_symbols.json`。
+
+```text
+python -m tools.build_zc_mapproperty_symbols --input path/to/PACKET_ZC_MAPPROPERTY.txt
+```
+
+## 解析ログ（手動確認メモ）
+
+`map_property` 観測ごとに `manual_review` を付与する。
+
+- **カタログ外 type**: `map` 名と `type`（および packet enum にあれば symbol）をメモし、`OUT_OF_MAPTYPE_CATALOG` と明示
+- **flags（099B）**: hex・立っている bit・`MAPPROPERTY_*` の bit 位置**推測**をメモ。`layout_confirmed=false`（02E7 表との同一視はしない）
+
+```text
+python -m tools.analyze_map_property_review logs/SESSION/capture.jsonl \
+  --definitions PacketLength.txt \
+  --output logs/SESSION/map-property-review.json
+```
+
+`summary.out_of_catalog` と `summary.flag_memos` を人手確認用に使う。
 
 ## 資料の役割分担
 

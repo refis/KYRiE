@@ -145,6 +145,8 @@ notnavigate_maptable、mapinfotable.scp、etcinfo、mapskydata、mapeffectinfo�
 `MapTypeProperty.txt`（クライアント直下・利用者提供）は MAPTYPE 番号ごとの ADD_PROPERTY テンプレート。
 map 名バインドは持たない。01D6／099B の観測 type と照合して mapflag **コメント候補**だけを出せる
 （[検討メモ](../npc/maptype-property-mapflags.md)）。カタログ外 type や flags ビットは発明しない。
+`PACKET_ZC_MAPPROPERTY.txt` は 0x02E7 の MAPTYPE／MAPPROPERTY シンボルとサンプル表。解析時は
+カタログ外 map+type と flags の手動確認メモに使う（実行命令化しない）。
 
 msgstringtable/msgstring_jpはシステム文言、guildtipはヘルプ、ba_frostjoke/dc_screamは発言素材、
 mannerは発言制限資料であり、NPC会話本文へ流用しない。

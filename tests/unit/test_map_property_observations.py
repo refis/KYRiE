@@ -34,6 +34,8 @@ class MapPropertyObservationTests(unittest.TestCase):
                             for row in rows))
         self.assertEqual([row['fields'] for row in rows],
                          [{'kind': 4}, {'kind': 7, 'flags': 0xABC}, {'kind': 1}])
+        self.assertTrue(all('manual_review' in row for row in rows))
+        self.assertEqual(rows[1]['manual_review']['flags']['raw'], 0xABC)
         self.assertFalse(any(step['kind'] == 'map_property' for step in store.sessions[0].steps))
         code = AurigaRenderer().render(store.sessions[0])
         self.assertNotIn('mapproperty', code.lower())
