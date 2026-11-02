@@ -2,25 +2,16 @@
 
 操作・観測対象・開発目的から資料を探すための目次です。[プロジェクトREADME](../README.md)に導入手順があります。
 
-## クライアント参照データ
-
-- [提供TXT/Luaの調査と活用計画](development/client-data-utilization-plan.md)
-
-## スナップショット
-
-- [手順・タグ前チェック](releases/README.md)
-- [v0.0.6: GitHub運用・NPC/MOB復元・辞書・接触比較の到達点](releases/v0.0.6.md)
-- [v0.0.5: 参照資料対応・検証・保存物・残作業](releases/v0.0.5.md)
-- [v0.0.4: 対応範囲・検証・保存物・残作業](releases/v0.0.4.md)
+観測値と未確認のサーバー処理・設定値は区別します。各資料の制約・未対応事項も確認してください。
+検証件数や実ログ結果は記載時点の記録です。最新の作業記録は[DEVELOPMENT.md](../DEVELOPMENT.md)を参照してください。
+Issue/PRはGitHub、確定仕様はdocsを正本とします。
 
 ## はじめに読む資料
 
 1. [GUIの構成と操作](guide/gui-workspace.md)で操作を確認する。
 2. [保存ログの再解析](guide/offline-replay.md)または[一括セッション解析](capture/session-analysis.md)でログを調べる。
 3. NPCは[会話復元](npc/dialogue-restoration.md)と[全NPC出力](npc/npc-bundle-export.md)、MOBは[性能](mob/mob-performance.md)と[使用スキル](mob/mob-skills.md)を参照する。
-
-観測値と未確認のサーバー処理・設定値は区別します。各資料の制約・未対応事項も確認してください。
-検証件数や実ログ結果は記載時点の記録です。最新の作業記録は[DEVELOPMENT.md](../DEVELOPMENT.md)を参照してください。
+4. 残作業の正本は[開発計画・次の着手単位](development/development-roadmap.md#次の着手単位)。採取は[生パケット採取リスト](capture/raw-packet-collection-checklist.md)。
 
 ## 操作ガイド
 
@@ -72,16 +63,19 @@
 - [グループ・称号とOnInit](observations/entity-group-title.md)
 - [操作キャラクター情報の保護置換](observations/identity-protection.md)
 
-## 開発方針
+## 開発方針・資料
 
 - [作業合意（GitHub運用）](development/working-agreement.md)
 - [GitHubラベル作成](development/github-labels.md)
 - [復元の基本方針・根拠の扱い](development/restoration-plan.md)
 - [MARiAとの差分・今後の計画](development/development-roadmap.md)
+- [保存後の経過メモ](development/progress-notes.md)
+- [提供TXT/Luaの調査と活用計画](development/client-data-utilization-plan.md)
 
-## スナップショット手順
+## スナップショット
 
-- [リリース / ソーススナップショット](releases/README.md)
+- [手順・タグ前チェック](releases/README.md)
+- [v0.0.6](releases/v0.0.6.md) · [v0.0.5](releases/v0.0.5.md) · [v0.0.4](releases/v0.0.4.md)
 
 ## 開発者向け補足
 
@@ -90,4 +84,4 @@
 - [テストの実行・整理方針](../tests/README.md)
 - [ネイティブ取得・IPC設計](../hook/DESIGN.md)
 
-資料追加時は該当分類へ配置し、この目次へリンクを追加します。詳細仕様は各資料、全体方針は開発方針、作業履歴はDEVELOPMENT.mdへ記録します。Issue/PRはGitHub、確定仕様はdocsを正本とします。
+資料追加時は該当分類へ配置し、この目次へリンクを追加します。詳細仕様は各資料、全体方針は開発方針、作業履歴はDEVELOPMENT.mdへ記録します。
