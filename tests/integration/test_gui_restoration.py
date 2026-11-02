@@ -80,6 +80,36 @@ class RestorationGuiTests(WindowTestCase):
         self.assertIsNot(panel.merged_report(),first)
         self.assertEqual(json.loads(panel.evidence.toPlainText())['conversation']['id'],9)
 
+    def test_async_merge_discards_stale_worker_results(self):
+        from reconstruction.branches import build_merged
+        from reconstruction.dialogue import DialogueStore
+        from tests.support.dialogue import layout_conversation
+        panel=self.window.dialogue_panel
+        panel.merge_async_threshold=0
+        panel.merge_checkbox.setChecked(True)
+        store=DialogueStore()
+        store.sessions=[layout_conversation(identifier=1),layout_conversation(identifier=2)]
+        store.revision=1
+        panel.store=store
+        panel._refreshed_store=store
+        panel.revision=store.revision
+        stale_key=panel._merge_cache_key()
+        panel._merge_pending_key=stale_key
+        stale_report=build_merged(panel._merge_inputs(), touch_inferences=[])
+        store.revision+=1
+        store.sessions.append(layout_conversation(identifier=3))
+        panel.revision=store.revision
+        panel._merge_worker_finished(stale_key, stale_report)
+        self.assertIsNone(panel._merge_report)
+        self.assertNotEqual(panel._merge_key, stale_key)
+        current=panel._merge_cache_key()
+        panel._merge_pending_key=current
+        fresh=build_merged(panel._merge_inputs(), touch_inferences=[])
+        panel._merge_worker_finished(current, fresh)
+        self.assertIs(panel._merge_report, fresh)
+        self.assertEqual(panel._merge_key, current)
+        self.assertEqual(panel._merge_key[1], 2)
+
     def test_reference_browser_pages_and_filters_without_changing_observations(self):
         from copy import deepcopy
         w=self.window;browser=w.reference_browser

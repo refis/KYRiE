@@ -514,9 +514,9 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 - 書式再読込とフィルター変更の2000件超分割／取消可能な再描画は追加済み。更なるキャッシュは計測後。
 - 会話パネルの演出／根拠JSONは必要時整形済み（非表示更新ではシリアライズしない）。
   演出JSONは presentation／quest／progress／script_command の差分キーで再整形を抑止（#85）。
-  残りは大きい統合計算のUI切り離し（古い結果で上書きしない）。
-- メモリ退避の合成計測は `tools.profile_memory_eviction`。既定上限の変更は計測後。
-- 完了条件: 制限到達を表示し、保存済みの根拠へ引き続き移動できること。計測に基づき上限を調整できること。
+  会話が閾値以上のとき統合計算は MergeWorker へ移し、完了時にキーが一致しない結果は破棄する。
+- メモリ退避の合成計測は `tools.profile_memory_eviction`。既定上限 50000 は当面維持。
+- 完了条件: 制限到達を表示し、保存済みの根拠へ引き続き移動できること。計測手順があり上限変更の根拠を残せること。
 
 ### O3: 版管理・テスト・文書
 
@@ -542,9 +542,9 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
 1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
 2. 視覚エフェクト日本語は確認済み出典が揃うまで空のまま（[クライアント資料計画](client-data-utilization-plan.md)）。
    stateiconimginfo の画像名は辞書化しない。原資料の Git 持ち出し禁止。
-3. **O2（#77/#85）**: メモリ退避の計測手順は `python -m tools.profile_memory_eviction`。
-   演出JSONは presentation 系コレクション差分キーで不要な再整形を抑止済み。
-   残りは既定上限の計測に基づく調整と、大きい統合計算のUI切り離し（古い計算結果で上書きしない）。
+3. **O2（#77/#85）**: メモリ退避の合成計測は `python -m tools.profile_memory_eviction`。
+   既定 50000 は維持（退避動作は確認済み。実機ピークに基づく変更は別途）。
+   演出JSON差分キー抑止と、会話64件以上の統合計算ワーカー（古いキーは破棄）まで完了。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。
