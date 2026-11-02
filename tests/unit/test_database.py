@@ -26,6 +26,11 @@ class PacketDatabaseTests(unittest.TestCase):
                         self.assertEqual(reader.execute('SELECT COUNT(*) FROM packets').fetchone()[0],index+1)
                 self.assertEqual(db.db.execute('SELECT raw,source,connection FROM packets ORDER BY id DESC LIMIT 1').fetchone(),
                     (b'\x7f\0abcd','TEST','flow'))
+                loaded=db.get(2)
+                self.assertEqual((loaded.packet_id,loaded.raw,loaded.source,loaded.connection),
+                    (0x7f,b'\x7f\0abcd','TEST','flow'))
+                with self.assertRaises(KeyError):db.get(99)
+                with self.assertRaises(ValueError):db.get(0)
             finally:db.close()
             with closing(sqlite3.connect(path)) as reader:
                 self.assertEqual(reader.execute('SELECT COUNT(*) FROM packets').fetchone()[0],3)
@@ -62,11 +67,11 @@ class PacketDatabaseTests(unittest.TestCase):
                 return super().commit()
         with patch('storage.database.sqlite3.connect',side_effect=lambda *a,**k:connect(*a,factory=FailingCommit,**k)):
             db=PacketDatabase(':memory:')
-        try:
-            event=PacketEvent(1,'RECV',127,b'\x7f\0packet','TEST','flow')
-            db.add(event)
-            db.db.fail=True
-            with self.assertRaisesRegex(sqlite3.OperationalError,'commit failed'):db.add(event)
-            self.assertFalse(db.db.in_transaction)
-            self.assertEqual(db.db.execute('SELECT COUNT(*) FROM packets').fetchone()[0],1)
-        finally:db.close()
+            try:
+                event=PacketEvent(1,'RECV',127,b'\x7f\0packet','TEST','flow')
+                self.assertEqual(db.add(event),1)
+                db.db.fail=True
+                with self.assertRaisesRegex(sqlite3.OperationalError,'commit failed'):db.add(event)
+                self.assertFalse(db.db.in_transaction)
+                self.assertEqual(db.db.execute('SELECT COUNT(*) FROM packets').fetchone()[0],1)
+            finally:db.close()

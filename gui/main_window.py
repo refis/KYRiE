@@ -6,6 +6,7 @@ from gui.layout import build_workspace
 from PySide6.QtCore import Qt, QTimer
 from gui.packet_delivery import Bridge, PacketDelivery
 from gui.view_limits import DISPLAY_LIMIT
+from gui.event_history import MEMORY_EVENT_LIMIT, physical_index, trim_parallel
 from gui.history_tasks import HistoryTasks
 from gui.observation_save import ObservationTextSnapshot,ObservationSaveWorker
 from collections import deque
@@ -64,6 +65,10 @@ class MainWindow(QMainWindow):
         self.display_results = []
         self.packet_indices=[]
         self.display_sessions = []
+        self.event_origin = 0
+        self.packet_rowids = []
+        self.evicted_rowids = {}
+        self.memory_event_limit = MEMORY_EVENT_LIMIT
         self.capture_session = 0
         self.packet_gui_received=0
         self.packet_processed=0
@@ -208,9 +213,12 @@ class MainWindow(QMainWindow):
         self.sync_ignore_selection()
         self.show_capture_status('非表示設定を再読込しました。')
 
+    def retained_event(self, logical):
+        return self.events[physical_index(logical, self.event_origin)]
+
     def sync_ignore_selection(self, *args):
         row = self.selected_packet_index()
-        packet_id = self.events[row].packet_id if row is not None else None
+        packet_id = self.retained_event(row).packet_id if row is not None else None
         index = self.npc_panel.table.currentIndex()
         rows = self.npc_panel.model.rows
         actor_id = rows[index.row()].actor_id if index.isValid() and 0 <= index.row() < len(rows) else None
@@ -226,13 +234,13 @@ class MainWindow(QMainWindow):
         selected = self.selected_packet_indices()
         self.overlay_diff.setEnabled(
             len(selected) == 2
-            and self.events[selected[0]].packet_id == self.events[selected[1]].packet_id)
+            and self.retained_event(selected[0]).packet_id == self.retained_event(selected[1]).packet_id)
         self.overlay_export.setEnabled(bool(self.overlay_path.text().strip()))
 
     def toggle_selected_packet_ignore(self, checked):
         row = self.selected_packet_index()
         if row is not None:
-            self.set_ignore_member('ids', self.events[row].packet_id, checked)
+            self.set_ignore_member('ids', self.retained_event(row).packet_id, checked)
 
     def toggle_selected_npc_ignore(self, checked):
         index = self.npc_panel.table.currentIndex()
@@ -317,7 +325,7 @@ class MainWindow(QMainWindow):
             return
         from gui.overlay_editor import OverlayEditorDialog
         from parser.packet_overlay import find_overlay_packet
-        event = self.events[row]
+        event = self.retained_event(row)
         overlay = None
         try:
             overlay = self._load_optional_overlay()
@@ -343,11 +351,12 @@ class MainWindow(QMainWindow):
     def selected_packet_indices(self):
         indices = []
         seen = set()
+        end = self.event_origin + len(self.events)
         for item in self.table.selectedItems():
             if item.column() != 0:
                 continue
             index = item.data(Qt.UserRole)
-            if type(index) is int and 0 <= index < len(self.events) and index not in seen:
+            if type(index) is int and self.event_origin <= index < end and index not in seen:
                 seen.add(index)
                 indices.append(index)
         return indices
@@ -357,7 +366,7 @@ class MainWindow(QMainWindow):
         if len(selected) != 2:
             self.statusBar().showMessage('同一PacketIDのパケットを2件選択してください。')
             return
-        left, right = self.events[selected[0]], self.events[selected[1]]
+        left, right = self.retained_event(selected[0]), self.retained_event(selected[1])
         if left.packet_id != right.packet_id:
             self.statusBar().showMessage('選択した2件のPacketIDが一致しません。')
             return
@@ -543,7 +552,13 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, 'NPC初期化を保存できません', str(exc))
 
     def show_entity_source(self, index):
-        if not 0 <= index < len(self.events):
+        if type(index) is not int or index < 0:
+            return
+        if index < self.event_origin:
+            self.workspace_tabs.setCurrentWidget(self.packet_page)
+            self._show_evicted_packet(index)
+            return
+        if index >= self.event_origin + len(self.events):
             return
         self.filter.clear()
         self.schedule_history_view(immediate=True)
@@ -858,8 +873,9 @@ class MainWindow(QMainWindow):
             indices=[];chunks=deque();size=0;index=0
             while index<len(self.events):
                 event=self.events[index];result=self.display_results[index]
+                logical=self.event_origin+index
                 if not query or query in f'{event.packet_id:04x}':
-                    indices.append(index)
+                    indices.append(logical)
                     if result.text and not ignored.hides(event,self.observation_tags[index]) and (result.status!='unmapped' or unmapped):
                         text=result.text[-self.DISPLAY_TEXT_LIMIT:]
                         chunks.append(text);size+=len(text)+1
@@ -905,11 +921,15 @@ class MainWindow(QMainWindow):
         protected.extend([*self.world_sources.values(),self.path.text()])
         try:
             validate_export_destination(path,protected)
+            retained_note=(f'メモリ退避 {self.event_origin} 件は本文保存対象外（DBに保持）。'
+                           if self.event_origin else '')
             if not snapshot.needs_worker:
                 save_observation_chunks(path,snapshot,protected)
-                self.statusBar().showMessage('観測ログを保存しました。')
+                self.statusBar().showMessage('観測ログを保存しました。'+retained_note)
                 return
             self.start_file_export(path,snapshot,protected,label='観測ログ')
+            if retained_note:
+                self.show_capture_status(retained_note)
         except (OSError,ValueError) as exc:
             message=('観測出力は64MiB以内にしてください。' if isinstance(exc,ExportLimitError) else
                      '入力データ・保存先・空き容量・アクセス権を確認してください。保存を完了できませんでした。')
@@ -1160,11 +1180,12 @@ class MainWindow(QMainWindow):
         elif isinstance(event,tuple):
             session,event=event
         self.packet_gui_received+=1
+        rowid=None
         if self.database_failed:
             self.packet_db_unconfirmed+=1
         else:
             try:
-                self.db.add(event)
+                rowid=self.db.add(event)
                 self.packet_db_confirmed+=1
             except (sqlite3.Error,OSError) as exc:
                 self.packet_db_unconfirmed+=1
@@ -1173,19 +1194,24 @@ class MainWindow(QMainWindow):
                     code=getattr(exc,'sqlite_errorcode',None)
                     self.session_log.write('packet_database_error',error_type=type(exc).__name__,
                         sqlite_errorcode=code if type(code) is int else None,
-                        capture_session=session,packet_index=len(self.events),counts_at_error=self.packet_progress())
+                        capture_session=session,packet_index=self.event_origin+len(self.events),
+                        counts_at_error=self.packet_progress())
                 self.show_capture_status('DB保存を確認できないため観測を停止します。診断の未確認件数を確認してください。')
                 self.stop()
         try:
-            self._apply_packet(event,session)
+            self._apply_packet(event,session,rowid=rowid)
             self.packet_processed+=1
         finally:
             self.update_packet_progress()
 
-    def _apply_packet(self,event,session):
-        index = len(self.events)
+    def _apply_packet(self,event,session,rowid=None):
+        if len(self.packet_rowids) != len(self.events):
+            # Test seeding may fill events without rowids; treat gaps as unsaved.
+            self.packet_rowids.extend([None]*(len(self.events)-len(self.packet_rowids)))
+        index = self.event_origin + len(self.events)
         self.events.append(event)
         self.display_sessions.append(session)
+        self.packet_rowids.append(rowid)
         previous_issues = self.world.issue_count
         self.world.apply(event, session=session, packet_index=index)
         tags = observation_tags(event, self.world, session)
@@ -1223,17 +1249,82 @@ class MainWindow(QMainWindow):
                 else:
                     self.insert_packet_row(index)
             pager._update()
-        self.counter.setText(f'{len(self.events)} 件')
+        self._maybe_evict_memory_events()
+        self._refresh_event_counter()
         if not self.history_view_stale and not self.history_tasks.running("view") and self.display_visible(event, result, tags):
             self.append_display_text(result.text)
+
+    def _refresh_event_counter(self):
+        retained=len(self.events)
+        logical=self.event_origin+retained
+        if self.event_origin:
+            self.counter.setText(f'{logical} 件（メモリ {retained} / 退避 {self.event_origin}）')
+        else:
+            self.counter.setText(f'{logical} 件')
+
+    def _maybe_evict_memory_events(self):
+        """Drop oldest in-memory packets only after DB confirmation. Never drop unsaved."""
+        limit=self.memory_event_limit
+        if type(limit) is not int or limit < 1:
+            return
+        retained=len(self.events)
+        if (retained <= limit or self.database_failed or self.history_tasks.busy
+                or len(self.packet_rowids) != retained):
+            return
+        drop=retained-limit
+        while drop > 0 and self.packet_rowids[drop-1] is None:
+            drop -= 1
+        if drop <= 0:
+            return
+        for offset in range(drop):
+            rowid=self.packet_rowids[offset]
+            if rowid is None:
+                return
+            self.evicted_rowids[self.event_origin+offset]=rowid
+        trim_parallel(
+            (self.events,self.display_results,self.display_sessions,self.observation_tags,self.packet_rowids),
+            drop)
+        self.event_origin += drop
+        self.packet_indices[:] = [index for index in self.packet_indices if index >= self.event_origin]
+        if not self.history_view_stale and not self.history_tasks.running('view'):
+            self.packet_pager.set_rows(self.packet_indices,'packets')
+            self.render_packet_page()
+        self.show_capture_status(
+            f'メモリ履歴を {drop} 件退避しました（累計 {self.event_origin}）。DB保存済み根拠へ移動できます。')
+
+    def _show_evicted_packet(self, logical):
+        rowid=self.evicted_rowids.get(logical)
+        if rowid is None:
+            self.show_capture_status(f'Packet #{logical} はメモリ退避済みですが DB 行を特定できません。')
+            return
+        try:
+            event=self.db.get(rowid)
+        except (KeyError, sqlite3.Error, OSError, ValueError) as exc:
+            self.show_capture_status(f'Packet #{logical} のDB読込に失敗しました: {exc}')
+            return
+        renderer=self.presenter if event.direction=='RECV' else self.send_presenter
+        decoded=(renderer.decode(event,self.render_timestamps) if renderer
+                 else DisplayResult('','','unmapped'))
+        self.table.clearSelection()
+        self._fill_packet_detail(event,decoded,prefix=f'退避済み Packet #{logical}（DB id={rowid}）\n')
+        self.show_capture_status(f'Packet #{logical} はメモリ退避済みのため DB から表示しています。')
 
     def selected_packet_index(self):
         item=self.table.item(self.table.currentRow(),0)
         index=item.data(Qt.UserRole) if item is not None else None
-        return index if type(index) is int and 0<=index<len(self.events) else None
+        if type(index) is not int:
+            return None
+        try:
+            physical_index(index,self.event_origin)
+        except ValueError:
+            return None
+        if not self.event_origin <= index < self.event_origin+len(self.events):
+            return None
+        return index
 
     def insert_packet_row(self,index):
-        event=self.events[index];result=self.display_results[index]
+        slot=physical_index(index,self.event_origin)
+        event=self.events[slot];result=self.display_results[slot]
         row=self.table.rowCount()
         self.table.insertRow(row)
         values=[datetime.fromtimestamp(event.timestamp).strftime('%H:%M:%S.%f')[:-3],
@@ -1267,12 +1358,7 @@ class MainWindow(QMainWindow):
         self.filter_notice.setVisible(bool(value))
         self.rebuild_display_log()
 
-    def show_selected(self):
-        row = self.selected_packet_index()
-        if row is None:
-            return
-        event = self.events[row]
-        decoded = self.display_results[row]
+    def _fill_packet_detail(self,event,decoded,prefix=''):
         lines = []
         for offset in range(0, len(event.raw), 16):
             chunk = event.raw[offset:offset + 16]
@@ -1287,8 +1373,19 @@ class MainWindow(QMainWindow):
             label = decoded.fields.get(name + '_index')
             field_lines.append(f'{name}: {format_indexed_value(value, label)}' if label is not None else f'{name}: {value}')
         fields = '\n'.join(field_lines)
-        self.hex.setPlainText(f'PacketID: 0x{event.packet_id:04X} | {event.connection}\n'
-                             f'Display: {decoded.status} {decoded.name}\n{decoded.text}\n{fields}\n\n' + '\n'.join(lines))
+        self.hex.setPlainText(
+            prefix +
+            f'PacketID: 0x{event.packet_id:04X} | {event.connection}\n'
+            f'Display: {decoded.status} {decoded.name}\n{decoded.text}\n{fields}\n\n' + '\n'.join(lines))
+
+    def show_selected(self):
+        row = self.selected_packet_index()
+        if row is None:
+            return
+        slot=physical_index(row,self.event_origin)
+        event = self.events[slot]
+        decoded = self.display_results[slot]
+        self._fill_packet_detail(event,decoded)
 
     def closeEvent(self, event):
         self.workspace_closing=True

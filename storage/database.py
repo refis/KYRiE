@@ -27,15 +27,29 @@ class PacketDatabase:
 
     def add(self, event):
         try:
-            self.db.execute('INSERT INTO packets(timestamp,direction,packet_id,raw,source,connection) VALUES(?,?,?,?,?,?)',
-                            (event.timestamp, event.direction, event.packet_id, event.raw, event.source, event.connection))
+            cursor = self.db.execute(
+                'INSERT INTO packets(timestamp,direction,packet_id,raw,source,connection) VALUES(?,?,?,?,?,?)',
+                (event.timestamp, event.direction, event.packet_id, event.raw, event.source, event.connection))
             self.db.commit()
+            return cursor.lastrowid
         except sqlite3.Error:
             try:
                 self.db.rollback()
             except sqlite3.Error:
                 pass  # Preserve the original failure; GUI marks the result as unconfirmed.
             raise
+
+    def get(self, rowid):
+        """Load one saved packet by SQLite rowid. Does not invent missing rows."""
+        if type(rowid) is not int or rowid < 1:
+            raise ValueError('Invalid packet rowid')
+        row = self.db.execute(
+            'SELECT timestamp,direction,packet_id,raw,source,connection FROM packets WHERE id=?',
+            (rowid,)).fetchone()
+        if row is None:
+            raise KeyError(rowid)
+        from events import PacketEvent
+        return PacketEvent(*row)
 
     def close(self):
         self.db.close()
