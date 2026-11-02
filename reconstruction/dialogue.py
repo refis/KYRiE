@@ -1055,7 +1055,7 @@ class DialogueStore:
             if len(candidates) == 1:
                 entity = candidates[0]
                 conversation.npc = {name: deepcopy(getattr(entity, name)) for name in
-                                    ('name', 'map_name', 'x', 'y', 'direction', 'class_id', 'actor_type',
+                                    ('name', 'map_name', 'x', 'y', 'direction', 'class_id', 'actor_type', 'speed',
                                      'appearance', 'map_generation', 'connection', 'map_origin', 'map_evidence',
                                      'group_id', 'title', 'metadata_evidence', 'field_issues',
                                      'initial_options', 'initial_state_evidence', 'server_endpoint', 'waitingrooms', 'initial_display', 'appearance_data', 'display_changes')}

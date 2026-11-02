@@ -14,7 +14,8 @@ FIELDS = {'npc_context': {'actor_id', 'actor_name'}, 'mob_context': {'actor_id',
           'mob_group': {'group_id', 'actor_id'}, 'mob_title': {'title', 'actor_id'},
           'npc_display_class': {'target','class_id'}, 'npc_display_full': {'target','class_id',*VISUAL_FIELDS},
           'npc_display_unknown': set(), 'npc_display_outside': {'code'}, 'instance_npc_reference': {'name'},
-          'waitingroom': {'title', 'limit'}, 'end': set(), 'indent': set(), 'conflict': set(), 'block_open': set(), 'block_close': set()}
+          'waitingroom': {'title', 'limit'}, 'npc_speed': {'speed'},
+          'end': set(), 'indent': set(), 'conflict': set(), 'block_open': set(), 'block_close': set()}
 
 
 def _entity_profile(path=None):
@@ -40,8 +41,9 @@ def templates(path=None, *, indent=None):
     result = read_render_json(path)
     if isinstance(result,dict):
         defaults=read_render_json(DEFAULT_PROFILE)
-        for key in ('waitingroom','npc_display_class','npc_display_full','npc_display_unknown','npc_display_outside','instance_npc_reference'):
-            result.setdefault(key,defaults[key])
+        for key in ('waitingroom', 'npc_speed', 'npc_display_class', 'npc_display_full',
+                    'npc_display_unknown', 'npc_display_outside', 'instance_npc_reference'):
+            result.setdefault(key, defaults[key])
     if not isinstance(result, dict) or set(result) != set(FIELDS):
         raise ValueError('個体メタデータ書式の項目が不正です。')
     if indent is not None:
@@ -73,6 +75,20 @@ def display_values(values):
             if key == 'group_id' and value > 0 or key == 'title' and value.strip()}
 
 
+def _walk_speeds(npcs):
+    speeds = set()
+    for npc in npcs:
+        if npc.get('actor_type') != 12:
+            continue
+        speed = npc.get('speed')
+        if speed is None:
+            continue
+        if type(speed) is not int or not 0 <= speed <= 65535:
+            raise ValueError('歩行NPCのspeedが不正です。')
+        speeds.add(speed)
+    return speeds
+
+
 def render_npc_initialization(npcs, profile=None, *, indent=None):
     npcs = list(npcs)
     observed_rooms = [(room['title'], room['limit']) for npc in npcs for room in npc.get('waitingrooms', [])]
@@ -81,6 +97,7 @@ def render_npc_initialization(npcs, profile=None, *, indent=None):
         raise ValueError('Invalid waitingroom metadata')
     # Codegen always uses admission limit 0; distinct titles still conflict.
     rooms = {(title, 0) for title, _ in observed_rooms}
+    speeds = _walk_speeds(npcs)
     variants = {json.dumps(values, sort_keys=True, ensure_ascii=False): values
                 for npc in npcs if (values := display_values(metadata_values(npc)))}
     displays = []
@@ -88,7 +105,7 @@ def render_npc_initialization(npcs, profile=None, *, indent=None):
         initial = npc.get('initial_display') or {}
         if player_class(initial.get('class_id',npc.get('class_id'))):
             displays.append((npc,initial or {'class_id':npc['class_id']}))
-    if not variants and not rooms and not displays:
+    if not variants and not rooms and not displays and not speeds:
         return ''
     observed = {field: {values[field] for values in variants.values() if field in values}
                 for field in ('group_id', 'title')}
@@ -122,6 +139,15 @@ def render_npc_initialization(npcs, profile=None, *, indent=None):
         lines.append(style['indent'] * (2 if len(rooms) > 1 else 1) +
                      style['waitingroom'].format(title=json.dumps(title, ensure_ascii=False), limit=limit))
         if len(rooms) > 1:
+            lines.append(style['indent'] + style['block_close'].format_map({}))
+    if len(speeds) > 1:
+        lines.append(style['indent'] + style['conflict'])
+    for speed in sorted(speeds):
+        if len(speeds) > 1:
+            lines.append(style['indent'] + style['block_open'].format_map({}))
+        lines.append(style['indent'] * (2 if len(speeds) > 1 else 1) +
+                     style['npc_speed'].format(speed=speed))
+        if len(speeds) > 1:
             lines.append(style['indent'] + style['block_close'].format_map({}))
     lines.append(style['indent'] + style['end'])
     result = '\n'.join(lines) + '\n'

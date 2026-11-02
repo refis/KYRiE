@@ -1706,27 +1706,27 @@
             "first_seen": true,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12,
             "first_seen": true
           },
-          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
         },
         {
           "when": {
             "actor_type": 12,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12
           },
-          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
         }
       ]
     },
@@ -1801,27 +1801,27 @@
             "first_seen": true,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12,
             "first_seen": true
           },
-          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}"
+          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
         },
         {
           "when": {
             "actor_type": 12,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12
           },
-          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});"
+          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
         }
       ]
     },
@@ -2207,5 +2207,6 @@
     "head_bottom": "頭下段",
     "robe": "肩",
     "style": "スタイル"
-  }
+  },
+  "walk_npc_speed_template": "setnpcspeed {speed},{actor_name:q};\t// {actor_id}"
 }
