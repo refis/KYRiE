@@ -508,8 +508,9 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 保存ログ使用時はログと定義のSHA-256を記録し、計測中の入力変更を拒否する。
 同一PCでの1000通知は大幅な改善がなく、5000通知の表・JSON増大を抑えた効果として扱う。
 
-- GUI行・本文は表示上限を追加済み。events、display_results等は全履歴を保持する。退避・再読込を設計する。
-- 書式再読込とフィルター変更の全履歴走査を、キャッシュ・ページング・取消可能な再描画へ改善する。
+- GUI行・本文は表示上限を追加済み（一覧ページ化・本文末尾5000行／約26万文字）。
+  events、display_results等は全履歴を保持する。退避・再読込は #77。
+- 書式再読込とフィルター変更の2000件超分割／取消可能な再描画は追加済み。更なるキャッシュは計測後。
 - 会話パネルの演出JSON全体の再整形を、選択範囲・更新差分・必要時表示へ変える。
   統合計算も大きな観測群ではUIから切り離し、古い計算結果で表示を上書きしない。
 - 完了条件: 制限到達を表示し、保存済みの根拠へ引き続き移動できること。
@@ -527,8 +528,8 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-02時点。#45–#66・#71・#72・#73 相当は完了または main 反映済み
-（display_only 配線、採取メモ、MapTypeProperty／ZC_MAPPROPERTY 手動確認メモ含む）。
+2026-11-02時点。#45–#66・#71–#76 相当は完了または main 反映済み
+（display_only 配線、採取メモ、MapTypeProperty／ZC_MAPPROPERTY、receive-display ギャップ同期含む）。
 文字input（01D4／01D5）の正常→未応答→正常と実機 0x0B56／通常shop、および 02C1 MOB 実例は
 20261102-171318-9aba07f0／20261102-173136-edcd6b68で確認（[採取リスト](../capture/raw-packet-collection-checklist.md)）。
 map_property のカタログ外 type／099B flags は解析ログの `manual_review` で人手確認可能
@@ -538,6 +539,7 @@ map_property のカタログ外 type／099B flags は解析ログの `manual_rev
 1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
 2. 視覚エフェクト日本語は確認済み出典が揃うまで空のまま（[クライアント資料計画](client-data-utilization-plan.md)）。
    stateiconimginfo の画像名は辞書化しない。原資料の Git 持ち出し禁止。
+3. **O2**: `events`／`display_results` のメモリ退避・再読込（画面上限は既存。#77）
 
 0x0B79／exchange の実機取得検証は、現段階で該当パケット利用 NPC がいないと判断し **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。該当 NPC 確認後に再開する。
