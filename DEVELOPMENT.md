@@ -2344,3 +2344,10 @@ Selected verification: release+catalog+commands+npc+player+presentation+events+m
 and gui-restoration+gui-display+offline+storage (165); total 635. Not full discover.
 Artifacts: dist/KYRiE-v0.0.7-source.zip (+.sha256, verification.json; gitignored).
 See docs/releases/v0.0.7.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.
+
+### 2026-11-02: O2 presentation JSON differential keys and eviction profile (#85)
+
+Presentations DeferredJsonView keys track presentation/quest/progress/script_command
+collection growth instead of DialogueStore.revision, so mes/menu-only updates skip rematerialize.
+Added tools.profile_memory_eviction for synthetic DB-confirmed eviction counts.
+Selected: dialogue + gui-restoration (presentation deferred tests). Not full discover.

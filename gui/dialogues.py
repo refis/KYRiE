@@ -50,6 +50,32 @@ QUALITY_LABELS = {'start_unobserved': '会話開始が未観測', 'incomplete_co
                   'ambiguous_interval': '区間の対応が不明', 'overlapping_prompt': '入力要求の重複', 'unanswered_termination': '未応答のままサーバー終了（タイムアウト疑い）'}
 
 
+def presentation_document_key(store):
+    """Invalidate the presentations JSON only when its source collections change.
+
+    DialogueStore.revision also advances for mes/menu/path updates that do not
+    alter the presentations tab payload. Length plus latest packet_index covers
+    append-only growth; in-place suppress of script_command fields is rare and
+    still refreshed on the next presentation/quest/command/progress append.
+    """
+    presentations = store.presentation_observations
+    quests = store.quest_observations
+    commands = store.commands.observations
+    progress = store.progress.records
+    return (
+        store,
+        len(presentations), store.presentation_dropped,
+        presentations[-1]['packet_index'] if presentations else -1,
+        len(quests), store.quest_dropped,
+        quests[-1]['packet_index'] if quests else -1,
+        len(commands), store.commands.dropped,
+        commands[-1]['packet_index'] if commands else -1,
+        len(progress), store.progress.dropped, store.progress.pending_evicted,
+        store.progress.capture_resets, len(store.progress.pending),
+        progress[-1]['packet_index'] if progress else -1,
+    )
+
+
 class DialoguePanel(QWidget):
     def __init__(self, store, show_source, *, names=None):
         super().__init__()
@@ -258,7 +284,7 @@ class DialoguePanel(QWidget):
         self._json_state=self.json_state()
         self.timing_comparison.set_conversation(self.selected())
         self.event_trials.check_revision()
-        self.presentations.set_document((self.store,self.store.revision),lambda store=self.store:dict(
+        self.presentations.set_document(presentation_document_key(self.store),lambda store=self.store:dict(
             observations=store.presentation_observations,
             quest_observations=store.quest_observations, quest_dropped=store.quest_dropped,
             progress_observations=store.progress.snapshot(),

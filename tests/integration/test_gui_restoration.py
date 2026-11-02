@@ -40,9 +40,12 @@ class RestorationGuiTests(WindowTestCase):
             self.assertFalse(updates)
             panel.merge_checkbox.setChecked(True)
             self.assertIn('merged_group',json.loads(panel.evidence.toPlainText()))
+            # Store.revision alone must not rematerialize presentations JSON (#85).
+            before_calls=panel.presentations.factory_calls
             w.dialogues.revision+=1;panel.refresh()
-            self.assertEqual(panel.presentations.document().toPlainText(),'')
+            self.assertEqual(panel.presentations.factory_calls,before_calls)
             self.assertEqual(json.loads(panel.presentations.toPlainText())['observations'],[])
+            self.assertEqual(panel.presentations.factory_calls,before_calls)
         self.assertEqual(w.dialogues.snapshot(),before)
         # A packet update can arrive before the regular GUI refresh timer.
         panel.merge_checkbox.setChecked(False)
