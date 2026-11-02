@@ -103,7 +103,8 @@ callshopのtypeは省略して取引メニューを開く。購入専用や売�
 - `>=20210203`: 商品ヘッダ32byte（currency_count@+28、refineなし）+ 通貨12byte×N
 
 look／equip／refine は観測保持。脚本候補の商品行は従来どおり `ID:在庫:zeny { 通貨… }`。
-実機ログの 0x0B79 は未採取（合成で契約確認）。0x09CF／0x09D0・0x0A30 は barter としない。
+実機ログの 0x0B79 は未採取（合成で契約確認）。2026-11-02 時点で該当利用 NPC なしと判断し取得検証は保留。
+未採取のままレイアウトを広げない。0x09CF／0x09D0・0x0A30 は barter としない。
 
 書式はconfig/auriga/barters.json。
 
