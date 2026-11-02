@@ -23,6 +23,15 @@
 既知の命令・QuestIDの差を消去して共有せず、隠れたcheckquest条件や実行確率は生成しない。全383テスト通過。
 保持上限は演出観測と同じ設定値を使い、未保存数をquest_droppedへ記録する。異常通知や容量超過は問題として残す。
 
+### setquest／delquest と showevent（OnQuestInfo）
+
+会話中または close2 判定窓内で setquest／delquest の後に 0x0446（event_marker）を観測した場合、
+直前の未関連クエストへ結び `quest_info_links` へ保持する。
+コード生成では該当NPCの `OnQuestInfo:` に
+`showevent {state}, {kind}, "{NPC名}";	// {quest_id}: {x}, {y}` を追加する（Auriga）。
+関連付け済みの event_marker は会話本文・外部コメントへは出さない。
+GUIの会話詳細「クエスト」タブで関連付けの時系列を確認できる。
+
 全376テスト通過。20261028-012526-0abe69d9で追加8件・削除6件を会話関連観測として保持し、
 会話90件・統合34群・会話解析問題0件を維持した。別レポートsession-analysis-quests-review.jsonへ保存済み。
 

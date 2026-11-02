@@ -173,6 +173,22 @@ class DialoguePanel(QWidget):
         self.external_presentations = ExternalPresentationPanel(
             show_source, store=store, on_changed=self._external_adoption_changed)
         details.addTab(self.external_presentations, '対象別通知')
+        quest_page = QWidget()
+        quest_layout = QVBoxLayout(quest_page)
+        quest_layout.addWidget(QLabel(
+            '会話中（close2判定中含む）の setquest／delquest の後に観測した showevent の関連付け。OnQuestInfo 候補の時系列です。'))
+        self.quest_flow = QTableWidget(0, 8)
+        self.quest_flow.setHorizontalHeaderLabels([
+            '順', 'クエスト命令', 'QuestID', 'showevent', '対象NPC', '座標', 'close2後', 'Packet'])
+        self.quest_flow.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.quest_flow.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.quest_flow.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.quest_flow.setColumnWidth(1, 100)
+        self.quest_flow.setColumnWidth(3, 120)
+        self.quest_flow.setColumnWidth(4, 180)
+        self.quest_flow.itemDoubleClicked.connect(lambda _: self.jump_quest_link())
+        quest_layout.addWidget(self.quest_flow)
+        details.addTab(quest_page, 'クエスト')
         self.event_trials = EventTrialPanel(store, show_source)
         review_page = QWidget()
         review_layout = QVBoxLayout(review_page)
@@ -316,6 +332,7 @@ class DialoguePanel(QWidget):
             self.code.clear()
             self.evidence.clear()
             self.timeline.setRowCount(0)
+            self.quest_flow.setRowCount(0)
             self.resource_adoption.blockSignals(True)
             self.resource_adoption.setRowCount(0)
             self.resource_adoption.blockSignals(False)
@@ -392,6 +409,7 @@ class DialoguePanel(QWidget):
         if timing['player_notification_count']:
             self.timing_caption.setText(self.timing_caption.text()+f'\n本人関連通知 {timing["player_notification_count"]}件（観測専用・詳細省略 {timing["player_notification_omitted"]}件）。待ち時間・反復集計には使用しません。')
         evidence_document=lambda:dict(conversation=asdict(item),timeline=timing,touch_trial_comparison=touch_trials)
+        self._fill_quest_flow(item, group if self.merge_checkbox.isChecked() else None)
         try:
             self.external_presentations.set_conversation(item, group if self.merge_checkbox.isChecked() else None,
                                                          self.store.source_refs, self.store.presentation_observations,
@@ -584,6 +602,42 @@ class DialoguePanel(QWidget):
         self.revision = -1
         self.refresh_selected()
 
+    def _fill_quest_flow(self, item, group=None):
+        from reconstruction.quest_info import collect_quest_info_links
+        from reconstruction.dialogue import Conversation
+        if group is not None:
+            conversations = [
+                Conversation(**row['conversation']) if isinstance(row['conversation'], dict)
+                else row['conversation'] for row in group['contributions']]
+            links = collect_quest_info_links(*conversations)
+        else:
+            links = collect_quest_info_links(item)
+        self.quest_flow.setRowCount(len(links))
+        for index, link in enumerate(links):
+            command = 'setquest' if link.get('quest_kind') == 'quest_add' else 'delquest'
+            showevent = f"{link.get('state')}, {link.get('kind')}"
+            coords = f"{link.get('x')}, {link.get('y')}"
+            values = [
+                str(index + 1),
+                command,
+                quest_reference(self.names, link['quest_id']),
+                showevent,
+                link.get('target_name') or '',
+                coords,
+                'はい' if link.get('after_close_reply') else '',
+                f"Q={link.get('quest_packet_index')} / E={link.get('marker_packet_index')}",
+            ]
+            for column, value in enumerate(values):
+                cell = QTableWidgetItem(value)
+                cell.setData(Qt.UserRole, link.get('marker_packet_index') or link.get('quest_packet_index'))
+                cell.setToolTip(json.dumps(link, ensure_ascii=False, sort_keys=True))
+                self.quest_flow.setItem(index, column, cell)
+
+    def jump_quest_link(self):
+        row = self.quest_flow.currentRow()
+        if row >= 0 and self.quest_flow.item(row, 0):
+            self.show_source(self.quest_flow.item(row, 0).data(Qt.UserRole))
+
     def _external_adoption_changed(self):
         self.revision = -1
         self.refresh_selected()
@@ -593,6 +647,10 @@ class DialoguePanel(QWidget):
         row = self.timeline.currentRow()
         if row >= 0 and self.timeline.item(row, 0):
             self.show_source(self.timeline.item(row, 0).data(Qt.UserRole))
+            return
+        quest_row = self.quest_flow.currentRow()
+        if quest_row >= 0 and self.quest_flow.item(quest_row, 0):
+            self.show_source(self.quest_flow.item(quest_row, 0).data(Qt.UserRole))
             return
         if item and item.steps:
             self.show_source(item.steps[0]['packet_index'])
