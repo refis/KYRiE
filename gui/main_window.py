@@ -1033,7 +1033,7 @@ class MainWindow(QMainWindow):
             except RuntimeError as exc:
                 self.stop()
                 self.capture_state_label.setText('取得エラー（診断を確認）')
-                self.capture_diagnostics.setText(str(exc))
+                self.capture_diagnostics.setPlainText(str(exc))
                 self.show_capture_status(str(exc))
                 return
             try:
@@ -1044,7 +1044,7 @@ class MainWindow(QMainWindow):
             self.capture_state_label.setText('観測中' if stats['ready'] else '開始待ち')
             error_count = stats.get('framing_errors', 0) + stats.get('tcp_errors', 0) + self.world.issue_count
             self.diagnostics_button.setText(f'診断 ({error_count})' if error_count else '診断')
-            self.capture_diagnostics.setText(
+            self.capture_diagnostics.setPlainText(
                 f'Npcap={"ready" if stats["ready"] else "opening"} | TCP seen={stats.get("observed_tcp", 0)} | '
                 f'tracked={stats["tracked"]} | matched={stats.get("matched_segments", 0)} | '
                 f'payload={stats.get("matched_payload_bytes", 0)} B | packets={stats.get("framed_packets", 0)} | '

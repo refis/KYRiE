@@ -5,8 +5,8 @@ import uuid
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
-    QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSplitter, QTabWidget,
-    QTableWidget, QVBoxLayout, QWidget,
+    QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QSplitter,
+    QTabWidget, QTableWidget, QVBoxLayout, QWidget,
 )
 
 from parser.display import DEFAULT_PROFILE
@@ -385,12 +385,19 @@ def _build_diagnostics(w):
     w.diagnostics_dialog = QDialog(w)
     w.diagnostics_dialog.setWindowTitle('接続・診断')
     w.diagnostics_dialog.resize(940, 600)
+    w.diagnostics_dialog.setSizeGripEnabled(True)
     layout = QVBoxLayout(w.diagnostics_dialog)
-    w.capture_diagnostics = QLabel('観測していません')
-    w.capture_diagnostics.setWordWrap(True)
+    # Long live/offline summaries must scroll inside a capped pane; a wrapping
+    # QLabel grows the dialog past the screen with no scrollbar.
+    w.capture_diagnostics = QPlainTextEdit('観測していません')
+    w.capture_diagnostics.setReadOnly(True)
+    w.capture_diagnostics.setLineWrapMode(QPlainTextEdit.WidgetWidth)
+    w.capture_diagnostics.setMaximumHeight(180)
+    w.capture_diagnostics.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
     layout.addWidget(w.capture_diagnostics)
     w.packet_progress_label=QLabel()
     w.packet_progress_label.setWordWrap(True)
+    w.packet_progress_label.setMaximumHeight(72)
     layout.addWidget(w.packet_progress_label)
     tabs = QTabWidget()
     connections = _page(tabs, '接続一覧')
@@ -403,7 +410,7 @@ def _build_diagnostics(w):
     w.capture_log.setReadOnly(True)
     w.capture_log.setMaximumBlockCount(200)
     log.addWidget(w.capture_log)
-    layout.addWidget(tabs)
+    layout.addWidget(tabs, 1)
     actions = QHBoxLayout()
     w.save_diagnostics = QPushButton('診断ログを保存…')
     w.save_diagnostics.clicked.connect(w.save_capture_log)
