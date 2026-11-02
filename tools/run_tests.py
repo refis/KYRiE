@@ -39,6 +39,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
                   'tests.unit.test_viewpoint_observations'],
  'npc': ['tests.unit.test_actor_appearance', 'tests.unit.test_touch_npc', 'tests.unit.test_npc_bundle',
          'tests.unit.test_npc_initial_state',
+         'tests.unit.test_npc_walk',
          'tests.unit.test_entity_metadata',
          'tests.unit.test_actor_identity',
          'tests.unit.test_npc_codegen_rules'],

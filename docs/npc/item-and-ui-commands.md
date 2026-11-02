@@ -67,6 +67,13 @@ barter一覧（0x0B0E／0x0B56）も同じclose応答後2秒枠で会話へ帰�
 配置付きOnInitでは対象自身へ `setnpcspeed {speed};` を出す。
 type 6の通常NPCや0x9FD移動だけでは生成しない。速度不一致は確認用ブロックで併記。
 
+## npcwalkto / npcwalkwait
+
+既知の歩行NPCへの再観測0x9FDで `npcwalkto` の直後に `npcwalkwait` を出す。
+Aurigaのnpcwalkwaitは歩行完了＋追加msだけスクリプトを止め、`sleep`／`sleep2`と同じ再開経路で
+会話アタッチやタイマー処理を継続する（プレイヤーをdetachするsleep単体とは役割が異なる）。
+待ちmsは距離とnpcspeedから算出し、コメントに概算を残す。追加msの省略相当は下限50。
+
 ## waitingroom
 
 0x00D7の所有者を同一世代のNPCと確認できた場合に、titleとlimitを個体情報へ保存する。

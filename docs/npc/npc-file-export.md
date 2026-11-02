@@ -19,10 +19,14 @@ rAthenaにはscript2種がないため、typeに関わらず`script[(HIDDEN/CLOA
 
 既知の歩行NPC（type 12）に対する再観測の0x9FDは、観測ログへ
 `npcwalkto {to_x},{to_y},"{name}"; // {aid}: speed:{speed}` を出す（MARiA準拠）。
-初回の0x9FDは出現登録の注釈のままとし、未登録の移動を命令化しない。
+続けてスクリプトを実行する候補として、直後に`npcwalkwait {extra},"{name}";`を挟む。
+待ち時間はAurigaどおり歩行時間（Chebyshev距離×speed、斜めは1.4倍）＋追加ms（下限50）で、
+`sleep`／`sleep2`と同じスクリプトsleepスタックで会話状態・タイマー処理を継続する。
+コメントに概算の総待ちmsを残す。初回の0x9FDは出現登録の注釈のままとし、未登録の移動を命令化しない。
 0x9FE／0x9FFのtype 12は観測ログへ`setnpcspeed {speed},"{name}"; // {aid}`を付け、
 配置付きOnInitにも観測speedがあれば`setnpcspeed {speed};`を出す。
 速度が観測間で不一致なら確認用ブロックで併記する。
+rAthenaにはnpcwalkwaitがないため、同待ちの`sleep2`候補を確認用コメントとする。
 
 全362テスト通過。追加ログでは初回HIDDENが90観測区間、統合出力で38配置。
 CLOAKEDは同ログにはなく合成データで検証。初回観測を出力基準とし、サーバー起動時の状態や状態変更原因は補完しない。

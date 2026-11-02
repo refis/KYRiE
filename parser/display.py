@@ -14,11 +14,13 @@ from reconstruction.player import PlayerStore, DISPLAY_DEFAULTS
 from reconstruction.world import WorldStore
 from reconstruction.decoder import decode_world_event, ObservationError
 from reconstruction.entity_metadata import render_packet_metadata
+from reconstruction.npc_walk import npc_walk_wait_ms
 from reconstruction.quests import decode_quest
 
 ACTOR_FIELDS = dict(actor_id=0, actor_type=0, class_id=0, speed=0, options=0,
                     actor_name='', x=0, y=0, destination_x=0, destination_y=0, facing=0,
-                    first_seen=False, name_valid=True, map_name='不明', reobserved=False, has_changes=False, actor_kind='', changes_text='')
+                    first_seen=False, name_valid=True, map_name='不明', reobserved=False, has_changes=False,
+                    actor_kind='', changes_text='', walk_wait_extra=50, walk_wait_ms=0)
 QUEST_COUNTER_FIELDS = dict(quest_layout='', quest_objective_kind='', quest_entry_count=0, quest_entries='[]')
 SCRIPT_FIELDS = dict(command_text='', command_kind='')
 STATUS_CONVERT_FIELDS = dict(status_script_id=0, status_symbol='', status_mapped=False)
@@ -98,10 +100,11 @@ class DisplayProfile:
     def __init__(self, document):
         _keys(document, {'version', 'encoding', 'defaults', 'fallback', 'error', 'timestamp', 'packets', 'entity_metadata',
                          'instance_warp', 'instance_entry_warp', 'instance_map_reference', 'actor_change_template', 'actor_change_labels',
-                         'walk_npc_speed_template'}, 'profile')
+                         'walk_npc_speed_template', 'walk_npc_wait_template'}, 'profile')
         self.actor_change_template = document.get('actor_change_template')
         self.actor_change_labels = document.get('actor_change_labels',{})
         self.walk_npc_speed_template = document.get('walk_npc_speed_template')
+        self.walk_npc_wait_template = document.get('walk_npc_wait_template')
         if (not isinstance(self.actor_change_labels,dict) or len(self.actor_change_labels)>64
                 or any(not isinstance(key,str) or not isinstance(value,str) or len(value)>80 for key,value in self.actor_change_labels.items())):
             raise ProfileError('Invalid actor change labels')
@@ -109,6 +112,8 @@ class DisplayProfile:
             _template(self.actor_change_template,set(ACTOR_FIELDS),dict(ACTOR_FIELDS))
         if self.walk_npc_speed_template is not None:
             _template(self.walk_npc_speed_template, set(ACTOR_FIELDS), dict(ACTOR_FIELDS))
+        if self.walk_npc_wait_template is not None:
+            _template(self.walk_npc_wait_template, set(ACTOR_FIELDS), dict(ACTOR_FIELDS))
         instance_keys = ('instance_warp', 'instance_entry_warp', 'instance_map_reference')
         for key in instance_keys:
             setattr(self, key, document.get(key))
@@ -473,6 +478,16 @@ class ReceiveDisplay:
                     template = profile.actor_change_template
                 elif walk_npc_speed and not values['has_changes'] and profile.walk_npc_speed_template:
                     template = profile.walk_npc_speed_template
+            if walk_npc_move:
+                values['walk_wait_extra'] = 50
+                try:
+                    values['walk_wait_ms'] = npc_walk_wait_ms(
+                        values['x'], values['y'], values['destination_x'], values['destination_y'],
+                        values['speed'], extra_ms=values['walk_wait_extra'])
+                except ValueError:
+                    values['walk_wait_ms'] = 0
+                fields['walk_wait_extra'] = values['walk_wait_extra']
+                fields['walk_wait_ms'] = values['walk_wait_ms']
             from reconstruction.identity_protection import apply_to_display_values, identity_from_player
             player_state = self.players.states.get((0, event.flow_id or event.connection))
             identity = identity_from_player(player_state)
@@ -481,6 +496,10 @@ class ReceiveDisplay:
             if (walk_npc_speed and profile.walk_npc_speed_template
                     and values.get('has_changes') and 'setnpcspeed' not in text):
                 text += '\n' + _render(profile.walk_npc_speed_template, render_values)
+            # After npcwalkto, pause for walk duration so later script/timers resume (sleep/sleep2 stack).
+            if (walk_npc_move and profile.walk_npc_wait_template and 'npcwalkto' in text
+                    and values.get('walk_wait_ms', 0) > 0):
+                text += '\n' + _render(profile.walk_npc_wait_template, render_values)
             if record and event.packet_id in (0x9ff,0x9fe,0x9fd,0x1b0):
                 if event.packet_id==0x1b0 and not record['changes']:
                     return DisplayResult(rule['name'],'','decoded',fields)
