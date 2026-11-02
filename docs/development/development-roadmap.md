@@ -510,11 +510,11 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 - GUI行・本文は表示上限を追加済み（一覧ページ化・本文末尾5000行／約26万文字）。
   events／display_results は既定5万件を超え、かつ DB 保存確認済みの先頭だけメモリ退避（#77）。
-  退避後の根拠移動は SQLite 行読込。未保存パケットは退避しない。
+  退避後の根拠移動は SQLite 行読込。未保存パケットは退避しない。計測・上限調整は継続。
 - 書式再読込とフィルター変更の2000件超分割／取消可能な再描画は追加済み。更なるキャッシュは計測後。
-- 会話パネルの演出JSON全体の再整形を、選択範囲・更新差分・必要時表示へ変える。
-  統合計算も大きな観測群ではUIから切り離し、古い計算結果で表示を上書きしない。
-- 完了条件: 制限到達を表示し、保存済みの根拠へ引き続き移動できること。
+- 会話パネルの演出／根拠JSONは必要時整形済み（非表示更新ではシリアライズしない）。
+  残りは更新差分に限定した再整形と、大きい統合計算のUI切り離し（古い結果で上書きしない）。
+- 完了条件: 制限到達を表示し、保存済みの根拠へ引き続き移動できること。計測に基づき上限を調整できること。
 
 ### O3: 版管理・テスト・文書
 
@@ -529,33 +529,28 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-02時点。#45–#66・#71–#76 相当は完了または main 反映済み
-（display_only 配線、採取メモ、MapTypeProperty／ZC_MAPPROPERTY、receive-display ギャップ同期含む）。
-文字input（01D4／01D5）の正常→未応答→正常と実機 0x0B56／通常shop、および 02C1 MOB 実例は
-20261102-171318-9aba07f0／20261102-173136-edcd6b68で確認（[採取リスト](../capture/raw-packet-collection-checklist.md)）。
-map_property のカタログ外 type／099B flags は解析ログの `manual_review` で人手確認可能
+2026-11-02時点（[v0.0.7](../releases/v0.0.7.md) 保存後）。
+#45–#66・#71–#83 相当は完了または main 反映済み
+（display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、スナップショット #83 含む）。
+文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
+map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
 残作業（採取必須のものは採取後）:
 
 1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
 2. 視覚エフェクト日本語は確認済み出典が揃うまで空のまま（[クライアント資料計画](client-data-utilization-plan.md)）。
    stateiconimginfo の画像名は辞書化しない。原資料の Git 持ち出し禁止。
-3. **O2**: メモリ退避の計測・既定上限の調整、会話パネル演出JSONの差分再整形（#77の基本退避は実装済み）
+3. **O2（#77基本退避の続き）**: メモリ退避の計測・既定上限の調整。
+   会話パネル演出JSONは必要時整形済み（[経過メモ](progress-notes.md)）。残りは更新差分に限定した再整形と、
+   大きい統合計算のUI切り離し（古い計算結果で上書きしない）。
 
-0x0B79／exchange の実機取得検証は、現段階で該当パケット利用 NPC がいないと判断し **保留**（#70）。
-合成契約は維持し、未採取のままレイアウトを広げない。該当 NPC 確認後に再開する。
+0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
+合成契約は維持し、未採取のままレイアウトを広げない。
 
-display_only の個別配線（0A24／02C1／0AB9・0B13／01D6・099B／08FF・0984／029B）は
-観測保持・命令非生成まで完了（[未対応通知](../npc/unsupported-notifications.md)）。
-通常shop品名併記・鑑定フラグ境界文書・プロジェクトログ編集・0B38追採取除外も完了済み。
-
-湧き数 amount・delay1／delay2 は今後も観測自動補完しない。
-手動編集と確認フラグ付き保存のみとし、詳細は[配置・再観測](../mob/mob-spawn-observations.md)。
+湧き数 amount・delay1／delay2 は今後も観測自動補完しない
+（[配置・再観測](../mob/mob-spawn-observations.md)）。
 
 完了済みの参照は releases と各PRに委ね、ここには残作業だけを列挙する。
-P0-BのGUI読み戻し・作業プロジェクト・複数ログは実装済み
-（[読み戻し](../guide/offline-replay.md) / [プロジェクト](../guide/offline-project.md) /
-[複数ログ](../guide/multiple-log-replay.md)）。
 最適化は計測結果に応じてO1/O2を挟む。完成条件を「全MARiA互換」にはせず、
 再現可能な観測と編集用候補の品質を基準にする。
 
