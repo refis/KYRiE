@@ -171,7 +171,8 @@ MARiAの全文字列・状態推論・pickle保存との完全互換移植では
 
 - BGMのNPC割当・musiceffect命令化
 - キャッシュ shop。0x0B79／exchange は取得検証保留（#70。未採取のままレイアウトを広げない）
-- setcell・showevent・hateffect 等の実行命令化（観測コメントのみの種別を含む）
+- setcell・hateffect 等の実行命令化（観測コメントのみの種別を含む）
+- showevent は単独ではコメントのみ。setquest／delquest 直後の関連付け時のみ `OnQuestInfo:` へ実行命令化（[クエスト資源観測](../npc/dialogue-resource-observations.md)）
 - 新規に見つかった表示定義のみ PacketID の構造化要否（勝手に命令化しない）
 - EXE暗号化前取得、未知ID後の境界再同期
 - stateiconimginfo の画像名辞書化（#69。取り込み不要）

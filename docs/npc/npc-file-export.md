@@ -44,13 +44,20 @@ map.gat,x,y,direction<TAB>script<TAB>NPC名<TAB>class_id,{/* actor_id */
 OnInit:
     waitingroom "…",0;
     end;
+
+OnQuestInfo:
+    showevent 0, 1, "NPC名";	// quest_id: x, y
+    end;
 }
 ```
+
+（`OnQuestInfo:` は会話中の setquest／delquest 直後に showevent を関連付けた場合のみ。）
 
 実際の区切りはタブ。宣言先頭へ観測ActorIDを`{/* … */}`で挿入する。
 宣言・コメント・閉じ括弧は`config/auriga/dialogue.json` の `npc_file_header` / `npc_file_footer` で変更できる。
 古いプロファイルにこのキーがない場合は同梱の既定値を補う。
-本文のインデントは既存indentを1段追加するが、`OnInit:` / `OnTouch:` ラベル行はインデントしない。
+本文のインデントは既存indentを1段追加するが、`OnInit:` / `OnQuestInfo:` / `OnTouch:` ラベル行はインデントしない。
+`OnInit:` / `OnQuestInfo:` の本文行は既に付いたインデントを二重にしない。
 設定の「NPC本文インデント」でスペース4つ／タブを選べる。
 
 ## 不足・不正な配置情報

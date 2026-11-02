@@ -216,6 +216,41 @@ class NpcBundleTests(unittest.TestCase):
         self.assertNotIn('end;', unknown['auriga'])
         self.assertIn('45,{/* 42 */}', unknown['auriga'])
 
+    def test_bundle_appends_onquestinfo_after_oninit_from_linked_showevent(self):
+        from reconstruction.quests import ADD_LENGTHS
+        from reconstruction.world import WorldStore
+        from tests.support.world import map_packet, actor_packet
+        world = WorldStore()
+        store = DialogueStore(world=world)
+        name = 'レイジー#ep20_end01'
+        events = [
+            map_packet(), actor_packet(name=name),
+            packet(0x90, struct.pack('<IB', 42, 1), 'SEND', connection='flow-a', flow=''),
+            packet(0xb4, struct.pack('<I', 42) + b'hello\0', connection='flow-a', flow=''),
+            packet(0xb0c, struct.pack('<IBIIH', 3593, 1, 0, 999, 2) + bytes(ADD_LENGTHS[0xb0c] - 17),
+                   connection='flow-a', flow=''),
+            packet(0x446, struct.pack('<IHHHH', 42, 368, 222, 0, 1), connection='flow-a', flow=''),
+            packet(0xb6, struct.pack('<I', 42), connection='flow-a', flow=''),
+        ]
+        for event in events:
+            world.apply(event)
+            store.apply(event)
+        item = store.sessions[0]
+        npc = entity(name=name, map_name=item.npc.get('map_name') or 'prontera.gat',
+                     x=item.npc.get('x', 150), y=item.npc.get('y', 200),
+                     direction=item.npc.get('direction', 3))
+        item.npc = dict(npc)
+        self.assertEqual(len(item.quest_info_links), 1)
+        before = deepcopy((npc, item))
+        text = build_npc_bundle([npc], [item], merge=True)['auriga']
+        self.assertIn('OnInit:', text)
+        self.assertIn('OnQuestInfo:', text)
+        self.assertLess(text.index('OnInit:'), text.index('OnQuestInfo:'))
+        self.assertIn('showevent 0, 1, "レイジー#ep20_end01";', text)
+        self.assertIn('// 3593: 368, 222', text)
+        self.assertNotIn('\n    OnQuestInfo:', text)
+        self.assertEqual((npc, item), before)
+
     def test_bulk_merge_toggle_keeps_all_paths_one_declaration_and_one_initialization(self):
         npc = entity()
         first, second = conversation(), conversation(2, answer='other', identifier=2)
