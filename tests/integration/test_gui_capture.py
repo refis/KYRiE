@@ -333,8 +333,25 @@ class CaptureGuiTests(WindowTestCase):
         self.assertIsNone(w.receiver)
         self.assertTrue(w.start_button.isEnabled())
         self.assertIn('test error', w.capture_log.toPlainText())
-        self.assertIn('test error', w.capture_diagnostics.text())
+        self.assertIn('test error', w.capture_diagnostics.toPlainText())
         receiver.refresh_connections.assert_not_called()
+
+    def test_diagnostics_summary_scrolls_instead_of_growing_past_screen(self):
+        from gui.layout import show_panel
+        w = self.window
+        w.show()
+        self.app.processEvents()
+        long_report = '診断行\n' * 400 + json.dumps({'sources': list(range(80)), 'note': 'x' * 200},
+                                                     ensure_ascii=False, indent=2)
+        w.capture_diagnostics.setPlainText(long_report)
+        show_panel(w.diagnostics_dialog)
+        self.app.processEvents()
+        area = w.diagnostics_dialog.screen().availableGeometry()
+        self.assertLessEqual(w.diagnostics_dialog.height(), area.height())
+        self.assertLessEqual(w.capture_diagnostics.maximumHeight(), 180)
+        self.assertGreater(w.capture_diagnostics.verticalScrollBar().maximum(), 0)
+        self.assertIn('診断行', w.capture_diagnostics.toPlainText())
+        w.diagnostics_dialog.close()
 
     def test_diagnostic_log_can_be_saved_before_capture(self):
         w = self.window

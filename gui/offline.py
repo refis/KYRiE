@@ -245,7 +245,7 @@ class OfflineWindow(MainWindow):
                 if not report['session_end_present']:
                     state += ' / 記録終端なし'
                 self.capture_state_label.setText(state)
-                self.capture_diagnostics.setText(json.dumps(report, ensure_ascii=False, indent=2))
+                self.capture_diagnostics.setPlainText(json.dumps(report, ensure_ascii=False, indent=2))
                 self.mode_summary.setText(f'保存ログ: {len(report["sources"])}件 / 各ログの出典は診断で確認'
                                           if self.multiple else f'保存ログ: {self.source_path}')
                 self.save_project_action.setEnabled(True)
