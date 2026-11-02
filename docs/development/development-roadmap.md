@@ -526,13 +526,15 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-02時点。#45–#66 相当（プロジェクトログ編集、display_only 個別配線、
-状態アイコン日本語タイトル792件、barter／openreform／callshop 等）は完了またはPR反映済み。
+2026-11-02時点。#45–#66・#71・#72・#73 相当は完了または main 反映済み
+（display_only 配線、採取メモ、MapTypeProperty／ZC_MAPPROPERTY 手動確認メモ含む）。
 文字input（01D4／01D5）の正常→未応答→正常と実機 0x0B56／通常shop、および 02C1 MOB 実例は
 20261102-171318-9aba07f0／20261102-173136-edcd6b68で確認（[採取リスト](../capture/raw-packet-collection-checklist.md)）。
+map_property のカタログ外 type／099B flags は解析ログの `manual_review` で人手確認可能
+（[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
 残作業（採取必須のものは採取後）:
 
-1. **採取ブロック**: 0x0B79／exchange 実機ログでのレイアウト再確認（合成契約は済み。未採取のままレイアウトを広げない）
+1. **採取ブロック**: 0x0B79／exchange 実機ログでのレイアウト再確認（#70。合成契約は済み。未採取のままレイアウトを広げない）
 2. **辞書（読取専用 `.reference`）**: stateicon 画像名など、確認済み出典だけの表示補助。視覚エフェクト日本語は出典確認まで空のまま。
    原資料の Git 持ち出し禁止（[クライアント資料計画](client-data-utilization-plan.md)）
 3. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
