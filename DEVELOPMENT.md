@@ -2351,3 +2351,10 @@ Presentations DeferredJsonView keys track presentation/quest/progress/script_com
 collection growth instead of DialogueStore.revision, so mes/menu-only updates skip rematerialize.
 Added tools.profile_memory_eviction for synthetic DB-confirmed eviction counts.
 Selected: dialogue + gui-restoration (presentation deferred tests). Not full discover.
+
+### 2026-11-02: O2 merge worker and eviction limit evidence (#85)
+
+Keep MEMORY_EVENT_LIMIT=50000. Synthetic eviction profile (confirm_db):
+limit50/packets80 retain50 origin30; limit500/600 retain500; limit2000/2100 retain2000;
+DB-failed path never evicts. Dialogue merge for >=64 sessions runs in MergeWorker;
+stale key results are discarded; save_merged forces sync. Selected gui-restoration+dialogue.

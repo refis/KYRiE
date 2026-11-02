@@ -18,7 +18,11 @@ from gui.timing_comparison import TimingComparisonPanel
 from gui.event_trials import EventTrialPanel
 from gui.external_presentations import ExternalPresentationPanel
 from gui.deferred_json import DeferredJsonView
+from gui.merge_worker import MergeWorker
 from storage.observation_export import save_observations, save_observation_text
+
+# Above this many conversations, build_merged runs in MergeWorker (stale keys discarded).
+MERGE_ASYNC_THRESHOLD = 64
 
 INTERVAL_LABELS = {'anchor': '基準', 'input_wait': '入力応答まで', 'during_input_wait': '入力待ち中',
                    'observation_only': '同一接続の変化・起因未確定',
@@ -117,6 +121,9 @@ class DialoguePanel(QWidget):
         layout.addLayout(merge_actions)
         self._merge_key = None
         self._merge_report = None
+        self._merge_worker = None
+        self._merge_pending_key = None
+        self.merge_async_threshold = MERGE_ASYNC_THRESHOLD
         split = QSplitter(Qt.Vertical)
         self.splitter = split
         split.setChildrenCollapsible(False)
@@ -195,6 +202,10 @@ class DialoguePanel(QWidget):
     def refresh(self):
         if self._refreshed_store is self.store and self.revision == self.store.revision:
             return
+        if self._refreshed_store is not self.store:
+            self._cancel_merge_worker()
+            self._merge_key = None
+            self._merge_report = None
         selected = self.selection.currentIndex()
         self.selection.blockSignals(True)
         self.selection.clear()
@@ -213,10 +224,14 @@ class DialoguePanel(QWidget):
     def refresh_review(self):
         # Queue generation needs references only, not another deep copy of all
         # dialogue/resource evidence on each live refresh.
+        report = self.merged_report()
+        if report is None:
+            self.review_table.setRowCount(0)
+            return
         conversations = (dict(capture_session=item.capture_session, id=item.id, actor_id=item.actor_id,
                               npc=item.npc, status=item.status, observed_open=item.observed_open,
                               steps=item.steps) for item in self.store.sessions)
-        rows = build_review_queue(conversations, self.merged_report())
+        rows = build_review_queue(conversations, report)
         labels = {'open_unobserved': '開始操作未観測', 'conversation_incomplete': '取消し・中断・未完了',
                   'npc_identity_incomplete': 'NPC識別情報不足', 'observation_quality': '観測品質の要確認',
                   'reply_or_layout_conflict': '応答・構造の不一致', 'step_capacity': 'ステップ上限',
@@ -387,16 +402,22 @@ class DialoguePanel(QWidget):
                 insufficient = sum(row['status'] == 'insufficient_observations' for row in check['comparisons'])
                 warning = f'演出照合: 反復一致 {consistent}経路 / 比較不足 {insufficient}経路（原因未確定）'
             if self.merge_checkbox.isChecked():
+                report = self.merged_report()
+                if report is None:
+                    self.merge_status.setText('統合計算中…（完了後に表示を更新します）')
+                    self.evidence.set_document(evidence_key, evidence_document)
+                    self.code.setPlainText('統合計算中…')
+                    return
                 code = renderer.render_merged(group)
                 self.merge_status.setText(f'{len(group["contributions"])}会話 / 不一致{len(group["conflicts"])}箇所（時間経過は選択会話）'
                                           if group else 'NPC識別・取得品質・会話の完了状態を確認してください')
                 if group is None:
                     key = observation_key(self.store.source_refs.get(item.capture_session, ''), item)
-                    excluded = next((row for row in self.merged_report()['excluded']
+                    excluded = next((row for row in report['excluded']
                         if (row['source_ref'], row['capture_session'], row['conversation_id']) == key), None)
                     if excluded and excluded['reason'] in ('node_capacity', 'semantic_capacity', 'step_capacity'):
                         self.merge_status.setText('統合データの保持上限に到達。根拠JSONを確認してください')
-                excluded_rows=self.merged_report()['excluded']
+                excluded_rows=report['excluded']
                 evidence_document=lambda:dict(conversation=asdict(item),timeline=timing,merged_group=group,
                                               excluded=excluded_rows,touch_trial_comparison=touch_trials)
             else:
@@ -413,22 +434,82 @@ class DialoguePanel(QWidget):
         self.evidence.set_document(evidence_key,evidence_document)
         self.code.setPlainText(code)
 
-    def merged_report(self):
-        key = (self.store,self.store.revision, tuple(sorted(self.store.source_refs.items())))
-        if key != self._merge_key:
-            self._merge_report = build_merged(
-                ((self.store.source_refs.get(item.capture_session, ''), item)
-                 for item in self.store.sessions),
-                touch_inferences=list(self.store.touch_warp_inferences))
-            self._merge_key = key
+    def _merge_cache_key(self):
+        return (self.store, self.store.revision, tuple(sorted(self.store.source_refs.items())))
+
+    def _merge_inputs(self):
+        return [(self.store.source_refs.get(item.capture_session, ''), item)
+                for item in self.store.sessions]
+
+    def _apply_merge_report(self, key, report):
+        self._merge_key = key
+        self._merge_report = report
+        self._merge_pending_key = None
+
+    def _cancel_merge_worker(self):
+        worker = self._merge_worker
+        self._merge_worker = None
+        self._merge_pending_key = None
+        if worker is None:
+            return
+        worker.completed.disconnect(self._merge_worker_finished)
+        worker.failed.disconnect(self._merge_worker_failed)
+        worker.requestInterruption()
+        worker.wait(1000)
+
+    def _merge_worker_finished(self, key, report):
+        worker = self.sender()
+        if worker is not None and worker is self._merge_worker:
+            self._merge_worker = None
+        if key != self._merge_pending_key or key != self._merge_cache_key():
+            # A newer store revision or selection cycle superseded this result.
+            return
+        self._apply_merge_report(key, report)
+        if '統合計算中' in (self.merge_status.text() or ''):
+            self.merge_status.clear()
+        self.refresh_selected()
+        self.refresh_review()
+
+    def _merge_worker_failed(self, key, message):
+        worker = self.sender()
+        if worker is not None and worker is self._merge_worker:
+            self._merge_worker = None
+        if key != self._merge_pending_key:
+            return
+        self._merge_pending_key = None
+        self.merge_status.setText(f'統合計算を完了できません: {message}')
+
+    def _start_merge_worker(self, key):
+        if self._merge_pending_key == key and self._merge_worker is not None:
+            return
+        self._cancel_merge_worker()
+        self._merge_pending_key = key
+        worker = MergeWorker(key, self._merge_inputs(), self.store.touch_warp_inferences, self)
+        self._merge_worker = worker
+        worker.completed.connect(self._merge_worker_finished)
+        worker.failed.connect(self._merge_worker_failed)
+        self.merge_status.setText('統合計算中…（完了後に表示を更新します）')
+        worker.start()
+
+    def merged_report(self, *, force_sync=False):
+        key = self._merge_cache_key()
+        if key == self._merge_key and self._merge_report is not None:
+            return self._merge_report
+        if force_sync or len(self.store.sessions) < self.merge_async_threshold:
+            self._cancel_merge_worker()
+            self._apply_merge_report(key, build_merged(
+                self._merge_inputs(), touch_inferences=list(self.store.touch_warp_inferences)))
+            return self._merge_report
+        self._start_merge_worker(key)
         return self._merge_report
 
     def selected_group(self):
         item = self.selected()
-        if item is None:
+        report = self.merged_report()
+        if item is None or report is None:
             return None
         key = observation_key(self.store.source_refs.get(item.capture_session, ''), item)
-        return next((group for group in self.merged_report()['groups'] if any(
+        return next((group for group in report['groups'] if any(
             (reference['source_ref'], reference['capture_session'], reference['conversation_id']) == key
             for reference in group['contributions'])), None)
 
@@ -441,7 +522,7 @@ class DialoguePanel(QWidget):
 
     def save_merged(self):
         try:
-            report = deepcopy(self.merged_report())
+            report = deepcopy(self.merged_report(force_sync=True))
             renderer = self.renderer()
             result = dict(report, **renderer.render_groups(report['groups']),
                           source_sessions={str(key): value for key, value in self.store.source_refs.items()})
