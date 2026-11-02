@@ -82,11 +82,12 @@ skillinfozはスキル名を得られるが、設置ユニットのunit_idとの
 
 ### C. 状態・演出・外見の辞書（次優先）
 
-- stateicon/efstids.lua、stateiconinfo.lua、stateiconimginfo.lua: 状態アイコンID・シンボル・説明・画像名。
+- stateicon/efstids.lua、stateiconinfo.lua: 状態アイコンID・シンボル・説明。
   観測値の説明を補い、既存config/auriga/status_ids.jsonの変換根拠と照合する。
   EFSTとAuriga SCは別ID体系で、EFST番号をそのままsc_start/sc_endへ渡さない。
   日本語説明は `reference_names.descriptions` へ分離して取り込み可能（#24）。
-  提供 stateiconinfo の `descript` 先頭タイトル792件を取り込み済み。画像名対応は別作業。
+  提供 stateiconinfo の `descript` 先頭タイトル792件を取り込み済み。
+  stateiconimginfo.lua の画像名は辞書化しない（表示補助の対象外）。
 - skilleffectinfo/effectid.lua、skilleffectinfolist.lua、actorstate.lua: エフェクトID・音・モーションの参照。
   スキルと演出の候補関係を表示できるが、一つの演出から使用スキルや発生元を確定しない。
 - datainfo/jobidentity.lua、npcidentity.lua、jobname.lua、pcjobname.lua: 職業／NPC／MOBのclassシンボル・リソース名。

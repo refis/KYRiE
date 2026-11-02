@@ -419,6 +419,7 @@ P0のログ再生・品質連携の後、P1-A/Bと独立して進める。
 - スキル／状態／エフェクトの辞書を版・出典付きで外部化し、名称変更で集計を変えない。
   状態／視覚効果の日本語説明レイヤ（`descriptions`／`description_sources`）は #24 / PR #27 で追加済み。
   提供 stateiconinfo の `descript` 先頭タイトルから状態アイコン日本語792件を取り込み済み。
+  stateiconimginfo の画像名は辞書化しない。
 - 完了条件: 複数個体・死亡／視界離脱・再接続を混ぜず、個体内間隔から集計できること。
   不明値を含む未完成行が、確認なしに稼働用DBとして出力されないこと。
   amount／delay1／delay2を観測ピーク・間隔から埋めないこと。
@@ -526,16 +527,20 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-02時点。#45–#66 相当（プロジェクトログ編集、display_only 個別配線、
-状態アイコン日本語タイトル792件、barter／openreform／callshop 等）は完了またはPR反映済み。
+2026-11-02時点。#45–#66・#71・#72・#73 相当は完了または main 反映済み
+（display_only 配線、採取メモ、MapTypeProperty／ZC_MAPPROPERTY 手動確認メモ含む）。
 文字input（01D4／01D5）の正常→未応答→正常と実機 0x0B56／通常shop、および 02C1 MOB 実例は
 20261102-171318-9aba07f0／20261102-173136-edcd6b68で確認（[採取リスト](../capture/raw-packet-collection-checklist.md)）。
+map_property のカタログ外 type／099B flags は解析ログの `manual_review` で人手確認可能
+（[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
 残作業（採取必須のものは採取後）:
 
-1. **採取ブロック**: 0x0B79／exchange 実機ログでのレイアウト再確認（合成契約は済み。未採取のままレイアウトを広げない）
-2. **辞書（読取専用 `.reference`）**: stateicon 画像名など、確認済み出典だけの表示補助。視覚エフェクト日本語は出典確認まで空のまま。
-   原資料の Git 持ち出し禁止（[クライアント資料計画](client-data-utilization-plan.md)）
-3. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
+1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
+2. 視覚エフェクト日本語は確認済み出典が揃うまで空のまま（[クライアント資料計画](client-data-utilization-plan.md)）。
+   stateiconimginfo の画像名は辞書化しない。原資料の Git 持ち出し禁止。
+
+0x0B79／exchange の実機取得検証は、現段階で該当パケット利用 NPC がいないと判断し **保留**（#70）。
+合成契約は維持し、未採取のままレイアウトを広げない。該当 NPC 確認後に再開する。
 
 display_only の個別配線（0A24／02C1／0AB9・0B13／01D6・099B／08FF・0984／029B）は
 観測保持・命令非生成まで完了（[未対応通知](../npc/unsupported-notifications.md)）。
@@ -660,8 +665,9 @@ JSON/TXTのSHA-256は従来の生成・保存と一致した。会話・通常sh
 
 MAP・クエスト・ナビゲーションの名称／参考資料検索を完了。詳細は[保存記録](../releases/v0.0.5.md)。
 資料と実観測は分離し、ナビID・MOB複合値や説明からサーバー側処理を推定しない。
-次は未登録効果の根拠付き辞書拡充（手元 `.reference`／`client` を読取専用利用可・原資料はリポジトリ外）、
-実パケット採取リストの未検証経路（0x0B79／exchange 等）を優先する。
+次は実パケット採取リストの未検証経路を、該当場面が確認できたものから優先する（0x0B79／exchange は当面保留）。
+stateiconimginfo の画像名辞書化は行わない。視覚エフェクト日本語は出典確認まで空のまま。
+手元 `.reference`／`client` は読取専用利用可・原資料はリポジトリ外。
 0B38 は PacketLength 未登録のため構造追認の優先対象にしない。
 経路探索・クエスト説明全文表示は任意の後続機能。実機・Auriga・新規環境確認の保留は維持する。
 
@@ -687,7 +693,7 @@ MAP・クエスト・ナビゲーションの名称／参考資料検索を完�
 
 20261102-171318-9aba07f0で文字inputの正常→未応答（約180秒）→正常、通常shop（00C6×2）、
 0x0B0E×2、実機 0x0B56×3 を確認。20261102-173136-edcd6b68で 02C1 MOB colored_speech×1
-（会話外・unittalk非生成）を確認。0x0B79／exchange は未採取のまま次の最小1本。
+（会話外・unittalk非生成）を確認。0x0B79／exchange は未採取のまま（2026-11-02 時点で取得検証保留）。
 ハッシュと採取メモは[採取リスト](../capture/raw-packet-collection-checklist.md)の 2026-11-02 節。ログ本体はリポジトリ外。
 
 
