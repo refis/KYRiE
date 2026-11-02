@@ -142,6 +142,10 @@ notnavigate_maptable、mapinfotable.scp、etcinfo、mapskydata、mapeffectinfo�
 特にeffecttool（lua files側だけで1,378 Lua）はクライアント側MAP演出の参考であり、
 時刻や座標からNPC OnTimer、サーバーイベント条件、スクリプト命令を補完しない。
 
+`MapTypeProperty.txt`（クライアント直下・利用者提供）は MAPTYPE 番号ごとの ADD_PROPERTY テンプレート。
+map 名バインドは持たない。01D6／099B の観測 type と照合して mapflag **コメント候補**だけを出せる
+（[検討メモ](../npc/maptype-property-mapflags.md)）。カタログ外 type や flags ビットは発明しない。
+
 msgstringtable/msgstring_jpはシステム文言、guildtipはヘルプ、ba_frostjoke/dc_screamは発言素材、
 mannerは発言制限資料であり、NPC会話本文へ流用しない。
 UI文言の照合・通知種別の区別に必要なものだけ後で取り込む。

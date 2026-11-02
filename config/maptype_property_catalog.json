@@ -1,0 +1,3008 @@
+{
+  "version": 1,
+  "kind": "maptype_property_catalog",
+  "sources": [
+    {
+      "path": "/workspace/logs/maptype-property-review/MapTypeProperty.txt",
+      "sha256": "c39dd78832bbff0ba0a014eaabd79c7f5c7dc614666bd18097d4bf662554258f"
+    }
+  ],
+  "type_count": 28,
+  "types": {
+    "0": {
+      "id": 0,
+      "label": "Town",
+      "properties": {
+        "TELEPORT": true,
+        "NOTREMEMBER": true,
+        "PARTY": false,
+        "GUILD": false
+      },
+      "property_values": {},
+      "block_skills": [
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "SC_MANHOLE,PLAYER",
+        "GN_WALLOFTHORN,PLAYER",
+        "WM_POEMOFNETHERWORLD,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER",
+        "AM_CANNIBALIZE,PLAYER",
+        "AM_SPHEREMINE,PLAYER",
+        "CR_CULTIVATION,PLAYER"
+      ],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Greed_Scroll",
+        "Bloody_Dead_Branch",
+        "Mystic_Tree_Branch",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        }
+      ]
+    },
+    "1": {
+      "id": 1,
+      "label": "Indoor",
+      "properties": {
+        "PK": false,
+        "TELEPORT": false,
+        "NOTREMEMBER": false,
+        "ITEMDROP": false,
+        "EXP": false,
+        "DISCONNECT_NOTREMEMBER": false,
+        "CALLMONSTER": false,
+        "PARTY": false,
+        "GUILD": false,
+        "SIEGE": false,
+        "PKSERVER": false,
+        "PVPSERVER": false,
+        "DENYSKILL": false,
+        "TURBOTRACK": false,
+        "DENY_BUTTERFLY": false
+      },
+      "property_values": {},
+      "block_skills": [
+        "SC_FATALMENACE,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": true
+        }
+      ]
+    },
+    "2": {
+      "id": 2,
+      "label": "Field",
+      "properties": {
+        "TELEPORT": true,
+        "NOTREMEMBER": true,
+        "EXP": true,
+        "CALLMONSTER": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": []
+    },
+    "3": {
+      "id": 3,
+      "label": "Dungeon",
+      "properties": {
+        "TELEPORT": true,
+        "EXP": true,
+        "CALLMONSTER": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        }
+      ]
+    },
+    "4": {
+      "id": 4,
+      "label": "Quest",
+      "properties": {
+        "DISCONNECT_NOTREMEMBER": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Azoth",
+        "Marin_Card",
+        "Mimic_Card",
+        "COMBIITEM_Swordman",
+        "Mystcase_Card",
+        "COMBIITEM_Merchant",
+        "Sageworm_Card",
+        "Galapago_Cap",
+        "Lady_Tanee_Card",
+        "Plasma_Card",
+        "COMBIITEM_Sage",
+        "Event_Pierrot_Nose",
+        "Santa's_Hat_",
+        "Event_Cake",
+        "Orc_Archer_Bow",
+        "Snowier_Card",
+        "Toast_C",
+        "Santa_Hat_1",
+        "Red_Square_Bag",
+        "Weird_Pumpkin_Hat",
+        "Spare_Card",
+        "Snowman_Hat",
+        "Radar_Ring1",
+        "Radar_Ring2",
+        "Radar_Ring3",
+        "Magical_Stone",
+        "Magical_Stone_",
+        "Mama's_Knife",
+        "Cleaver",
+        "Sasimi",
+        "Leib_Olmai_Card",
+        "Giant_Honet_Card",
+        "Galapago_Card",
+        "Rice_Cake_Boy_Card",
+        "Spring_Rabbit_Card",
+        "Wild_Ginseng_Card",
+        "Leaf_Cat_Card",
+        "See_Otter_Card",
+        "COMBIITEM_Kawibawibo",
+        "Dryad_Card",
+        "Raydric_Archer_Card",
+        "Stem_Worm_Card",
+        "Sleeper_Card",
+        "Evil_Cloud_Hermit_Card",
+        "Orc_Archer_Card",
+        "Wraith_Card",
+        "Li_Me_Mang_Ryang_Card",
+        "Gargoyle_Card",
+        "Dragon_Wing",
+        "Anopheles_Card",
+        "Armaia_Card",
+        "Gremlin_Card",
+        "Green_Iguana_Card",
+        "Dragon_Egg_Card",
+        "Retribution_Card",
+        "Hunting_Spear",
+        "Knocker_Card",
+        "Lunakaligo",
+        "Bogy_Horn",
+        "Zeny_Knife",
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "5": {
+      "id": 5,
+      "label": "PVP with penalty",
+      "properties": {
+        "PK": true,
+        "TELEPORT": true,
+        "ITEMDROP": true,
+        "EXP": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "CALLMONSTER": true,
+        "PARTY": true,
+        "COUNT_PK": true
+      },
+      "property_values": {
+        "GOTOTOWN": "2"
+      },
+      "block_skills": [],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz"
+      ],
+      "block_equip": [],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        }
+      ]
+    },
+    "6": {
+      "id": 6,
+      "label": "PVP without penalty",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "CALLMONSTER": true,
+        "PARTY": true,
+        "COUNT_PK": true
+      },
+      "property_values": {
+        "GOTOTOWN": "2"
+      },
+      "block_skills": [
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz"
+      ],
+      "block_equip": [],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "7": {
+      "id": 7,
+      "label": "For guild war events",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "GUILD": true,
+        "SIEGE": true,
+        "HIDING_DAMAGE": true,
+        "USE_SIMPLE_EFFECT": true,
+        "LONG_INSUPERABLE_TIME": true,
+        "DISABLE_LOCKON": true,
+        "DISABLE_KNOCKBACK": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "80",
+        "ALL_SKILL_DAMAGE": "60",
+        "GOTOTOWN": "1"
+      },
+      "block_skills": [
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_ASSUMPTIO,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "GC_DARKILLUSION,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Anodyne",
+        "Assumptio_5_Scroll",
+        "Pty_Assumptio_Scroll",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Phen_Card",
+        "Orleans_Gown",
+        "Blood_Butterfly_Card"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [
+        "ADJUST_TRAP_DURATION (HT_LANDMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_BLASTMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SANDMAN, 400)",
+        "ADJUST_TRAP_DURATION (HT_SHOCKWAVE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SKIDTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_ANKLESNARE, 400)",
+        "ADJUST_TRAP_DURATION (HT_CLAYMORETRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_TALKIEBOX, 400)",
+        "ADJUST_TRAP_DURATION (HT_FREEZINGTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_FLASHER, 400)"
+      ],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "SIEGE",
+          "property_value": true,
+          "flag": "gvg",
+          "args": null,
+          "confidence": "low",
+          "note": "Siege-like client mode; gvg_castle/gvg_te/agit DB may apply — review only",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        },
+        {
+          "property": "USE_SIMPLE_EFFECT",
+          "property_value": true,
+          "flag": "forcemineffect",
+          "args": null,
+          "confidence": "medium",
+          "note": "Simplified skill effects",
+          "property_explicit": true
+        }
+      ]
+    },
+    "8": {
+      "id": 8,
+      "label": "Guild castle (must also be set in the Agit DB)",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "GUILD": true,
+        "SIEGE": true,
+        "HIDING_DAMAGE": true,
+        "USE_SIMPLE_EFFECT": true,
+        "LONG_INSUPERABLE_TIME": true,
+        "DISABLE_LOCKON": true,
+        "DISABLE_KNOCKBACK": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "80",
+        "ALL_SKILL_DAMAGE": "60",
+        "GOTOTOWN": "1",
+        "SIEGETIME_VERSION": "1"
+      },
+      "block_skills": [
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_ASSUMPTIO,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "GN_WALLOFTHORN,PLAYER",
+        "GC_DARKILLUSION,PLAYER",
+        "GN_THORNS_TRAP,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Anodyne",
+        "Assumptio_5_Scroll",
+        "Pty_Assumptio_Scroll",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Phen_Card",
+        "Orleans_Gown",
+        "Blood_Butterfly_Card"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [
+        "ADJUST_TRAP_DURATION (HT_LANDMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_BLASTMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SANDMAN, 400)",
+        "ADJUST_TRAP_DURATION (HT_SHOCKWAVE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SKIDTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_ANKLESNARE, 400)",
+        "ADJUST_TRAP_DURATION (HT_CLAYMORETRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_TALKIEBOX, 400)",
+        "ADJUST_TRAP_DURATION (HT_FREEZINGTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_FLASHER, 400)"
+      ],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "SIEGE",
+          "property_value": true,
+          "flag": "gvg",
+          "args": null,
+          "confidence": "low",
+          "note": "Siege-like client mode; gvg_castle/gvg_te/agit DB may apply — review only",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        },
+        {
+          "property": "USE_SIMPLE_EFFECT",
+          "property_value": true,
+          "flag": "forcemineffect",
+          "args": null,
+          "confidence": "medium",
+          "note": "Simplified skill effects",
+          "property_explicit": true
+        }
+      ]
+    },
+    "9": {
+      "id": 9,
+      "label": "Guild dungeon - PK allowed (except own guild)",
+      "properties": {
+        "PK": true,
+        "TELEPORT": true,
+        "EXP": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "CALLMONSTER": true,
+        "GUILD": true
+      },
+      "property_values": {},
+      "block_skills": [],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz"
+      ],
+      "block_equip": [],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        }
+      ]
+    },
+    "10": {
+      "id": 10,
+      "label": "Dungeon - no teleport",
+      "properties": {
+        "EXP": true,
+        "CALLMONSTER": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "11": {
+      "id": 11,
+      "label": "For PK server (Korean server)",
+      "properties": {
+        "PK": true,
+        "TELEPORT": true,
+        "NOTREMEMBER": true,
+        "EXP": true,
+        "CALLMONSTER": true
+      },
+      "property_values": {},
+      "block_skills": [],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz"
+      ],
+      "block_equip": [],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        }
+      ]
+    },
+    "12": {
+      "id": 12,
+      "label": "Turbo Track",
+      "properties": {
+        "DISCONNECT_NOTREMEMBER": true,
+        "DISABLE_KNOCKBACK": true
+      },
+      "property_values": {
+        "GOTOTOWN": "1",
+        "RANGE_DAMAGE": "80",
+        "ALL_SKILL_DAMAGE": "60"
+      },
+      "block_skills": [
+        "SM_ENDURE,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "AL_WARP,PLAYER",
+        "TF_HIDING,PLAYER",
+        "AS_CLOAKING,PLAYER",
+        "ST_CHASEWALK,PLAYER",
+        "MO_BODYRELOCATION,PLAYER",
+        "LK_CONCENTRATION,PLAYER",
+        "LK_BERSERK,PLAYER",
+        "AL_CURE,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "AL_INCAGI,PLAYER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WS_CARTBOOST,PLAYER",
+        "GN_CARTBOOST,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "Speed_Up_Potion",
+        "Box_Of_Thunder",
+        "Guyak_Pudding",
+        "Inspector_Certificate",
+        "Anodyne",
+        "Green_Potion",
+        "Panacea",
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "13": {
+      "id": 13,
+      "label": "No skills (Korean planning team quiz events etc.)",
+      "properties": {
+        "DISCONNECT_NOTREMEMBER": true,
+        "DENYSKILL": true,
+        "DENY_BUTTERFLY": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "AL_WARP,PLAYER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "Wing_Of_Butterfly",
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DENYSKILL",
+          "property_value": true,
+          "flag": "noskill",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client denies active skills",
+          "property_explicit": true
+        },
+        {
+          "property": "DENY_BUTTERFLY",
+          "property_value": true,
+          "flag": "noreturn",
+          "args": null,
+          "confidence": "low",
+          "note": "Butterfly Wing family; noreturn is only a partial analogue",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "14": {
+      "id": 14,
+      "label": "Turbo Track (PK)",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "DISABLE_KNOCKBACK": true
+      },
+      "property_values": {
+        "GOTOTOWN": "1",
+        "RANGE_DAMAGE": "80",
+        "ALL_SKILL_DAMAGE": "60"
+      },
+      "block_skills": [
+        "SM_ENDURE,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "AL_WARP,PLAYER",
+        "TF_HIDING,PLAYER",
+        "AS_CLOAKING,PLAYER",
+        "ST_CHASEWALK,PLAYER",
+        "MO_BODYRELOCATION,PLAYER",
+        "LK_CONCENTRATION,PLAYER",
+        "LK_BERSERK,PLAYER",
+        "AL_CURE,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "WS_CARTBOOST,PLAYER",
+        "GN_CARTBOOST,PLAYER"
+      ],
+      "block_items": [
+        "Anodyne",
+        "Green_Potion",
+        "Panacea",
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "15": {
+      "id": 15,
+      "label": "Prison",
+      "properties": {
+        "DENY_BUTTERFLY": true,
+        "PREVENT_PARTY_MAKE": true,
+        "PREVENT_PARTY_JOIN": true,
+        "PREVENT_PARTY_LEAVE": true,
+        "PREVENT_PARTY_EXPEL": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "AL_WARP,PLAYER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "Wing_Of_Butterfly",
+        "N_Fly_Wing",
+        "Kafra_Card",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DENY_BUTTERFLY",
+          "property_value": true,
+          "flag": "noreturn",
+          "args": null,
+          "confidence": "low",
+          "note": "Butterfly Wing family; noreturn is only a partial analogue",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "16": {
+      "id": 16,
+      "label": "Boss",
+      "properties": {
+        "TELEPORT": true,
+        "EXP": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "CALLMONSTER": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        }
+      ]
+    },
+    "17": {
+      "id": 17,
+      "label": "For Monster Race track",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "DISABLE_KNOCKBACK": true,
+        "PARTY": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "80",
+        "ALL_SKILL_DAMAGE": "60",
+        "NAMED_BOOTY": "7773"
+      },
+      "block_skills": [
+        "SM_ENDURE,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "AL_WARP,PLAYER",
+        "TF_HIDING,PLAYER",
+        "AS_CLOAKING,PLAYER",
+        "ST_CHASEWALK,PLAYER",
+        "MO_BODYRELOCATION,PLAYER",
+        "LK_CONCENTRATION,PLAYER",
+        "LK_BERSERK,PLAYER",
+        "AL_CURE,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER"
+      ],
+      "block_items": [
+        "Anodyne",
+        "Green_Potion",
+        "Panacea",
+        "Wing_Of_Butterfly",
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "18": {
+      "id": 18,
+      "label": "WoE 1.5 (same as guild castle.)",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "GUILD": true,
+        "SIEGE": true,
+        "HIDING_DAMAGE": true,
+        "USE_SIMPLE_EFFECT": true,
+        "LONG_INSUPERABLE_TIME": true,
+        "DISABLE_LOCKON": true,
+        "DISABLE_KNOCKBACK": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "80",
+        "ALL_SKILL_DAMAGE": "60",
+        "GOTOTOWN": "1"
+      },
+      "block_skills": [
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_ASSUMPTIO,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "GN_WALLOFTHORN,PLAYER",
+        "TK_HIGHJUMP,PLAYER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "GC_DARKILLUSION,PLAYER"
+      ],
+      "block_items": [
+        "Anodyne",
+        "Assumptio_5_Scroll",
+        "Pty_Assumptio_Scroll",
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Phen_Card",
+        "Orleans_Gown",
+        "Blood_Butterfly_Card"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [
+        "ADJUST_TRAP_DURATION (HT_LANDMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_BLASTMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SANDMAN, 400)",
+        "ADJUST_TRAP_DURATION (HT_SHOCKWAVE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SKIDTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_ANKLESNARE, 400)",
+        "ADJUST_TRAP_DURATION (HT_CLAYMORETRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_TALKIEBOX, 400)",
+        "ADJUST_TRAP_DURATION (HT_FREEZINGTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_FLASHER, 400)"
+      ],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "SIEGE",
+          "property_value": true,
+          "flag": "gvg",
+          "args": null,
+          "confidence": "low",
+          "note": "Siege-like client mode; gvg_castle/gvg_te/agit DB may apply — review only",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        },
+        {
+          "property": "USE_SIMPLE_EFFECT",
+          "property_value": true,
+          "flag": "forcemineffect",
+          "args": null,
+          "confidence": "medium",
+          "note": "Simplified skill effects",
+          "property_explicit": true
+        }
+      ]
+    },
+    "19": {
+      "id": 19,
+      "label": "Battleground (almost the same as guild castle)",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "SIEGE": true,
+        "DISABLE_LOCKON": true,
+        "DISABLE_KNOCKBACK": true,
+        "BATTLEFIELD": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "75",
+        "ALL_SKILL_DAMAGE": "70"
+      },
+      "block_skills": [
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_ASSUMPTIO,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "MO_BODYRELOCATION,PLAYER",
+        "SG_FEEL,PLAYER",
+        "TK_RUN,PLAYER",
+        "TK_HIGHJUMP,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Anodyne",
+        "Assumptio_5_Scroll",
+        "Pty_Assumptio_Scroll",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Phen_Card",
+        "Orleans_Gown",
+        "Blood_Butterfly_Card"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [
+        "ADJUST_TRAP_DURATION (HT_LANDMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_BLASTMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SANDMAN, 400)",
+        "ADJUST_TRAP_DURATION (HT_SHOCKWAVE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SKIDTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_ANKLESNARE, 400)",
+        "ADJUST_TRAP_DURATION (HT_CLAYMORETRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_TALKIEBOX, 400)",
+        "ADJUST_TRAP_DURATION (HT_FREEZINGTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_FLASHER, 400)"
+      ],
+      "mapflag_candidates": [
+        {
+          "property": "BATTLEFIELD",
+          "property_value": true,
+          "flag": "battleground",
+          "args": null,
+          "confidence": "medium",
+          "note": "Battleground client mode; scoreboard arg not inferred",
+          "property_explicit": true
+        },
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "SIEGE",
+          "property_value": true,
+          "flag": "gvg",
+          "args": null,
+          "confidence": "low",
+          "note": "Siege-like client mode; gvg_castle/gvg_te/agit DB may apply — review only",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "20": {
+      "id": 20,
+      "label": "Memorial dungeon: Endless Tower",
+      "properties": {
+        "EXP": true,
+        "DISCONNECT_NOTREMEMBER": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "AL_TELEPORT,PLAYER | MONSTER | HOMUN | MERCENARY",
+        "WZ_ICEWALL,PLAYER",
+        "PF_SPIDERWEB,PLAYER",
+        "RG_INTIMIDATE,PLAYER | MONSTER",
+        "NPC_EXPULSION,MONSTER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER",
+        "SC_MANHOLE,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "21": {
+      "id": 21,
+      "label": "Memorial dungeon: Sealed Shrine",
+      "properties": {
+        "EXP": true,
+        "DISCONNECT_NOTREMEMBER": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "AL_TELEPORT,PLAYER | MONSTER | HOMUN | MERCENARY",
+        "HP_ASSUMPTIO,PLAYER",
+        "MG_SAFETYWALL,PLAYER",
+        "SC_FATALMENACE,PLAYER",
+        "SC_DIMENSIONDOOR,PLAYER",
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "22": {
+      "id": 22,
+      "label": "French-style PVP",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "NO_PARTY_FORMATION": true,
+        "COUNT_PK": true,
+        "HIDING_DAMAGE": true,
+        "USE_SIMPLE_EFFECT": true,
+        "LONG_INSUPERABLE_TIME": true,
+        "DISABLE_LOCKON": true,
+        "DISABLE_KNOCKBACK": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "60",
+        "ALL_SKILL_DAMAGE": "60",
+        "GOTOTOWN": "1"
+      },
+      "block_skills": [
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "SM_ENDURE,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_ASSUMPTIO,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "LK_BERSERK,PLAYER",
+        "ST_CHASEWALK,PLAYER",
+        "CG_MARIONETTE,PLAYER",
+        "GC_DARKILLUSION,PLAYER"
+      ],
+      "block_items": [
+        "Anodyne",
+        "Pty_Assumptio_Scroll",
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Neuralizer",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Dun_Tele_Scroll1",
+        "Dun_Tele_Scroll2",
+        "Dun_Tele_Scroll3",
+        "Giant_Fly_Wing",
+        "Siege_Teleport_Scroll",
+        "Siege_Teleport_Scroll2",
+        "Branch_Of_Dead_Tree",
+        "Bloody_Dead_Branch",
+        "Mystic_Tree_Branch",
+        "N_Butterfly_Wing",
+        "Kafra_Card",
+        "Malang_Sp_Can",
+        "Insideout_Shirt"
+      ],
+      "block_equip": [
+        "Phen_Card",
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine",
+        "Hylozoist_Card",
+        "Azoth"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        },
+        {
+          "property": "USE_SIMPLE_EFFECT",
+          "property_value": true,
+          "flag": "forcemineffect",
+          "args": null,
+          "confidence": "medium",
+          "note": "Simplified skill effects",
+          "property_explicit": true
+        }
+      ]
+    },
+    "23": {
+      "id": 23,
+      "label": "Other-world town",
+      "properties": {
+        "TELEPORT": true
+      },
+      "property_values": {},
+      "block_skills": [
+        "WM_LULLABY_DEEPSLEEP,PLAYER",
+        "WM_SATURDAY_NIGHT_FEVER,PLAYER",
+        "SO_ARRULLO,PLAYER",
+        "WM_SIRCLEOFNATURE,PLAYER"
+      ],
+      "block_items": [
+        "Runstone_Crush",
+        "Runstone_Storm",
+        "Runstone_Millennium",
+        "Greed_Scroll",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        }
+      ]
+    },
+    "24": {
+      "id": 24,
+      "label": "FACTION",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "EXP": true,
+        "SIEGE": true,
+        "DISABLE_LOCKON": true,
+        "BATTLEFIELD": true,
+        "TELEPORT": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "75",
+        "ALL_SKILL_DAMAGE": "70"
+      },
+      "block_skills": [
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "MO_BODYRELOCATION,PLAYER",
+        "SG_FEEL,PLAYER",
+        "TK_RUN,PLAYER",
+        "TK_HIGHJUMP,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Anodyne",
+        "Assumptio_5_Scroll",
+        "Pty_Assumptio_Scroll",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz",
+        "Woe_White_Potion",
+        "Woe_Blue_Potion",
+        "Woe_Violet_Potion",
+        "Treasure_Box_Scroll"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [
+        "ADJUST_TRAP_DURATION (HT_LANDMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_BLASTMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SANDMAN, 400)",
+        "ADJUST_TRAP_DURATION (HT_SHOCKWAVE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SKIDTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_ANKLESNARE, 400)",
+        "ADJUST_TRAP_DURATION (HT_CLAYMORETRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_TALKIEBOX, 400)",
+        "ADJUST_TRAP_DURATION (HT_FREEZINGTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_FLASHER, 400)"
+      ],
+      "mapflag_candidates": [
+        {
+          "property": "BATTLEFIELD",
+          "property_value": true,
+          "flag": "battleground",
+          "args": null,
+          "confidence": "medium",
+          "note": "Battleground client mode; scoreboard arg not inferred",
+          "property_explicit": true
+        },
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "SIEGE",
+          "property_value": true,
+          "flag": "gvg",
+          "args": null,
+          "confidence": "low",
+          "note": "Siege-like client mode; gvg_castle/gvg_te/agit DB may apply — review only",
+          "property_explicit": true
+        }
+      ]
+    },
+    "25": {
+      "id": 25,
+      "label": "FACTION",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "SIEGE": true,
+        "DISABLE_LOCKON": true,
+        "BATTLEFIELD": true,
+        "TELEPORT": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "75",
+        "ALL_SKILL_DAMAGE": "70"
+      },
+      "block_skills": [
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "MO_BODYRELOCATION,PLAYER",
+        "SG_FEEL,PLAYER",
+        "TK_RUN,PLAYER",
+        "TK_HIGHJUMP,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Anodyne",
+        "Assumptio_5_Scroll",
+        "Pty_Assumptio_Scroll",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [
+        "ADJUST_TRAP_DURATION (HT_LANDMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_BLASTMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SANDMAN, 400)",
+        "ADJUST_TRAP_DURATION (HT_SHOCKWAVE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SKIDTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_ANKLESNARE, 400)",
+        "ADJUST_TRAP_DURATION (HT_CLAYMORETRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_TALKIEBOX, 400)",
+        "ADJUST_TRAP_DURATION (HT_FREEZINGTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_FLASHER, 400)"
+      ],
+      "mapflag_candidates": [
+        {
+          "property": "BATTLEFIELD",
+          "property_value": true,
+          "flag": "battleground",
+          "args": null,
+          "confidence": "medium",
+          "note": "Battleground client mode; scoreboard arg not inferred",
+          "property_explicit": true
+        },
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "SIEGE",
+          "property_value": true,
+          "flag": "gvg",
+          "args": null,
+          "confidence": "low",
+          "note": "Siege-like client mode; gvg_castle/gvg_te/agit DB may apply — review only",
+          "property_explicit": true
+        }
+      ]
+    },
+    "26": {
+      "id": 26,
+      "label": "FACTION",
+      "properties": {
+        "PK": true,
+        "DISCONNECT_NOTREMEMBER": true,
+        "SIEGE": true,
+        "DISABLE_LOCKON": true,
+        "DISABLE_KNOCKBACK": true,
+        "BATTLEFIELD": true
+      },
+      "property_values": {
+        "RANGE_DAMAGE": "75",
+        "ALL_SKILL_DAMAGE": "70"
+      },
+      "block_skills": [
+        "TF_BACKSLIDING,PLAYER",
+        "AL_WARP,PLAYER",
+        "CG_TAROTCARD,PLAYER",
+        "PF_SPIDERWEB,PLAYER",
+        "WZ_ICEWALL,PLAYER",
+        "WE_CALLPARTNER,PLAYER",
+        "WE_CALLBABY,PLAYER",
+        "WE_CALLPARENT,PLAYER",
+        "HP_ASSUMPTIO,PLAYER",
+        "HP_BASILICA,PLAYER",
+        "CR_CULTIVATION,PLAYER",
+        "CG_MOONLIT,PLAYER",
+        "NJ_KIRIKAGE,PLAYER",
+        "MO_BODYRELOCATION,PLAYER",
+        "SG_FEEL,PLAYER",
+        "TK_RUN,PLAYER",
+        "TK_HIGHJUMP,PLAYER"
+      ],
+      "block_items": [
+        "N_Fly_Wing",
+        "Anodyne",
+        "Assumptio_5_Scroll",
+        "Pty_Assumptio_Scroll",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz"
+      ],
+      "block_equip": [
+        "Phen_Card",
+        "Orleans_Gown",
+        "Blood_Butterfly_Card",
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [
+        "EFST_ENDURE"
+      ],
+      "adjustments": [
+        "ADJUST_TRAP_DURATION (HT_LANDMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_BLASTMINE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SANDMAN, 400)",
+        "ADJUST_TRAP_DURATION (HT_SHOCKWAVE, 400)",
+        "ADJUST_TRAP_DURATION (HT_SKIDTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_ANKLESNARE, 400)",
+        "ADJUST_TRAP_DURATION (HT_CLAYMORETRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_TALKIEBOX, 400)",
+        "ADJUST_TRAP_DURATION (HT_FREEZINGTRAP, 400)",
+        "ADJUST_TRAP_DURATION (HT_FLASHER, 400)"
+      ],
+      "mapflag_candidates": [
+        {
+          "property": "BATTLEFIELD",
+          "property_value": true,
+          "flag": "battleground",
+          "args": null,
+          "confidence": "medium",
+          "note": "Battleground client mode; scoreboard arg not inferred",
+          "property_explicit": true
+        },
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DISABLE_LOCKON",
+          "property_value": true,
+          "flag": "nolockon",
+          "args": null,
+          "confidence": "medium",
+          "note": "Shift-free lock-on disabled",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "PK",
+          "property_value": true,
+          "flag": "pvp",
+          "args": null,
+          "confidence": "medium",
+          "note": "PK allowed; pvp_noparty/pvp_noguild need separate evidence",
+          "property_explicit": true
+        },
+        {
+          "property": "SIEGE",
+          "property_value": true,
+          "flag": "gvg",
+          "args": null,
+          "confidence": "low",
+          "note": "Siege-like client mode; gvg_castle/gvg_te/agit DB may apply — review only",
+          "property_explicit": true
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    },
+    "27": {
+      "id": 27,
+      "label": "FACTION",
+      "properties": {
+        "DENYSKILL": true,
+        "DISCONNECT_NOTREMEMBER": true
+      },
+      "property_values": {},
+      "block_skills": [],
+      "block_items": [
+        "Wing_Of_Fly",
+        "Vending_Search_Scroll",
+        "Vending_Search_Scroll2",
+        "Uni_Catalog_Bz"
+      ],
+      "block_equip": [
+        "Siege_Greave",
+        "Siege_Boots",
+        "Siege_Shoes",
+        "Siege_Manteau",
+        "Siege_Muffler",
+        "Siege_Plate",
+        "Siege_Suits",
+        "Siege_Robe",
+        "Siege_Arrow_S",
+        "Siege_Arrow_A",
+        "Velum_Jamadhar",
+        "Velum_Scare",
+        "Velum_Buster",
+        "Velum_Glaive",
+        "Velum_Arc_Wand",
+        "Velum_Claymore",
+        "Velum_Katzbalger",
+        "Velum_Arbalest",
+        "Velum_CrossBow",
+        "Velum_Bible",
+        "Velum_Encyclopedia",
+        "Velum_Claw",
+        "Velum_Damascus",
+        "Velum_Stunner",
+        "Velum_Flail",
+        "Velum_Spear",
+        "Velum_Guillotine"
+      ],
+      "block_buffs": [],
+      "adjustments": [],
+      "mapflag_candidates": [
+        {
+          "property": "CALLMONSTER",
+          "property_value": false,
+          "flag": "nobranch",
+          "args": null,
+          "confidence": "medium",
+          "note": "Dead Branch family blocked on client for the type",
+          "property_explicit": false
+        },
+        {
+          "property": "DENYSKILL",
+          "property_value": true,
+          "flag": "noskill",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client denies active skills",
+          "property_explicit": true
+        },
+        {
+          "property": "DISCONNECT_NOTREMEMBER",
+          "property_value": true,
+          "flag": "nosave",
+          "args": "SavePoint",
+          "confidence": "medium",
+          "note": "Logout returns to save point; confirm SavePoint vs fixed map",
+          "property_explicit": true
+        },
+        {
+          "property": "NOTREMEMBER",
+          "property_value": false,
+          "flag": "nomemo",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks /memo and related remember behavior",
+          "property_explicit": false
+        },
+        {
+          "property": "TELEPORT",
+          "property_value": false,
+          "flag": "noteleport",
+          "args": null,
+          "confidence": "medium",
+          "note": "Client blocks teleport items/skills for the type; server noteleport is broader",
+          "property_explicit": false
+        }
+      ]
+    }
+  },
+  "parse_issues": [],
+  "map_name_binding": "not_in_file",
+  "generation_policy": "comment_only_with_observed_map_and_type",
+  "property_default": "FALSE when unset",
+  "executable_mapflags": false,
+  "notes": [
+    "MapTypeProperty has no per-map rows; rotool-style map pages or 01D6/099B observations supply map→type",
+    "099B flags bitfield is not decoded here",
+    "Wire kinds outside catalog range must not invent MAPTYPE rows"
+  ]
+}

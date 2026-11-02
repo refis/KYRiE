@@ -105,6 +105,10 @@ map `pay_d03_i.gat`）。presentation_observations に保持し、会話 auriga 
 | 生成 | 出さない。マップ属性の観測であり NPC 本文命令へ変換しない |
 | 対象 | ActorID なし。会話中でも active NPC へ割り当てない |
 
+kind がクライアント `MapTypeProperty.txt` の `MAPTYPE n` に載る場合に限り、
+mapflag **コメント候補**を別ツールで出せる（実行 mapflag の自動採用はしない）。
+map 名→type の表は当該 TXT に無い。詳細は[MapTypeProperty と mapflag](maptype-property-mapflags.md)。
+
 ## 入場時状態（08FF／0984）
 
 | 項目 | 内容 |
