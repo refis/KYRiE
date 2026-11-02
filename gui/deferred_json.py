@@ -12,6 +12,8 @@ class DeferredJsonView(QPlainTextEdit):
         self._key=None
         self._factory=None
         self._dirty=False
+        self.materialize_count=0
+        self.factory_calls=0
 
     def set_document(self,key,factory):
         if self._key==key:return
@@ -27,9 +29,11 @@ class DeferredJsonView(QPlainTextEdit):
         try:
             if self.ensure_current is not None:self.ensure_current()
             if self._dirty:
+                self.factory_calls+=1
                 text=json.dumps(self._factory(),ensure_ascii=False,indent=2)
                 super().setPlainText(text)
                 self._dirty=False
+                self.materialize_count+=1
         finally:
             self._materializing=False
 

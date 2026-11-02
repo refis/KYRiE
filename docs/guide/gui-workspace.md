@@ -115,6 +115,8 @@ NPC/MOB・会話・タイマー等の根拠移動では、元のパケット番�
 退避済み Packet # への根拠移動は SQLite 行を読み直して詳細欄へ出す。
 観測ログのテキスト保存はメモリ上の残件が対象で、退避済み件数はステータスに明示する。
 会話等の意味モデルは削除しない。再整形とフィルター変更は保持中の履歴を対象とする。
+退避の合成計測: `python -m tools.profile_memory_eviction --output logs/memory-eviction-profile.json`。
+会話パネルの演出JSONは presentation 系コレクションが変わったときだけ再整形する（#85）。
 大量履歴の分割処理と取消は下記を参照。
 
 
