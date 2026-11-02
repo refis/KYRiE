@@ -97,14 +97,18 @@ class DisplayResult:
 class DisplayProfile:
     def __init__(self, document):
         _keys(document, {'version', 'encoding', 'defaults', 'fallback', 'error', 'timestamp', 'packets', 'entity_metadata',
-                         'instance_warp', 'instance_entry_warp', 'instance_map_reference', 'actor_change_template', 'actor_change_labels'}, 'profile')
+                         'instance_warp', 'instance_entry_warp', 'instance_map_reference', 'actor_change_template', 'actor_change_labels',
+                         'walk_npc_speed_template'}, 'profile')
         self.actor_change_template = document.get('actor_change_template')
         self.actor_change_labels = document.get('actor_change_labels',{})
+        self.walk_npc_speed_template = document.get('walk_npc_speed_template')
         if (not isinstance(self.actor_change_labels,dict) or len(self.actor_change_labels)>64
                 or any(not isinstance(key,str) or not isinstance(value,str) or len(value)>80 for key,value in self.actor_change_labels.items())):
             raise ProfileError('Invalid actor change labels')
         if self.actor_change_template is not None:
             _template(self.actor_change_template,set(ACTOR_FIELDS),dict(ACTOR_FIELDS))
+        if self.walk_npc_speed_template is not None:
+            _template(self.walk_npc_speed_template, set(ACTOR_FIELDS), dict(ACTOR_FIELDS))
         instance_keys = ('instance_warp', 'instance_entry_warp', 'instance_map_reference')
         for key in instance_keys:
             setattr(self, key, document.get(key))
@@ -457,19 +461,26 @@ class ReceiveDisplay:
                 else:
                     template = profile.instance_entry_warp
             record = self.world.last_actor_observation
-            # Known walk NPCs (type 12) keep npcwalkto on every 0x9FD reobservation (MARiA).
+            # Known walk NPCs (type 12): npcwalkto on 0x9FD; setnpcspeed on every 0x9FE/0x9FF (MARiA).
             walk_npc_move = (decoder == 'actor' and event.packet_id == 0x9fd
                              and values.get('actor_type') == 12 and values.get('reobserved'))
+            walk_npc_speed = (decoder == 'actor' and event.packet_id in (0x9fe, 0x9ff)
+                              and values.get('actor_type') == 12)
             if decoder == 'actor' and values.get('reobserved') and not walk_npc_move:
-                if not values['has_changes'] and values.get('name_valid',True):
-                    return DisplayResult(rule['name'],'','decoded',fields)
+                if not values['has_changes'] and values.get('name_valid', True) and not walk_npc_speed:
+                    return DisplayResult(rule['name'], '', 'decoded', fields)
                 if values['has_changes'] and profile.actor_change_template is not None:
-                    template=profile.actor_change_template
+                    template = profile.actor_change_template
+                elif walk_npc_speed and not values['has_changes'] and profile.walk_npc_speed_template:
+                    template = profile.walk_npc_speed_template
             from reconstruction.identity_protection import apply_to_display_values, identity_from_player
             player_state = self.players.states.get((0, event.flow_id or event.connection))
             identity = identity_from_player(player_state)
             render_values = apply_to_display_values(values, identity)
             text = prefix + _render(template, render_values)
+            if (walk_npc_speed and profile.walk_npc_speed_template
+                    and values.get('has_changes') and 'setnpcspeed' not in text):
+                text += '\n' + _render(profile.walk_npc_speed_template, render_values)
             if record and event.packet_id in (0x9ff,0x9fe,0x9fd,0x1b0):
                 if event.packet_id==0x1b0 and not record['changes']:
                     return DisplayResult(rule['name'],'','decoded',fields)

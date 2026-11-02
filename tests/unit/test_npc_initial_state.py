@@ -74,7 +74,18 @@ class NpcInitialStateTests(unittest.TestCase):
             item = conversation()
             item.npc = deepcopy(npc)
             self.assertEqual(npc['actor_type'], 12)
-            self.assertIn(expected, AurigaRenderer().render_npc_file(item))
+            code = AurigaRenderer().render_npc_file(item)
+            self.assertIn(expected, code)
+            self.assertIn('setnpcspeed 150;', code)
+
+    def test_walking_npc_setnpcspeed_conflicts_are_review_blocks(self):
+        from reconstruction.entity_metadata import render_npc_initialization
+        first = dict(name='A', actor_type=12, speed=150)
+        second = dict(name='A', actor_type=12, speed=200)
+        text = render_npc_initialization([first, second])
+        self.assertIn('setnpcspeed 150;', text)
+        self.assertIn('setnpcspeed 200;', text)
+        self.assertIn('要確認', text)
 
     def test_initial_state_conflicts_and_combined_flags_do_not_silently_choose_active_definition(self):
         first, second = conversation(), conversation(identifier=2)

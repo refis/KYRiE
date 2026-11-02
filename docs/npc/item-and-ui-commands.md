@@ -60,6 +60,13 @@ barter一覧（0x0B0E／0x0B56）も同じclose応答後2秒枠で会話へ帰�
 対象サーバーの基本寿命が異なる場合は判定設定を合わせる。未確認ならnullにすると引数を補わず確認用にできる。
 インスタンス内のscript命令ではMAPを正規化し、getmdmapnameを使う。
 
+## setnpcspeed
+
+歩行NPC種（actor type 12）の0x9FE／0x9FF観測で、観測ログへ
+`setnpcspeed {speed},"{name}"; // {aid}` を出す（MARiA準拠）。
+配置付きOnInitでは対象自身へ `setnpcspeed {speed};` を出す。
+type 6の通常NPCや0x9FD移動だけでは生成しない。速度不一致は確認用ブロックで併記。
+
 ## waitingroom
 
 0x00D7の所有者を同一世代のNPCと確認できた場合に、titleとlimitを個体情報へ保存する。
