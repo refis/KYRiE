@@ -156,19 +156,22 @@ MARiAの全文字列・状態推論・pickle保存との完全互換移植では
 - NPC/MOBの出現・移動一覧と接続／マップ世代分離（GUIエンティティ）
 - 外部名称辞書（スキル・状態／効果シンボル・品名・MAP・クエスト等）とプロジェクト版照合
 - 所持品・装備・鑑定状態の観測と会話中の授受候補（ランダムオプションの命令再現はしない）
-- 通常ショップの繰り返し商品台帳と shop／callshop 候補（交換・キャッシュ系は未対応）
+- 通常ショップの繰り返し商品台帳と shop／callshop 候補
+- barter（0x0B0E／実機0x0B56）の常コメント候補（`//- barter` / `// callbarter`。実行命令化はしない）
 - キャラクター一覧・ログイン基本データの観測
 - OnTouch／根拠付きの warp 候補（近傍同時発生だけでは原因確定しない）
 - MOB個体別スキル間隔・cast review・性能比較（AI条件・設定湧きの自動復元はしない）
 - 生ログのオフライン再解析・複数ログ・作業プロジェクト（pickle互換なし）
+- display_only だった個別通知の観測保持・命令非生成（[未対応通知](../npc/unsupported-notifications.md)）
 
 意図的ギャップ・未採用（詳細は[未対応通知](../npc/unsupported-notifications.md)）:
 
 - BGMのNPC割当・musiceffect命令化
-- 交換／バルター／キャッシュ shop
-- setcell・showevent・hateffect 等の実行命令化
-- 表示定義のみで構造化未接続の PacketID（display_only）
+- キャッシュ shop。0x0B79／exchange は取得検証保留（#70。未採取のままレイアウトを広げない）
+- setcell・showevent・hateffect 等の実行命令化（観測コメントのみの種別を含む）
+- 新規に見つかった表示定義のみ PacketID の構造化要否（勝手に命令化しない）
 - EXE暗号化前取得、未知ID後の境界再同期
+- stateiconimginfo の画像名辞書化（#69。取り込み不要）
 
 対応しないIDもrawは保存し、表示未定義として残す。名前が不明な戦闘・演出は
 推測した名前を埋めずactor IDを表示する。メニューは選択肢数によらずmenu形式に
@@ -200,8 +203,8 @@ MARiAの全文字列・状態推論・pickle保存との完全互換移植では
 
 1. 表示履歴全体の明示上限と、パケット量が多い場面での描画負荷抑制。
 2. SQLiteのバッチ保存（現状は1件commit中心）とスループット計測。
-3. 交換・バルター・キャッシュ系ショップの版別スキーマと、PacketLength／表示定義の組検証。
-4. display_only PacketIDの構造化要否の個別判断（勝手に命令化しない）。
+3. キャッシュ shop の版別スキーマ。0x0B79／exchange は該当 NPC 確認後の実機ログでのみ再確認（#70）。
+4. 新たな display_only 候補が出たときだけの構造化要否判断（勝手に命令化しない）。
 
 
 ## スキルユニット表示の辞書（2026-10-30）
@@ -237,6 +240,7 @@ reference_namespace/reference_known/reference_catalog_sha256を利用できる�
 シンボル表とは分離する。未設定・未登録は `説明未登録`。改行・NUL・空文字・未知IDへの説明は拒否する。
 `description_sources` に取り込み元パス・SHA-256・field（現状 `descript_title`）・encoding を残す。
 提供 `stateiconinfo.lua` から状態アイコン日本語タイトル792件を取り込み済み。
+stateiconimginfo の画像名は辞書化しない（#69）。
 説明の有無で effect_id・SC変換・観測集計・script_id_conversion は変えない。
 視覚エフェクトの日本語は確認済み出典が無い間は空のままとする。
 
