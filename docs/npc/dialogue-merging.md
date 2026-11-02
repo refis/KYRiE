@@ -84,7 +84,7 @@ conflictsと各ノードのevidenceに、両方の観測と元パケットを残
 複数選択肢は一時変数へmenu戻り値を代入し、その変数でswitchする。
 
 ```text
-set '@menu,menu("選択肢1","選択肢2");
+set '@menu,select("選択肢1","選択肢2");
 switch ('@menu) {
     case 1:
         // 観測した続き

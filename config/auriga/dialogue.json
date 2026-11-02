@@ -164,5 +164,5 @@
   "npc_display_full": "setnpcdisplay {target},{class_id},{sex},{hair_style},{hair_color},{cloth_color},{head_top},{head_mid},{head_bottom},{robe},{style};",
   "npc_display_unknown": "// setnpcdisplay: NPC名・外見の必要値が未観測または範囲外。元観測を確認。",
   "npc_display_outside": "// {code} // 視界外／再出現時に判明した変更。変更時点は未観測。",
-  "menu_set": "set '@menu,menu({options});"
+  "menu_set": "set '@menu,select({options});"
 }

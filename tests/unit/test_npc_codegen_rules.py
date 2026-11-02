@@ -27,7 +27,7 @@ class NpcCodegenRulesTests(unittest.TestCase):
     def test_menu_set_switch_uses_temp_var_quoted_options_and_case_end_rules(self):
         item = conversation()
         code = AurigaRenderer().render(item)
-        self.assertIn("set '@menu,menu(\"one\",\"two\",\"three\");", code)
+        self.assertIn("set '@menu,select(\"one\",\"two\",\"three\");", code)
         self.assertIn("switch ('@menu) {", code)
         self.assertIn('case 1:\n        mes "one result";\n        close;\n        end;', code)
         self.assertIn('case 2:\n        // 未観測の分岐\n        end;', code)

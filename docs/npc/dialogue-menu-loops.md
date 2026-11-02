@@ -9,7 +9,7 @@ AurigaRendererの共通処理なので、単一会話・統合会話・NPC配置
 
 ```text
 while (1) {
-    set '@menu,menu("説明を聞く","終了");
+    set '@menu,select("説明を聞く","終了");
     switch ('@menu) {
         case 1:
             mes "観測した説明";

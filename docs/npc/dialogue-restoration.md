@@ -137,7 +137,7 @@ session-analysis-announcement-associated-review.jsonで検証した。31件中�
 - セッションは最大2000、全ステップ100000、1会話2048。上限では追加を停止し、
   問題をJSONへ記録する。未知ID後の再同期や欠損バイト補完は行わない。
 
-複数選択肢は`set '@menu,menu("…","…");`と`switch ('@menu)`、単一または全応答同一ならラベルなしmenuを使用する。
+複数選択肢は`set '@menu,select("…","…");`と`switch ('@menu)`、単一または全応答同一ならラベルなしmenuを使用する。
 矛盾する観測は開始直後を含め、条件を付けないインデント付き{}ブロックで併記する。
 Aurigaのmenu/switch/cutin/close系構文は
 [公式スクリプトリファレンス](https://github.com/auriga/auriga/blob/master/doc/script_ref.txt)
