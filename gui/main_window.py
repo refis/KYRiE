@@ -481,16 +481,18 @@ class MainWindow(QMainWindow):
             large=(len(entities)>100 or len(self.dialogues.sessions)>50 or
                    sum(len(item.steps) for item in self.dialogues.sessions)>1000 or len(self.shops.records)>100)
             from reconstruction.identity_protection import identity_from_store
+            from storage.user_settings import indent_value
             identity = identity_from_store(self.players)
+            indent = indent_value(self.script_indent.currentData()) if hasattr(self, 'script_indent') else None
             prepared=None
             if large:
                 from reconstruction.report_snapshot import freeze_npc_report
                 prepared=freeze_npc_report(entities,self.dialogues.sessions,sources,merge=merge,
                                           shops=self.shops.records,barters=self.barters.records,identity=identity,
-                                          client_names=getattr(self,'client_names',None))
+                                          client_names=getattr(self,'client_names',None), indent=indent)
             report=None if prepared is not None else build_npc_bundle(entities,self.dialogues.sessions,
                 sources,merge=merge,shops=self.shops.records,barters=self.barters.records,identity=identity,
-                client_names=getattr(self,'client_names',None))
+                client_names=getattr(self,'client_names',None), indent=indent)
             if report is not None and not report['entries'] and not report['excluded']:
                 raise ValueError('NPCの観測がありません。')
             mode = '統合' if merge else '個別'
@@ -533,7 +535,9 @@ class MainWindow(QMainWindow):
             return
         try:
             entity = asdict(rows[index.row()])
-            code = AurigaRenderer().render_npc_metadata_file(entity)
+            from storage.user_settings import indent_value
+            indent = indent_value(self.script_indent.currentData()) if hasattr(self, 'script_indent') else None
+            code = AurigaRenderer(indent=indent).render_npc_metadata_file(entity)
             sources = dict(self.world_sources)
             path, _ = QFileDialog.getSaveFileName(self, 'NPCの配置・初期化のみを保存',
                                                 f'npc-init-{entity["actor_id"]}.txt',

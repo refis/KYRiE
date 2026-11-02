@@ -138,9 +138,9 @@ class BranchTests(unittest.TestCase):
         report = build_merged([('a', conversation(nested=True, answer='quoted "text"\\')),
                                ('b', conversation(2, 'other branch'))])
         code = AurigaRenderer().render_merged(report['groups'][0])
-        self.assertEqual(code.count('menu '), 2)
+        self.assertEqual(code.count('menu('), 2)
         self.assertIn('mes "quoted \\"text\\"\\\\";', code)
-        self.assertEqual(code.count('switch (@menu)'), 2)
+        self.assertEqual(code.count("switch ('@menu)"), 2)
         self.assertNotIn('GPM_', code)
         self.assertNotIn('sleep', code)
         self.assertNotIn('OnTimer', code)
@@ -149,7 +149,7 @@ class BranchTests(unittest.TestCase):
         report = build_merged([('a', conversation(input_prompt=True, answer='input A')),
                                ('b', conversation(input_prompt=True, answer='input B'))])
         code = AurigaRenderer().render_merged(report['groups'][0])
-        self.assertIn("input '@gpa_number;", code)
+        self.assertIn("input '@num;", code)
         self.assertIn('// 入力数: 1', code)
         self.assertIn('input A', code)
         self.assertIn('input B', code)
@@ -218,8 +218,8 @@ class BranchTests(unittest.TestCase):
         report = build_merged([('a', first), ('b', second)])
         code = AurigaRenderer().render_merged(report['groups'][0])
         self.assertIn('異なる観測結果', code)
-        self.assertIn('{\n    menu "one:two:three",-;', code)
-        self.assertIn('{\n    menu "three:two:one",-;', code)
+        self.assertIn('{\n    set \'@menu,menu("one","two","three")', code)
+        self.assertIn('{\n    set \'@menu,menu("three","two","one")', code)
 
     def test_old_profiles_remain_usable_and_custom_merged_templates_are_external(self):
         group = build_merged([('a', conversation())])['groups'][0]

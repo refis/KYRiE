@@ -45,7 +45,7 @@ class TouchNpcTests(unittest.TestCase):
         self.assertEqual(len(merged['groups']), 1)
         bundle = build_npc_bundle(world.snapshot('NPC')['entities'], dialogues.sessions, merge=True)
         code = bundle['auriga']
-        self.assertIn('45,1,1,{', code)
+        self.assertIn('45,1,1,{/*', code)
         self.assertIn('OnTouch:', code)
         self.assertIn('mes "cannot pass";', code)
         self.assertIn('warp "target.gat",100,120;', code)
@@ -79,7 +79,7 @@ class TouchNpcTests(unittest.TestCase):
         consume(dialogue_packet(0xb4, struct.pack('<I', 42) + b'hello\0'))
         consume(packet(0xb6, struct.pack('<I', 42)))
         report = build_npc_bundle([], dialogues.sessions, merge=True)
-        self.assertIn('45,1,1,{', report['auriga'])
+        self.assertIn('45,1,1,{/*', report['auriga'])
         self.assertEqual(dialogues.sessions[0].npc['touch']['range_basis'], 'default_3x3')
         self.assertEqual(context({'class_id':45, 'map_name':'test.gat', 'x':10, 'y':20},
                                  {'map_name':'other.gat','x':10,'y':20},0)['range_basis'], 'default_3x3')
@@ -89,7 +89,7 @@ class TouchNpcTests(unittest.TestCase):
         npc = world.snapshot('NPC')['entities'][0]
         npc.update(group_id=0, title='', metadata_evidence={})
         report = build_npc_bundle([npc], [])
-        self.assertEqual(report['entries'][0]['auriga'], 'test.gat,150,200,3\tscript\tTouch\t45,{}\n')
+        self.assertEqual(report['entries'][0]['auriga'], 'test.gat,150,200,3\tscript\tTouch\t45,{/* 42 */}\n')
 
     def test_old_map_visibility_is_not_reused_for_another_warp(self):
         world, dialogues, consume = self.scene()
@@ -107,7 +107,7 @@ class TouchNpcTests(unittest.TestCase):
                 npc = world.snapshot('NPC')['entities'][0]
                 npc.update(initial_options=options, group_id=0, title='', metadata_evidence={})
                 code = build_npc_bundle([npc], [])['entries'][0]['auriga']
-                self.assertIn('\t' + keyword + '\tTouch\t45,{}', code)
+                self.assertIn('\t' + keyword + '\tTouch\t45,{/* 42 */}', code)
                 self.assertEqual(len(code.splitlines()), 1)
 
     def test_walk_endpoint_never_expands_touch_range_or_claims_arrival(self):
@@ -150,7 +150,7 @@ class TouchNpcTests(unittest.TestCase):
         item = dialogues.sessions[0]
         self.assertEqual(item.npc['touch']['basis'], 'class139_contact_candidate')
         report = build_npc_bundle([], dialogues.sessions, merge=True)
-        self.assertIn('139,1,1,{', report['auriga'])
+        self.assertIn('139,1,1,{/*', report['auriga'])
         self.assertIn('OnTouch:', report['auriga'])
         self.assertFalse(item.observed_open)
 
@@ -211,7 +211,8 @@ class TouchNpcTests(unittest.TestCase):
                 npc.update(class_id=class_id, group_id=0, title='', metadata_evidence={})
                 code = build_npc_bundle([npc], [])['entries'][0]['auriga']
                 self.assertEqual(len(code.splitlines()), 1)
-                self.assertTrue(code.endswith(str(class_id) + ',{}\n'))
+                self.assertTrue(code.endswith(',{/* %s */}\n' % npc['actor_id']))
+                self.assertIn('\t%d,' % class_id, code.split('\tscript\t', 1)[1])
 
     def test_contact_priority_and_maximum_fifteen_cell_radius(self):
         for class_id in (139, 111, 844, 45, 100):

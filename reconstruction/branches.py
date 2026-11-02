@@ -383,17 +383,19 @@ def conversation_path(source_ref, conversation, strict=True):
     terminal_fields = {}
     if terminal == 'barter_boundary' and conversation.termination.get('barter_call_name'):
         name = conversation.termination['barter_call_name']
-        if not isinstance(name, str) or not re.fullmatch(r'GPA_B[0-9a-f]{12}', name):
+        if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z0-9_@.-]{1,32}#callbarter', name):
             raise ValueError('Invalid observed-barter candidate name')
         terminal_fields = {'barter_call_name': name}
     if terminal == 'shop_boundary' and conversation.termination.get('shop_call_name'):
         name = conversation.termination['shop_call_name']
-        if not isinstance(name, str) or not re.fullmatch(r'GPA_S[0-9a-f]{12}', name):
+        if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z0-9_@.-]{1,32}#callshop', name):
             raise ValueError('Invalid observed-shop candidate name')
         terminal_fields = {'shop_call_name': name}
-    if terminal == 'boundary' and is_touch(conversation.npc) and conversation.termination.get('fields'):
-        tokens.append(dict(kind='post_close_warp', fields=deepcopy(conversation.termination['fields']), evidence=reference))
-        terminal = 'end'
+    if terminal == 'boundary' and conversation.termination.get('fields'):
+        menu_warp = conversation.termination.get('after_menu_warp') is True
+        if is_touch(conversation.npc) or menu_warp:
+            tokens.append(dict(kind='post_close_warp', fields=deepcopy(conversation.termination['fields']), evidence=reference))
+            terminal = 'end'
     if terminal == 'boundary' and continuing_close is not None and conversation.termination.get('after_close_reply'):
         fields = conversation.termination.get('fields', {})
         tokens.append(dict(kind='post_close_warp', fields=deepcopy(fields), evidence=reference))

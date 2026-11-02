@@ -12,6 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PATH = PROJECT_ROOT / 'config' / 'user_settings.json'
 MAX_BYTES = 65536
 EMULATORS = frozenset({'auriga', 'rathena'})
+SCRIPT_INDENTS = frozenset({'spaces', 'tabs'})
 
 DEFAULTS = dict(
     version=1,
@@ -24,6 +25,7 @@ DEFAULTS = dict(
     manual_server_ip='',
     manual_server_port='',
     emulator='auriga',
+    script_indent='spaces',
     display_recv_path=str(PROJECT_ROOT / 'config' / 'auriga' / 'display.json'),
     display_send_path=str(PROJECT_ROOT / 'config' / 'send_display.json'),
     display_timestamps=False,
@@ -34,6 +36,11 @@ DEFAULTS = dict(
     pipe_name='',
     merge_npc_paths=False,
 )
+
+
+def indent_value(setting):
+    """Map user setting to the dialogue/entity_metadata indent string."""
+    return '\t' if setting == 'tabs' else '    '
 
 
 class UserSettingsError(ValueError):
@@ -72,6 +79,10 @@ def validate(document):
         elif key == 'emulator':
             if value not in EMULATORS:
                 raise UserSettingsError('emulator must be auriga or rathena')
+            result[key] = value
+        elif key == 'script_indent':
+            if value not in SCRIPT_INDENTS:
+                raise UserSettingsError('script_indent must be spaces or tabs')
             result[key] = value
         elif key == 'manual_server_port':
             text = _bounded_string(value, key, 16)
@@ -129,6 +140,9 @@ def collect_from_window(window):
     emulator = window.emulator.currentData()
     if emulator not in EMULATORS:
         emulator = 'auriga'
+    script_indent = window.script_indent.currentData() if hasattr(window, 'script_indent') else 'spaces'
+    if script_indent not in SCRIPT_INDENTS:
+        script_indent = 'spaces'
     direction = getattr(window, 'selected_display_direction', 'RECV')
     recv_path = window.display_input_paths.get('recv', '')
     send_path = window.display_input_paths.get('SEND', '')
@@ -147,6 +161,7 @@ def collect_from_window(window):
         manual_server_ip=window.ip.text().strip(),
         manual_server_port=window.port.text().strip(),
         emulator=emulator,
+        script_indent=script_indent,
         display_recv_path=recv_path,
         display_send_path=send_path,
         display_timestamps=window.display_timestamps.isChecked(),
@@ -162,11 +177,13 @@ def collect_from_window(window):
 def apply_to_window(window, settings):
     """Apply a validated settings document to GUI controls without firing side effects."""
     document = validate(settings)
-    controls = (
+    controls = [
         window.capture_send, window.children, window.attach_existing, window.emulator,
         window.display_timestamps, window.display_unmapped, window.record_stream,
         window.pipe_enabled, window.dialogue_panel.merge_checkbox,
-    )
+    ]
+    if hasattr(window, 'script_indent'):
+        controls.append(window.script_indent)
     for control in controls:
         control.blockSignals(True)
     try:
@@ -183,6 +200,11 @@ def apply_to_window(window, settings):
             emulator_index = 0
         window.emulator.setCurrentIndex(emulator_index)
         window.last_emulator_index = emulator_index
+        if hasattr(window, 'script_indent'):
+            indent_index = window.script_indent.findData(document['script_indent'])
+            if indent_index < 0:
+                indent_index = 0
+            window.script_indent.setCurrentIndex(indent_index)
         window.display_input_paths['recv'] = document['display_recv_path']
         window.display_input_paths['SEND'] = document['display_send_path']
         window.display_profile_paths['recv'] = document['display_recv_path']

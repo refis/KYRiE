@@ -44,7 +44,7 @@ class InstanceModeTests(unittest.TestCase):
         item.npc.update(map_name='0k81@xm_d.gat', name='#fac1wp_0k8')
         before = deepcopy(item)
         code = AurigaRenderer().render_npc_file(item)
-        self.assertIn('1@xm_d.gat,10,20,0\tscript\t#fac1wp\t45,{', code)
+        self.assertIn('1@xm_d.gat,10,20,0\tscript\t#fac1wp\t45,{/*', code)
         bundle = build_npc_bundle([], [item], merge=True)
         self.assertEqual(bundle['entries'][0]['npc']['name'], '#fac1wp_0k8')
         self.assertEqual(bundle['entries'][0]['rendered_names']['npc_name'], '#fac1wp')
@@ -108,9 +108,9 @@ class InstanceModeTests(unittest.TestCase):
         record['npc']['map_name'] = '1@toy.gat'
         before = deepcopy(item)
         text = ShopRenderer().render(record, 'callshop', item_ids_confirmed=True, conversation=item)
-        self.assertIn('callshop getmdnpcname("GPA_S', text)
+        self.assertIn('callshop getmdnpcname("1@toy.gat#callshop', text)
         self.assertIn('1@toy.gat,10,20,0\tscript\t案内人', text)
-        self.assertIn('-\tshop\tGPA_S', text)
+        self.assertIn('-\tshop\t1@toy.gat#callshop', text)
         self.assertEqual(item, before)
 
     def test_instance_announcements_join_timer_trials_without_actor_ownership_and_do_not_cross_maps(self):

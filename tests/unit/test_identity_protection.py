@@ -71,7 +71,7 @@ class IdentityProtectionTests(unittest.TestCase):
         identity = dict(character_name='英雄', actor_id=7)
         code = AurigaRenderer(identity=identity).render(item)
         self.assertIn('mes "こんにちは、"+getstrcharinfo(0)+"さん";', code)
-        self.assertIn('menu getstrcharinfo(0)+"の家:やめる",-;', code)
+        self.assertIn('menu(getstrcharinfo(0)+"の家","やめる")', code)
         mes = next(step['fields']['text'] for step in item.steps if step['kind'] == 'mes')
         self.assertEqual(mes, 'こんにちは、英雄さん')
         plain = AurigaRenderer().render(item)

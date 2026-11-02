@@ -24,4 +24,4 @@ def conversation(choice=1, answer='one result', identifier=1, actor=42, nested=F
     return result
 
 NPC = dict(name='案内人', map_name='test.gat', class_id=45, x=10, y=20, direction=0,
-           connection='half', map_generation=0, appearance=1)
+           connection='half', map_generation=0, appearance=1, actor_id=42)
