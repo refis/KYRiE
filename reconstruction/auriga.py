@@ -26,7 +26,7 @@ def _dialogue_profile(path=None):
     path = Path(path) if path is not None else profile('dialogue.json')
     return path, target_for_path(path) or active_target()
 STYLE_FIELDS = {'indent': set(), 'block_open': set(), 'block_close': set(), 'switch_open': set(),
-                'while_open': set(), 'continue': set(), 'loop_review': set(),
+                'while_open': set(), 'continue': set(), 'loop_review': set(), 'menu_set': {'options'},
                 'case': {'value'}, 'break': set(), 'alternatives': set(), 'alternative': {'number'},
                 'input_number_observation': {'value'}, 'input_text_observation': {'value'}}
 PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
@@ -61,7 +61,7 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'announcement': {'text', 'flag'},
                        'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'},
                        'presentation_warning': {'count'}}
-_NPC_DECL = {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id', 'declaration'}
+_NPC_DECL = {'map_name', 'x', 'y', 'direction', 'npc_name', 'class_id', 'actor_id', 'declaration'}
 FILE_FIELDS = {'npc_empty': set(_NPC_DECL),
                'touch_label': set(),
                'touch_review': set(), 'touch_provisional': set(),
@@ -127,8 +127,43 @@ def _quote(value):
     return json.dumps(value, ensure_ascii=False)
 
 
+def _script_label(line):
+    """Bare OnInit:/OnTouch:-style labels stay flush; wrapped body keeps its own indent."""
+    return bool(re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*:', line))
+
+
+def _menu_options_text(renderer, options):
+    return ','.join(renderer._text(option) for option in options)
+
+
+def _case_exit_kind(nodes, start_id):
+    """close2 keeps break after end; plain close gets end without break; other terminals already end."""
+    pending = [start_id]
+    seen = set()
+    has_close2 = False
+    has_close = False
+    while pending:
+        node_id = pending.pop()
+        if node_id in seen or not 0 <= node_id < len(nodes):
+            continue
+        seen.add(node_id)
+        node = nodes[node_id]
+        kind = node['kind']
+        if kind == 'close2' or kind in ('shop_boundary', 'barter_boundary'):
+            # Renderer emits close2 before callshop/callbarter when the window is still open.
+            has_close2 = True
+        elif kind == 'close':
+            has_close = True
+        pending.extend(node['children'])
+    if has_close2:
+        return 'break'
+    if has_close:
+        return 'end'
+    return None
+
+
 class AurigaRenderer:
-    def __init__(self, path=None, identity=None):
+    def __init__(self, path=None, identity=None, *, indent=None):
         from reconstruction.emulator_profiles import profile
         path, self._target = _dialogue_profile(path)
         self.identity = dict(identity or {})
@@ -141,6 +176,8 @@ class AurigaRenderer:
             defaults = read_render_json(profile('dialogue.json', self._target))
             for key in missing:
                 self.templates[key] = defaults.get(key, read_render_json(DEFAULT_DIALOGUE_PROFILE)[key])
+        if indent is not None:
+            self.templates['indent'] = indent
         for key in KEYS | (set(OPTIONAL_FIELDS) & self.templates.keys()):
             value = self.templates.get(key)
             if not isinstance(value, str):
@@ -196,7 +233,8 @@ class AurigaRenderer:
         if not include_initialization:
             return body
         from reconstruction.emulator_profiles import profile
-        return append_initialization(body, [conversation.npc], profile('entity_metadata.json', self._target))
+        return append_initialization(body, [conversation.npc], profile('entity_metadata.json', self._target),
+                                     indent=self.templates['indent'])
 
     ADOPTABLE_EXTERNAL_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk'))
 
@@ -264,7 +302,7 @@ class AurigaRenderer:
         return result
 
     @staticmethod
-    def placement_values(npc):
+    def placement_values(npc, actor_id=None):
         for key, limit in (('x', 1023), ('y', 1023), ('direction', 7), ('class_id', 65535)):
             if type(npc.get(key)) is not int or not 0 <= npc[key] <= limit:
                 raise ValueError('NPC配置の数値が未観測または範囲外です。')
@@ -283,8 +321,11 @@ class AurigaRenderer:
                 raise ValueError('NPC名が候補出力の上限23バイトを超えています。')
         except UnicodeEncodeError as exc:
             raise ValueError('NPC名をcp932で表現できません。') from exc
+        aid = npc.get('actor_id', actor_id)
+        if type(aid) is not int or not 0 <= aid <= 0xffffffff:
+            raise ValueError('NPC ActorIDが未観測または範囲外です。')
         return dict(map_name=base_map_name(map_name), npc_name=base_npc_name(name, map_name), x=npc['x'], y=npc['y'],
-                    direction=npc['direction'], class_id=initial_class)
+                    direction=npc['direction'], class_id=initial_class, actor_id=aid)
 
     def _declared_placement(self, npc, **extra):
         return dict(self.placement_values(npc),
@@ -311,6 +352,13 @@ class AurigaRenderer:
                        if is_touch(row['conversation'].get('npc', {}))]
             if touches:
                 npc = dict(npc, touch=merge_contexts(touches))
+        if group is None and type(getattr(conversation, 'actor_id', None)) is int:
+            npc = dict(npc, actor_id=npc.get('actor_id', conversation.actor_id))
+        elif group is not None:
+            aid = next((row['conversation'].get('actor_id') for row in group['contributions']
+                        if type(row['conversation'].get('actor_id')) is int), npc.get('actor_id'))
+            if type(aid) is int:
+                npc = dict(npc, actor_id=npc.get('actor_id', aid))
         body = self.render_merged(group) if group is not None else self.render(conversation, presentation_check, shop_call_name)
         return self._wrap_npc(npc, body)
 
@@ -318,7 +366,8 @@ class AurigaRenderer:
         if npc.get('kind') != 'NPC':
             raise ValueError('NPCの出現記録を選択してください。')
         from reconstruction.emulator_profiles import profile
-        initialization = render_npc_initialization([npc], profile('entity_metadata.json', self._target))
+        initialization = render_npc_initialization([npc], profile('entity_metadata.json', self._target),
+                                                   indent=self.templates['indent'])
         if not initialization and not metadata_values(npc):
             raise ValueError('0x0ADFのグループ・タイトルが未観測か、命令化できません。')
         body = self.templates['npc_metadata_only'] + '\n' + self.templates['end'] + '\n\n' + initialization
@@ -355,8 +404,18 @@ class AurigaRenderer:
                 notes += self.templates['touch_provisional'] + '\n'
             body = notes + self.templates['touch_label'] + '\n' + body
 
-        lines = [header, *[self.templates['indent'] + line for line in body.rstrip('\n').split('\n')],
-                 self.templates['npc_file_footer'].format_map({})]
+        wrapped = []
+        flush_tail = False
+        for line in body.rstrip('\n').split('\n'):
+            if _script_label(line):
+                # OnInit:/OnTouch: and their already-indented bodies stay flush to the script edge.
+                wrapped.append(line)
+                flush_tail = line.rstrip().startswith('OnInit:')
+            elif flush_tail:
+                wrapped.append(line)
+            else:
+                wrapped.append(self.templates['indent'] + line)
+        lines = [header, *wrapped, self.templates['npc_file_footer'].format_map({})]
         result = '\n'.join(lines) + '\n'
         if len(result) > 4 * 1024 * 1024:
             raise ValueError('NPCファイル候補が出力上限を超えています。')
@@ -461,11 +520,12 @@ class AurigaRenderer:
                 options = fields['options']
                 choices = {nodes[child]['fields']['value']: child for child in node['children']
                            if nodes[child]['kind'] == 'choice'}
-                emit('menu', depth, options=f'{self._text(":".join(options))},-')
+                option_text = _menu_options_text(self, options)
                 all_same = (allow_identical_menu and len(choices) == len(options) and len(node['children']) == len(choices)
                             and all(complete[child] for child in choices.values())
                             and len({tails[child] for child in choices.values()}) == 1)
                 if len(options) == 1 or all_same or (allow_identical_menu and node.get('shared_response')):
+                    emit('menu', depth, options=option_text)
                     if choices:
                         stack.append(('walk', choices[min(choices)], cutin, window_closed, depth))
                     else:
@@ -475,13 +535,22 @@ class AurigaRenderer:
                     continue
                 if not choices:
                     emit('pending', depth)
+                emit('menu_set', depth, options=option_text)
                 emit('switch_open', depth)
                 tasks = []
                 for number in range(1, len(options) + 1):
                     tasks.append(('emit', ('case', {'value': number}), cutin, window_closed, depth + 1))
-                    tasks.append(('walk', choices[number], cutin, window_closed, depth + 2) if number in choices
-                                 else ('unknown', None, cutin, window_closed, depth + 2))
-                    tasks.append(('emit', ('break', {}), cutin, window_closed, depth + 2))
+                    if number in choices:
+                        tasks.append(('walk', choices[number], cutin, window_closed, depth + 2))
+                        exit_kind = _case_exit_kind(nodes, choices[number])
+                        if exit_kind == 'break':
+                            tasks.append(('emit', ('break', {}), cutin, window_closed, depth + 2))
+                        elif exit_kind == 'end':
+                            tasks.append(('emit', ('end', {}), cutin, window_closed, depth + 2))
+                        elif exit_kind == 'shared_break':
+                            tasks.append(('emit', ('break', {}), cutin, window_closed, depth + 2))
+                    else:
+                        tasks.append(('unknown', None, cutin, window_closed, depth + 2))
                 tasks.extend([('emit', ('block_close', {}), cutin, window_closed, depth), ('emit', ('end', {}), cutin, window_closed, depth)])
                 schedule(tasks)
                 continue
@@ -721,7 +790,7 @@ class AurigaRenderer:
             from reconstruction.emulator_profiles import profile
             result = append_initialization(
                 body, [row['conversation'].get('npc', {}) for row in group['contributions']],
-                profile('entity_metadata.json', self._target))
+                profile('entity_metadata.json', self._target), indent=self.templates['indent'])
         else:
             result = body
         if len(result) > max_output_chars:

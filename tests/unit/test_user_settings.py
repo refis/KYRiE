@@ -42,6 +42,8 @@ class UserSettingsTests(unittest.TestCase):
         with self.assertRaises(UserSettingsError):
             validate(dict(DEFAULTS, emulator='hercules'))
         with self.assertRaises(UserSettingsError):
+            validate(dict(DEFAULTS, script_indent='spaces2'))
+        with self.assertRaises(UserSettingsError):
             validate(dict(DEFAULTS, manual_server_port='70000'))
         with self.assertRaises(UserSettingsError):
             validate(dict(DEFAULTS, pipe_name='bad name'))
@@ -61,6 +63,7 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(result['display_unmapped'])
         self.assertTrue(result['capture_send'])
         self.assertEqual(result['emulator'], 'auriga')
+        self.assertEqual(result['script_indent'], 'spaces')
 
     def test_gitignore_lists_user_settings_profile(self):
         text = Path(__file__).resolve().parents[2].joinpath('.gitignore').read_text(encoding='utf-8')

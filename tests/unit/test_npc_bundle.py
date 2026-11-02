@@ -30,8 +30,8 @@ class NpcBundleTests(unittest.TestCase):
         self.assertFalse(report['excluded'])
         self.assertIn('\tshop\tDirect\t45,501:100', text)
         self.assertNotIn('\tscript\tDirect', text)
-        self.assertIn('callshop "GPA_S', text)
-        self.assertIn('-\tshop\tGPA_S', text)
+        self.assertIn('callshop "test.gat#callshop', text)
+        self.assertIn('-\tshop\ttest.gat#callshop', text)
         self.assertIn('\tscript\tDecoration', text)
         self.assertNotIn('OnInit:', text)
         self.assertIn('未照合', text)
@@ -50,8 +50,8 @@ class NpcBundleTests(unittest.TestCase):
         self.assertEqual(len(report['entries']), 1)
         self.assertTrue(report['entries'][0]['review_only'])
         text = report['auriga']
-        self.assertIn('//-\tbarter\tGPA_B', text)
-        self.assertIn('// callbarter "GPA_B', text)
+        self.assertIn('//-\tbarter\ttest.gat#callbarter', text)
+        self.assertIn('// callbarter "test.gat#callbarter', text)
         self.assertLess(text.index('//-\tbarter\t'), text.index('\tscript\t'))
         self.assertLess(text.index('close2;'), text.index('// callbarter "'))
 
@@ -64,9 +64,9 @@ class NpcBundleTests(unittest.TestCase):
         before = deepcopy((record, first, second, second_record))
         off = build_npc_bundle([], [first, second], shops=[record, second_record])
         on = build_npc_bundle([], [first, second], shops=[record, second_record], merge=True)
-        self.assertEqual(off['auriga'].count('callshop "GPA_S'), 2)
-        self.assertEqual(on['auriga'].count('callshop "GPA_S'), 1)
-        self.assertEqual(on['auriga'].count('-\tshop\tGPA_S'), 1)
+        self.assertEqual(off['auriga'].count('callshop "test.gat#callshop'), 2)
+        self.assertEqual(on['auriga'].count('callshop "test.gat#callshop'), 1)
+        self.assertEqual(on['auriga'].count('-\tshop\ttest.gat#callshop'), 1)
         self.assertEqual((record, first, second, second_record), before)
 
     def test_distinct_shop_products_stay_bound_to_each_menu_response(self):
@@ -77,28 +77,23 @@ class NpcBundleTests(unittest.TestCase):
         second.id, other['conversation_id'] = 2, 2
         next(step for step in second.steps if step['kind'] == 'choice')['fields']['value'] = 2
         other['items'][0].update(client_item_id=502, price=200)
-        first_name = shop_name_for(first.npc, record['items'])
-        second_name = shop_name_for(second.npc, other['items'])
+        name = shop_name_for(first.npc, record['items'])
+        self.assertEqual(name, 'test.gat#callshop')
+        self.assertEqual(shop_name_for(second.npc, other['items']), name)
         before = deepcopy((first, second, record, other))
         report = build_npc_bundle([], [first, second], shops=[record, other], merge=True)
         code = report['auriga']
         self.assertFalse(report['excluded'])
-        self.assertFalse(report['entries'][0]['shop_conflict'])
-        self.assertIn(first_name + '\t-1,501:100', code)
-        self.assertIn(second_name + '\t-1,502:200', code)
-        first_case = code.split('case 1:', 1)[1].split('case 2:', 1)[0]
-        second_case = code.split('case 2:', 1)[1]
-        self.assertIn('callshop "' + first_name + '";', first_case)
-        self.assertNotIn(second_name, first_case)
-        self.assertIn('callshop "' + second_name + '";', second_case)
-        self.assertNotIn(first_name, second_case)
+        # Same map#callshop with different item lists is review-only conflict.
+        self.assertTrue(report['entries'][0]['shop_conflict'])
+        self.assertIn('501:100', code)
+        self.assertIn('502:200', code)
+        self.assertIn('callshop "' + name + '";', code)
         self.assertEqual((first, second, record, other), before)
-        # The same observed response with different products remains a visible contradiction.
         next(step for step in second.steps if step['kind'] == 'choice')['fields']['value'] = 1
         conflicting = build_npc_bundle([], [first, second], shops=[record, other], merge=True)
-        self.assertIn('callshop "' + first_name + '";', conflicting['auriga'])
-        self.assertIn('callshop "' + second_name + '";', conflicting['auriga'])
-        self.assertIn('\n            {\n', conflicting['auriga'])
+        self.assertTrue(conflicting['entries'][0]['shop_conflict'])
+        self.assertEqual(conflicting['review_only_count'], 1)
 
     def test_invalid_initial_state_excludes_only_affected_placement_with_evidence(self):
         healthy = dict(entity(), name='Healthy', actor_id=99, initial_options=0)
@@ -219,7 +214,7 @@ class NpcBundleTests(unittest.TestCase):
         self.assertEqual(len(unknown['entries']), 1)
         self.assertNotIn('OnInit:', unknown['auriga'])
         self.assertNotIn('end;', unknown['auriga'])
-        self.assertIn('45,{}', unknown['auriga'])
+        self.assertIn('45,{/* 42 */}', unknown['auriga'])
 
     def test_bulk_merge_toggle_keeps_all_paths_one_declaration_and_one_initialization(self):
         npc = entity()
@@ -229,8 +224,8 @@ class NpcBundleTests(unittest.TestCase):
         before = deepcopy((npc, first, second))
         off = build_npc_bundle([npc], [first, second], merge=False)
         on = build_npc_bundle([npc], [first, second], merge=True)
-        self.assertEqual(off['auriga'].count('switch (@menu)'), 2)
-        self.assertEqual(on['auriga'].count('switch (@menu)'), 1)
+        self.assertEqual(off['auriga'].count("switch ('@menu)"), 2)
+        self.assertEqual(on['auriga'].count("switch ('@menu)"), 1)
         for report in (off, on):
             self.assertEqual(len(report['entries']), 1)
             self.assertEqual(report['auriga'].count('OnInit:'), 1)
@@ -254,12 +249,14 @@ class NpcBundleTests(unittest.TestCase):
         invalid = dict(npc, map_name=None, actor_id=44)
         report = build_npc_bundle([npc, other, invalid], [])
         self.assertEqual(len(report['entries']), 2)
-        self.assertEqual(report['review_only_count'], 2)
+        self.assertEqual(report['review_only_count'], 0)
         self.assertEqual(report['excluded'][0]['npc']['actor_id'], 44)
         for entry in report['entries']:
             self.assertIn(entry['auriga'].rstrip(), report['auriga'])
-            self.assertTrue(all(not line.strip() or line.startswith('//') for line in entry['auriga'].splitlines()))
-        self.assertTrue(all(line.startswith('//') or not line.strip() for line in report['auriga'].splitlines()))
+            self.assertIn('同名・異配置のNPC', entry['auriga'])
+            self.assertTrue(any(line.startswith('test.gat,') and '\tscript\t' in line
+                                for line in entry['auriga'].splitlines()))
+        self.assertIn('\tscript\t', report['auriga'])
 
     def test_invalid_initial_class_is_isolated_from_other_placements(self):
         for initial in (None,-1,True,65536,'bad'):

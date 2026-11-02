@@ -33,7 +33,7 @@ def metadata_values(npc):
     return values
 
 
-def templates(path=None):
+def templates(path=None, *, indent=None):
     path = _entity_profile(path)
     if render_profile_size(path) > 65536:
         raise ValueError('個体メタデータ書式は64KiB以内にしてください。')
@@ -44,6 +44,8 @@ def templates(path=None):
             result.setdefault(key,defaults[key])
     if not isinstance(result, dict) or set(result) != set(FIELDS):
         raise ValueError('個体メタデータ書式の項目が不正です。')
+    if indent is not None:
+        result = dict(result, indent=indent)
     for key, value in result.items():
         if not isinstance(value, str) or len(value) > 16384:
             raise ValueError('個体メタデータ書式が不正です。')
@@ -71,11 +73,14 @@ def display_values(values):
             if key == 'group_id' and value > 0 or key == 'title' and value.strip()}
 
 
-def render_npc_initialization(npcs, profile=None):
+def render_npc_initialization(npcs, profile=None, *, indent=None):
     npcs = list(npcs)
-    rooms = {(room['title'], room['limit']) for npc in npcs for room in npc.get('waitingrooms', [])}
-    if any(not isinstance(title, str) or type(limit) is not int or not 0 <= limit <= 65535 for title, limit in rooms):
+    observed_rooms = [(room['title'], room['limit']) for npc in npcs for room in npc.get('waitingrooms', [])]
+    if any(not isinstance(title, str) or type(limit) is not int or not 0 <= limit <= 65535
+           for title, limit in observed_rooms):
         raise ValueError('Invalid waitingroom metadata')
+    # Codegen always uses admission limit 0; distinct titles still conflict.
+    rooms = {(title, 0) for title, _ in observed_rooms}
     variants = {json.dumps(values, sort_keys=True, ensure_ascii=False): values
                 for npc in npcs if (values := display_values(metadata_values(npc)))}
     displays = []
@@ -90,7 +95,7 @@ def render_npc_initialization(npcs, profile=None):
     if variants and all(len(values) <= 1 for values in observed.values()):
         combined = {field: next(iter(values)) for field, values in observed.items() if values}
         variants = {json.dumps(combined, sort_keys=True, ensure_ascii=False): combined}
-    style = templates(profile)
+    style = templates(profile, indent=indent)
     lines = [style['oninit']]
     display_codes=list(dict.fromkeys(render_display(npc,display,style,require_full=True) for npc,display in displays))
     if len(display_codes)>1:
@@ -125,8 +130,8 @@ def render_npc_initialization(npcs, profile=None):
     return result
 
 
-def append_initialization(body, npcs, profile=None):
-    initialization = render_npc_initialization(npcs, profile)
+def append_initialization(body, npcs, profile=None, *, indent=None):
+    initialization = render_npc_initialization(npcs, profile, indent=indent)
     if not initialization:
         return body
     # Dialogue rendering already emits close/end on its paths. Metadata must

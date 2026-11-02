@@ -281,7 +281,11 @@ class DialoguePanel(QWidget):
             state = players.states.get((item.capture_session, flow))
             if state is None:
                 state = players.states.get((0, flow))
-        return AurigaRenderer(identity=identity_from_player(state))
+        indent = None
+        if hasattr(window, 'script_indent'):
+            from storage.user_settings import indent_value
+            indent = indent_value(window.script_indent.currentData())
+        return AurigaRenderer(identity=identity_from_player(state), indent=indent)
 
     def json_state(self):
         item=self.selected()

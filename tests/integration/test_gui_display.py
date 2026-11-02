@@ -497,7 +497,7 @@ class DisplayGuiTests(WindowTestCase):
         self.assertIn('性別: 1 → 1',detail)
         self.assertIn('髪型: 3 → 4',w.npc_panel.appearance_history.table.item(0,2).text())
         report=build_npc_bundle(w.world.snapshot('NPC')['entities'],[])
-        self.assertIn('\tscript\tGuide\t844,{',report['auriga'])
+        self.assertIn('\tscript\tGuide\t844,{/*',report['auriga'])
         self.assertIn('setnpcdisplay "Guide",4001,1,3,0,0,0,0,0,0,0;',report['auriga'])
 
     def test_unassigned_music_visible_with_npc_exclusion_and_hidden_by_packet_id_only(self):

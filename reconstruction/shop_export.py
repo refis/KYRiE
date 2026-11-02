@@ -1,7 +1,6 @@
 """Auriga review candidates using an explicitly confirmed client-ID identity map."""
 from reconstruction.render_inputs import read_render_json
 from copy import deepcopy
-import hashlib
 import json
 from pathlib import Path
 from string import Formatter
@@ -24,9 +23,10 @@ FIELDS['review_unconfirmed'] = {'map_origin'}
 
 def shop_name_for(npc, items):
     placement = AurigaRenderer.placement_values(npc)
-    products = [f'{item["client_item_id"]}:{item["price"]}' for item in items]
-    identity = json.dumps([placement, products], ensure_ascii=False, sort_keys=True).encode('utf-8')
-    return 'GPA_S' + hashlib.sha256(identity).hexdigest()[:12]
+    name = f"{placement['map_name']}#callshop"
+    if not isinstance(name, str) or len(name.encode('cp932', errors='strict')) > 23:
+        raise ValueError('callshop用NPC名が候補出力の上限23バイトを超えています。')
+    return name
 
 
 def format_shop_item_names(catalog, items):

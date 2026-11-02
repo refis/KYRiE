@@ -457,7 +457,7 @@ class RestorationGuiTests(WindowTestCase):
             self.assertEqual(len(report['entries']), 3)
             self.assertIn('\tscript\tDecoration', report['auriga'])
             self.assertIn('\tshop\tDirect', report['auriga'])
-            self.assertIn('callshop "GPA_S', report['auriga'])
+            self.assertIn('callshop "test.gat#callshop', report['auriga'])
             self.assertNotIn('OnInit:', report['auriga'])
             self.assertFalse(report['excluded'])
         self.assertEqual((w.dialogues.snapshot(), w.shops.snapshot(), w.world.snapshot()), before)
@@ -1487,7 +1487,7 @@ class RestorationGuiTests(WindowTestCase):
             report = json.loads(destination.read_text(encoding='utf-8'))
             self.assertEqual(report['dialogue_merged'], merged)
             self.assertEqual(len(report['entries']), 2)
-            self.assertEqual(report['auriga'].count('switch (@menu)'), 1 if merged else 2)
+            self.assertEqual(report['auriga'].count("switch ('@menu)"), 1 if merged else 2)
             self.assertEqual(report['auriga'].count('OnInit:'), 2)
             initial = next(row for row in report['entries'] if row['npc']['actor_id'] == 43)
             self.assertTrue(initial['auriga'].split('OnInit:')[0].rstrip().endswith('end;'))
@@ -2502,7 +2502,7 @@ class RestorationGuiTests(WindowTestCase):
         npc_destination = Path(self.log_folder.name) / 'placed-npc.txt'
         with patch('gui.dialogues.QFileDialog.getSaveFileName', return_value=(str(npc_destination), '')):
             panel.save_npc_file()
-        self.assertIn('test.gat,10,20,0\tscript\t案内人\t45,{', npc_destination.read_text(encoding='utf-8'))
+        self.assertIn('test.gat,10,20,0\tscript\t案内人\t45,{/*', npc_destination.read_text(encoding='utf-8'))
         panel.merge_checkbox.setChecked(True)
         with patch('gui.dialogues.QFileDialog.getSaveFileName', return_value=(str(npc_destination), '')):
             panel.save_npc_file()

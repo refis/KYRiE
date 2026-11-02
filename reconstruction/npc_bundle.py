@@ -18,16 +18,19 @@ from reconstruction.barter_export import BarterRenderer, barter_name_for
 
 def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=False, shops=(),
                      barters=(), max_chars=64 * 1024 * 1024, identity=None, touch_inferences=None,
-                     client_names=None):
+                     client_names=None, indent=None):
     conversations = list(conversations)
     sources = dict(source_sessions or {})
-    renderer = AurigaRenderer(identity=identity)
+    renderer = AurigaRenderer(identity=identity, indent=indent)
     buckets, excluded = {}, []
     def source(item):
         return str(sources.get(item.capture_session, sources.get(str(item.capture_session), '')))
     def add(npc, reference):
+        npc = dict(npc)
+        if type(npc.get('actor_id')) is not int and type(reference.get('actor_id')) is int:
+            npc['actor_id'] = reference['actor_id']
         try:
-            key = tuple(sorted(renderer.placement_values(npc).items()))
+            key = tuple(sorted(renderer.placement_values(npc, actor_id=reference.get('actor_id')).items()))
         except ValueError as exc:
             excluded.append(dict(reference, reason=str(exc), npc=deepcopy(npc)))
             return None
@@ -159,7 +162,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             body = '\n'.join(lines)
         if not bodies:
             body = ''
-        initialization = render_npc_initialization(bucket['metadata'])
+        initialization = render_npc_initialization(bucket['metadata'], indent=renderer.templates['indent'])
         if initialization:
             if not body:
                 body = renderer.templates['end']
@@ -220,18 +223,24 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
                             in ('hidden', 'cloaked', 'ambiguous') or player_class((row['record']['npc'].get('initial_display') or {}).get('class_id',row['record']['npc'].get('class_id')))) for row in shop_entries)
                 or bool(barter_entries),
             initial_state_conflict=len(states) > 1,
-            shop_conflict=len(direct) > 1 or bool(direct and bodies) or any(row.get('conflict') for row in shop_entries)
+            shop_conflict=len(direct) > 1 or len(hidden) > 1 or bool(direct and bodies)
+                or any(row.get('conflict') for row in shop_entries)
                 or any(row.get('conflict') for row in barter_entries)))
         entries[-1]['merge_exclusions'] = merge_exclusions
     names = Counter(entry['npc']['name'] for entry in entries)
     texts = []
     for entry in entries:
         code = entry['auriga']
-        if names[entry['npc']['name']] > 1 or entry['initial_state_conflict'] or entry['shop_conflict']:
+        if entry['initial_state_conflict'] or entry['shop_conflict']:
             entry['review_only'] = True
-            warning = (renderer.templates['npc_shop_conflict'] if entry['shop_conflict'] else renderer.templates['npc_initial_state_conflict'] if entry['initial_state_conflict'] else
-                       renderer.templates['npc_name_conflict'].format(name=json.dumps(entry['npc']['name'], ensure_ascii=False)))
+            warning = (renderer.templates['npc_shop_conflict'] if entry['shop_conflict']
+                       else renderer.templates['npc_initial_state_conflict'])
             code = warning + '\n' + '\n'.join('// ' + line for line in code.splitlines()) + '\n'
+        elif names[entry['npc']['name']] > 1:
+            # Same display name at different placements is allowed; keep a warning only.
+            warning = renderer.templates['npc_name_conflict'].format(
+                name=json.dumps(entry['npc']['name'], ensure_ascii=False))
+            code = warning + '\n' + code
         entry['auriga'] = code
         texts.append(code)
     header = renderer.templates['npc_bundle_header'].format(count=len(entries), excluded=len(excluded),

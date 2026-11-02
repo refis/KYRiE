@@ -1,7 +1,6 @@
 """Auriga review candidates for expanded barter lists (always commented)."""
 from reconstruction.render_inputs import read_render_json
 from copy import deepcopy
-import hashlib
 import json
 from pathlib import Path
 from string import Formatter
@@ -52,8 +51,12 @@ def format_barter_items(items):
 
 def barter_name_for(npc, items):
     placement = AurigaRenderer.placement_values(npc)
-    identity = json.dumps([placement, format_barter_items(items)], ensure_ascii=False, sort_keys=True).encode('utf-8')
-    return 'GPA_B' + hashlib.sha256(identity).hexdigest()[:12]
+    # items remain validated by callers; name is map-scoped per callbarter rule.
+    format_barter_items(items)
+    name = f"{placement['map_name']}#callbarter"
+    if not isinstance(name, str) or len(name.encode('cp932', errors='strict')) > 23:
+        raise ValueError('callbarter用NPC名が候補出力の上限23バイトを超えています。')
+    return name
 
 
 class BarterRenderer:
