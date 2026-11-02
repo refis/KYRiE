@@ -188,8 +188,8 @@ class DisplayTests(unittest.TestCase):
         dialogue = json.loads((root / 'config' / 'rathena' / 'dialogue.json').read_text(encoding='utf-8'))
         self.assertNotIn('getmdmapname', json.dumps(dialogue))
         self.assertIn('instance_mapname', dialogue['instance_map_reference'])
-        self.assertEqual(dialogue['number'], 'input .@gpa_number;')
-        self.assertEqual(dialogue['text'], 'input .@gpa_text$;')
+        self.assertEqual(dialogue['number'], 'input .@num;')
+        self.assertEqual(dialogue['text'], 'input .@str$;')
         self.assertNotIn("'@", json.dumps(dialogue))
 
     def test_rathena_display_sc_end_converts_icon_ids_and_keeps_unresolved_as_comments(self):

@@ -59,7 +59,7 @@ class ReportSnapshotTests(unittest.TestCase):
                     patch('pathlib.Path.resolve',side_effect=AssertionError('late path resolution')), \
                     patch('pathlib.Path.open',side_effect=AssertionError('late file open')):
                 self.assertEqual(prepared.build(),expected)
-                self.assertIn('//-\tbarter\tGPA_B', expected['auriga'])
+                self.assertIn('//-\tbarter\ttest.gat#callbarter', expected['auriga'])
 
     def test_frozen_rendering_context_is_private_to_its_thread(self):
         from threading import Event,Thread

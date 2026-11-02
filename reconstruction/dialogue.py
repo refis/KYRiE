@@ -923,10 +923,18 @@ class DialogueStore:
                 conversation.termination = dict(timestamp=packet.timestamp, packet_index=index,
                     packet_id=packet.packet_id, direction=packet.direction, connection=packet.connection,
                     source=packet.source)
-                if is_touch(conversation.npc):
+                pending_prompt = any(step['kind'] in ('next', 'menu', 'number', 'text') and 'reply' not in step
+                                    for step in conversation.steps)
+                menu_warp = (not pending_prompt
+                             and any(step['kind'] == 'choice' for step in conversation.steps)
+                             and not any(step['kind'] == 'close' for step in conversation.steps))
+                if is_touch(conversation.npc) or menu_warp:
                     try:
                         observation = decode_world_event(packet)
-                        conversation.termination['fields'] = dict(observation.fields, source_map_name=conversation.npc['map_name'])
+                        conversation.termination['fields'] = dict(observation.fields,
+                                                                  source_map_name=conversation.npc.get('map_name'))
+                        if menu_warp:
+                            conversation.termination['after_menu_warp'] = True
                     except ObservationError as exc:
                         conversation.issues.append(dict(packet_index=index, message=str(exc)))
                 self.active.pop(key, None)

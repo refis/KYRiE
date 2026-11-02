@@ -121,7 +121,7 @@ class DialogueFormatTests(unittest.TestCase):
                 nodes = copy.deepcopy(report['groups'][0]['nodes'])
                 for rendered in (code, AurigaRenderer().render(item)):
                     self.assertEqual(rendered.count('while (1)'), 1)
-                    self.assertEqual(rendered.count('menu "again:exit",-;'), 1)
+                    self.assertEqual(rendered.count('select("again","exit")'), 1)
                     self.assertIn('continue;', rendered)
                     self.assertIn(marker, rendered)
                 self.assertEqual(item, original)
@@ -129,9 +129,9 @@ class DialogueFormatTests(unittest.TestCase):
                 first = converging_menu(1, (3,), presentation=event)
                 second = converging_menu(2, (1, 1, 2), presentation=event)
                 _, joined = merged(first, second)
-                self.assertEqual(joined.count('menu "outer one:outer two",-;'), 1)
+                self.assertEqual(joined.count('menu "outer one","outer two";'), 1)
                 self.assertEqual(joined.count('mes "same response";'), 1)
-                self.assertEqual(joined.count('menu "explain:sign:leave",-;'), 1)
+                self.assertEqual(joined.count('select("explain","sign","leave")'), 1)
                 self.assertNotIn('未観測の分岐', joined)
                 self.assertIn(marker, joined)
                 _, separate = merged(first, converging_menu(2, (1, 1, 2), presentation=variant))
@@ -142,10 +142,10 @@ class DialogueFormatTests(unittest.TestCase):
         second = converging_menu(2, (1, 1, 2))
         before = copy.deepcopy((first, second))
         report, code = merged(first, second)
-        self.assertEqual(code.count('menu "outer one:outer two",-;'), 1)
+        self.assertEqual(code.count('menu "outer one","outer two";'), 1)
         self.assertEqual(code.count('mes "same response";'), 1)
-        self.assertEqual(code.count('menu "explain:sign:leave",-;'), 1)
-        self.assertEqual(code.count('switch (@menu)'), 1)
+        self.assertEqual(code.count('select("explain","sign","leave")'), 1)
+        self.assertEqual(code.count("switch ('@menu)"), 1)
         self.assertEqual(code.count('while (1)'), 1)
         self.assertIn('continue;', code)
         self.assertNotIn('未観測の分岐', code)
@@ -158,16 +158,16 @@ class DialogueFormatTests(unittest.TestCase):
             with self.subTest(options=options):
                 _, separate = merged(converging_menu(1, (3,), **options),
                                      converging_menu(2, (1, 1, 2), **options))
-                self.assertGreater(separate.count('switch (@menu)'), 1)
-                self.assertEqual(separate.count('menu "explain:sign:leave",-;'), 2)
+                self.assertGreater(separate.count("switch ('@menu)"), 1)
+                self.assertEqual(separate.count('select("explain","sign","leave")'), 2)
                 self.assertIn('未観測の分岐', separate)
         _, partial = merged(second)
         self.assertIn('未観測の分岐', partial)
-        self.assertEqual(partial.count('switch (@menu)'), 2)
+        self.assertEqual(partial.count("switch ('@menu)"), 2)
         renderer = AurigaRenderer()
         nodes = report['groups'][0]['nodes']
         preserved = renderer._render_nodes(nodes, [], allow_identical_menu=False)
-        self.assertEqual(preserved.count('menu "explain:sign:leave",-;'), 2)
+        self.assertEqual(preserved.count('select("explain","sign","leave")'), 2)
 
     def test_repeated_menu_returns_use_one_while_and_keep_variants_unknowns_and_evidence(self):
         renderer = AurigaRenderer()
@@ -180,8 +180,8 @@ class DialogueFormatTests(unittest.TestCase):
                 nodes_before = copy.deepcopy(group['nodes'])
                 for code in (renderer.render(item), renderer.render_merged(group)):
                     self.assertEqual(code.count('while (1) {'), 1)
-                    self.assertEqual(code.count('menu "again:exit:unseen",-;'), 1)
-                    self.assertEqual(code.count('switch (@menu)'), 1)
+                    self.assertEqual(code.count('select("again","exit","unseen")'), 1)
+                    self.assertEqual(code.count("switch ('@menu)"), 1)
                     self.assertIn('continue;', code)
                     self.assertIn('case 3:', code)
                     self.assertIn('未観測の分岐', code)
@@ -197,7 +197,7 @@ class DialogueFormatTests(unittest.TestCase):
             renderer.render_merged(group, max_pending_actions=2)
         long_code = renderer.render(returning_menu(answers=('help',) * 40))
         self.assertEqual(long_code.count('while (1)'), 1)
-        self.assertEqual(long_code.count('switch (@menu)'), 1)
+        self.assertEqual(long_code.count("switch ('@menu)"), 1)
         self.assertEqual(long_code.count('mes "help";'), 1)
         single = returning_menu(answers=('help',))
         for step in single.steps:
@@ -206,7 +206,7 @@ class DialogueFormatTests(unittest.TestCase):
             elif step['kind'] == 'choice':
                 step['fields']['value'] = 1
         single_code = renderer.render(single)
-        self.assertEqual(single_code.count('menu "again",-;'), 1)
+        self.assertEqual(single_code.count('menu "again";'), 1)
         self.assertIn('while (1)', single_code)
         self.assertNotIn('switch', single_code)
 
@@ -219,7 +219,7 @@ class DialogueFormatTests(unittest.TestCase):
                 code = renderer.render(item)
                 self.assertNotIn('while (1)', code)
                 self.assertNotIn('continue;', code)
-                self.assertEqual(code.count('switch (@menu)'), 2)
+                self.assertEqual(code.count("switch ('@menu)"), 2)
                 self.assertIn('mes "bye";', code)
                 if barrier == 'input':
                     self.assertIn('入力数: 0', code)
@@ -242,7 +242,7 @@ class DialogueFormatTests(unittest.TestCase):
                         cause_confirmed=False, timestamp=item.started, packet_index=4, packet_id=0xb41,
                         connection='half', source='NPCAP')]
                 report, code = merged(first, second)
-                self.assertEqual('switch (@menu)' in code, not same)
+                self.assertEqual("switch ('@menu)" in code, not same)
                 self.assertIn('NPC起因', code)
                 self.assertNotIn('getitem ', code)
     def test_npc_file_wraps_single_and_merged_bodies_without_changing_structure(self):
@@ -252,7 +252,7 @@ class DialogueFormatTests(unittest.TestCase):
         for selected in (None, group):
             body = renderer.render_merged(selected) if selected is not None else renderer.render(first)
             result = renderer.render_npc_file(first, selected)
-            self.assertIn('test.gat,10,20,0\tscript\t案内人\t45,{\n', result)
+            self.assertIn('test.gat,10,20,0\tscript\t案内人\t45,{/*', result)
             self.assertIn('\n'.join('    ' + line for line in body.rstrip('\n').split('\n')), result)
             self.assertTrue(result.endswith('}\n'))
             self.assertNotIn('OnTouch', result)
@@ -278,7 +278,7 @@ class DialogueFormatTests(unittest.TestCase):
     def test_single_option_has_no_switch_or_named_label(self):
         item = simple(options=('continue',))
         for code in (AurigaRenderer().render(item), merged(item)[1]):
-            self.assertIn('menu "continue",-;', code)
+            self.assertIn('menu "continue";', code)
             self.assertNotIn('switch', code)
             self.assertNotIn('goto ', code)
             self.assertIn('mes "answer";', code)
@@ -287,17 +287,17 @@ class DialogueFormatTests(unittest.TestCase):
         first, second = simple(1), simple(2)
         report, code = merged(first, second)
         self.assertEqual(report['groups'][0]['menus'][0]['observed'], [1, 2])
-        self.assertIn('menu "one:two",-;', code)
+        self.assertIn('menu "one","two";', code)
         self.assertNotIn('switch', code)
         self.assertEqual(code.count('mes "answer";'), 1)
 
     def test_partial_observation_never_claims_all_choices_are_identical(self):
         _, code = merged(simple(1))
-        self.assertIn('switch (@menu) {', code)
+        self.assertIn("switch ('@menu) {", code)
         self.assertIn('    case 1:', code)
         self.assertIn('    case 2:', code)
         self.assertIn('未観測の分岐', code)
-        self.assertEqual(code.count('break;'), 2)
+        self.assertEqual(code.count('break;'), 0)
 
     def test_same_first_line_but_different_suffix_remains_switch(self):
         first, second = simple(1), simple(2)
@@ -305,7 +305,7 @@ class DialogueFormatTests(unittest.TestCase):
         extra['fields']['text'] = 'different later message'
         second.steps.insert(-1, extra)
         _, code = merged(first, second)
-        self.assertIn('switch (@menu)', code)
+        self.assertIn("switch ('@menu)", code)
         self.assertIn('different later message', code)
 
     def test_unresolved_map_boundaries_do_not_prove_identical_complete_responses(self):
@@ -315,7 +315,7 @@ class DialogueFormatTests(unittest.TestCase):
             item.status = 'map_changed'
             item.termination = dict(packet_index=99, packet_id=0x91, timestamp=2, connection='half', direction='RECV')
         _, code = merged(first, second)
-        self.assertIn('switch (@menu)', code)
+        self.assertIn("switch ('@menu)", code)
 
     def test_numeric_input_variants_continue_in_annotated_blocks(self):
         report, code = merged(simple(options=(), value=12, answer='number A'),
@@ -337,8 +337,8 @@ class DialogueFormatTests(unittest.TestCase):
     def test_nested_switch_and_input_blocks_have_balanced_indentation(self):
         item = conversation(nested=True, input_prompt=True)
         _, code = merged(item)
-        self.assertEqual(code.count('switch (@menu)'), 2)
-        self.assertIn('        switch (@menu)', code)
+        self.assertEqual(code.count("switch ('@menu)"), 2)
+        self.assertIn("        switch ('@menu)", code)
         self.assertIn('                // 入力数: 1\n                {', code)
         self.assertIn('                    mes "one result";', code)
         openings = sum(line.strip() == '{' or line.strip().startswith('switch ') for line in code.splitlines())
@@ -356,7 +356,7 @@ class DialogueFormatTests(unittest.TestCase):
             path.write_text(json.dumps(document), encoding='utf-8')
             self.assertIn('// 入力数: 1\n{\n    mes ', AurigaRenderer(path).render(item))
             self.assertEqual(AurigaRenderer(path).templates['emotion'], 'emotion {value};')
-            self.assertIn('\tscript\t案内人\t45,{', AurigaRenderer(path).render_npc_file(item))
+            self.assertIn('\tscript\t案内人\t45,{/*', AurigaRenderer(path).render_npc_file(item))
             document['sound'] = '{sound.__class__}'
             path.write_text(json.dumps(document), encoding='utf-8')
             with self.assertRaises(ValueError):

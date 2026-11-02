@@ -55,7 +55,7 @@ class ActorAppearanceTests(unittest.TestCase):
                 npc=world.snapshot('NPC')['entities'][0];before=deepcopy(npc)
                 bundle=build_npc_bundle([npc],[])
                 code=bundle['auriga']
-                self.assertIn('\tscript\tGuide\t844,{',code)
+                self.assertIn('\tscript\tGuide\t844,{/*',code)
                 self.assertIn('OnInit:',code)
                 self.assertIn('setnpcdisplay "Guide",4001,1,3,7,9,21,22,23,24,5;',code)
                 self.assertEqual(npc['class_id'],4001)
@@ -72,7 +72,7 @@ class ActorAppearanceTests(unittest.TestCase):
         entity=display.world.snapshot('NPC')['entities'][0]
         self.assertEqual(entity['class_id'],139)
         bundle=build_npc_bundle([entity],[])
-        self.assertIn('\tscript\tGuide\t45,{}',bundle['auriga'])
+        self.assertIn('\tscript\tGuide\t45,{/* 42 */}',bundle['auriga'])
         self.assertEqual(display.decode(event).text,'')
 
     def test_out_of_sight_class_change_and_changed_reappearance_have_warning_comments(self):
@@ -105,7 +105,7 @@ class ActorAppearanceTests(unittest.TestCase):
         world.apply(packet(0x1b0,struct.pack('<IBI',42,0,139)))
         npc=world.snapshot('NPC')['entities'][0]
         code=build_npc_bundle([npc],[])['auriga']
-        self.assertIn('\tscript\tGuide\t844,{',code)
+        self.assertIn('\tscript\tGuide\t844,{/*',code)
         self.assertIn('setnpcdisplay "Guide",4001,1,3,7,9,21,22,23,24,5;',code)
         self.assertNotIn('setnpcdisplay "Guide",139;',code)
 
@@ -145,7 +145,7 @@ class ActorAppearanceTests(unittest.TestCase):
         consume(dialogue_packet(0xb4,struct.pack('<I',42)+b'hello\0',flow=None,connection='flow-a'))
         consume(packet(0xb6,struct.pack('<I',42)))
         report=build_npc_bundle([],store.sessions,merge=True)
-        self.assertIn('844,1,1,{',report['auriga'])
+        self.assertIn('844,1,1,{/*',report['auriga'])
         self.assertIn('OnTouch:',report['auriga'])
         self.assertIn('OnInit:',report['auriga'])
 
@@ -226,7 +226,7 @@ class ActorAppearanceTests(unittest.TestCase):
         expected='setnpcdisplay "Guide",4001,1,3,7,9,21,22,23,24,5;'
         for code in (renderer.render_npc_file(store.sessions[0],group),
                      build_npc_bundle(world.snapshot('NPC')['entities'],store.sessions,merge=True)['auriga']):
-            self.assertIn('\tscript\tGuide\t844,{',code)
+            self.assertIn('\tscript\tGuide\t844,{/*',code)
             self.assertEqual(code.count('OnInit:'),1)
             self.assertEqual(code.count(expected),1)
             self.assertNotIn('setnpcdisplay "Guide",139;',code)

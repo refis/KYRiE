@@ -26,15 +26,20 @@ CLOAKEDは同ログにはなく合成データで検証。初回観測を出力�
 配置形式は次のとおり。値は会話に保持された観測時のNPC情報を使用する。
 
 ```text
-map.gat,x,y,direction<TAB>script<TAB>NPC名<TAB>class_id,{
+map.gat,x,y,direction<TAB>script<TAB>NPC名<TAB>class_id,{/* actor_id */
     // 従来の会話本文候補
+
+OnInit:
+    waitingroom "…",0;
+    end;
 }
 ```
 
-実際の区切りはタブ。宣言・コメント・閉じ括弧は
-`config/auriga/dialogue.json` の `npc_file_header` / `npc_file_footer` で変更できる。
+実際の区切りはタブ。宣言先頭へ観測ActorIDを`{/* … */}`で挿入する。
+宣言・コメント・閉じ括弧は`config/auriga/dialogue.json` の `npc_file_header` / `npc_file_footer` で変更できる。
 古いプロファイルにこのキーがない場合は同梱の既定値を補う。
-本文のインデントは既存indentを1段追加する。本文そのものの分岐・入力・矛盾処理は変更しない。
+本文のインデントは既存indentを1段追加するが、`OnInit:` / `OnTouch:` ラベル行はインデントしない。
+設定の「NPC本文インデント」でスペース4つ／タブを選べる。
 
 ## 不足・不正な配置情報
 
