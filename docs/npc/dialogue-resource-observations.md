@@ -29,6 +29,7 @@
 直前の未関連クエストへ結び `quest_info_links` へ保持する。
 コード生成では該当NPCの `OnQuestInfo:` に
 `showevent {state}, {kind}, "{NPC名}";	// {quest_id}: {x}, {y}` を追加する（Auriga）。
+単一会話・統合本文・配置付き一括出力のいずれでも、OnInitの後へ付与する。
 関連付け済みの event_marker は会話本文・外部コメントへは出さない。
 GUIの会話詳細「クエスト」タブで関連付けの時系列を確認できる。
 
