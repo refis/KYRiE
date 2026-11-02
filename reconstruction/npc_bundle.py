@@ -11,6 +11,7 @@ from collections import Counter
 from reconstruction.auriga import AurigaRenderer
 from reconstruction.branches import build_merged, conversation_path
 from reconstruction.entity_metadata import render_npc_initialization
+from reconstruction.quest_info import append_quest_info, collect_quest_info_links
 from reconstruction.npc_initial_state import visibility_state
 from reconstruction.shop_export import ShopRenderer, shop_name_for
 from reconstruction.barter_export import BarterRenderer, barter_name_for
@@ -167,6 +168,13 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             if not body:
                 body = renderer.templates['end']
             body += '\n\n' + initialization.rstrip()
+        # include_initialization=False above; attach OnQuestInfo after OnInit the same way.
+        quest_links = collect_quest_info_links(*items)
+        if quest_links:
+            if not body:
+                body = renderer.templates['end']
+            body = append_quest_info(body, quest_links, renderer.templates,
+                                    map_name=bucket['npc'].get('map_name')).rstrip()
         npc = deepcopy(bucket['npc'])
         touches = [row['touch'] for row in bucket['metadata'] if is_touch(row)]
         if touches:
