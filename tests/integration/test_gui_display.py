@@ -338,6 +338,29 @@ class DisplayGuiTests(WindowTestCase):
         change.assert_called_once_with('ids',128,True)
         self.assertEqual(w.db.db.execute('SELECT COUNT(*) FROM packets').fetchone()[0],1006)
 
+    def test_memory_eviction_keeps_db_evidence_and_never_drops_unsaved(self):
+        from events import PacketEvent
+        w=self.window
+        w.memory_event_limit=20
+        for index in range(25):
+            w.add_packet(PacketEvent(index,'RECV',127,b'\x7f\0abcd','TEST','flow'))
+        self.assertEqual(w.event_origin,5)
+        self.assertEqual(len(w.events),20)
+        self.assertEqual(w.packet_db_confirmed,25)
+        self.assertEqual(w.db.db.execute('SELECT COUNT(*) FROM packets').fetchone()[0],25)
+        self.assertIn('退避 5',w.counter.text())
+        w.show_entity_source(0)
+        self.assertIn('退避済み Packet #0',w.hex.toPlainText())
+        self.assertIn('0x007F',w.hex.toPlainText())
+        w.show_entity_source(24)
+        self.assertEqual(w.selected_packet_index(),24)
+        w.database_failed=True
+        before=w.event_origin
+        for index in range(25,30):
+            w.add_packet(PacketEvent(index,'RECV',128,b'\x80\0efgh','TEST','flow'))
+        self.assertEqual(w.event_origin,before)
+        self.assertGreaterEqual(len(w.events),20)
+
     def test_bounded_observation_document_saves_full_matching_history(self):
         from unittest.mock import Mock
         from parser.display import DisplayResult
