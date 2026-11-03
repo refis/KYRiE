@@ -391,7 +391,7 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
   実行採用: emotion／effect／effect_remove／announce／unittalk／対象NPC自身のoverhead。
   コメント採用: effect_value／event_marker／hat_effect／colored_speech。
   classchange 手動タイマーは setnpcdisplay 実行命令候補（対象NPC・会話外）。
-  会話外 0x0229 の visibility_action は hideonnpc／cloak* 実行命令候補（対象NPC自身のみ）。
+  会話外 0x0229 の visibility_action は cloak*（自身）と hide（インスタンスMAP・自身）の実行命令候補。
   sound／music／viewpoint／progressbar／mapcell等は明示拒否。開始条件は生成しない。
   本体での読込・実行確認は残る。OnTimer値・sleep命令・イベントラベルが元コードと一致するとは扱わない。
 - 完了条件: 単発や欠損ログを自動でタイマー化せず、演出の相違が注意として残り、
