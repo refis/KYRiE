@@ -30,7 +30,7 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 
 ## 出力範囲
 
-手動採用できる演出（対象NPC自身・会話外。announceは選択窓の関連候補）:
+手動採用できる演出（対象NPC自身・会話外。announce／cutinは選択窓の関連候補）:
 
 | 種別 | 出力 |
 |------|------|
@@ -38,7 +38,7 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | unittalk | 実行命令（unittalk） |
 | overhead | 実行命令（showmessage）。対象NPC自身のみ |
 | announcement | announce（関連候補・起因未確定の注記付き） |
-| effect_value / hat_effect / colored_speech / progressbar | **全行コメント**。実行命令へ落とさない（progressbarの秒数をOnTimer値やsleepへ使わない） |
+| effect_value / hat_effect / colored_speech / progressbar / cutin | **全行コメント**。実行命令へ落とさない（progressbarの秒数をOnTimer値やsleepへ使わない。cutinは窓内関連・起因未確定） |
 | event_marker | 実行命令 `showevent {state}, {kind}; // {x}, {y}`（対象NPC自身・会話外。座標は注記）。rAthena書式は確認コメントのまま可 |
 | classchange | 実行命令 `setnpcdisplay {NPC名},{class_id};`（対象NPC自身・会話外の手動採用時）。kind は根拠のみ |
 | visibility_action | `cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし。自身発生は受信者本人のみのため採用可）。`hideonnpc;`／`hideoffnpc;`はインスタンスマップ（MAP名に`@`）上の自身向けのみ。通常MAPの hide・他NPC向け target 付きは拒否 |

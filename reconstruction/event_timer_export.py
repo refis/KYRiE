@@ -8,14 +8,16 @@ from pathlib import Path
 from string import Formatter
 from reconstruction.actor_appearance import VISUAL_FIELDS, render_display
 from reconstruction.announcements import template_values as announcement_values
-from reconstruction.event_trials import announcement_in_scope
+from reconstruction.event_trials import unassigned_in_scope
 from reconstruction.instance_names import npc_name as base_npc_name
 
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-    'visibility_action', 'viewpoint', 'npc_display_action', 'progressbar'))
-COMMENT_TIMER_KINDS = frozenset(('effect_value', 'hat_effect', 'colored_speech', 'progressbar'))
+    'visibility_action', 'viewpoint', 'npc_display_action', 'progressbar', 'cutin'))
+COMMENT_TIMER_KINDS = frozenset(
+    ('effect_value', 'hat_effect', 'colored_speech', 'progressbar', 'cutin'))
+UNASSIGNED_TIMER_KINDS = frozenset(('announcement', 'cutin'))
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
 VISIBILITY_TIMER_COMMANDS = HIDE_TIMER_COMMANDS | CLOAK_TIMER_COMMANDS
@@ -31,6 +33,7 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'hat_effect': {'enabled', 'effect_id'},
           'colored_speech': {'color_hex', 'text'},
           'progressbar': {'seconds', 'color_hex'},
+          'cutin': {'image', 'position'},
           'classchange': {'target', 'class_id'},
           'visibility_action': {'command'},
           'viewpoint': {'kind', 'x', 'y', 'marker_id', 'color'},
@@ -41,7 +44,7 @@ ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
                          'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'progressbar',
-                         'classchange', 'visibility_action', 'viewpoint', 'npc_display_action')
+                         'cutin', 'classchange', 'visibility_action', 'viewpoint', 'npc_display_action')
 
 
 def _timer_profile(path=None):
@@ -139,6 +142,13 @@ def _validate_observation_fields(row):
                 or type(fields['color']) is not int or not 0 <= fields['color'] <= 0xffffffff):
             raise ValueError('progressbarの観測値が不正です。コメント採用のみで待機命令へは変換しません。')
         return
+    if kind == 'cutin':
+        # Unassigned UI overlay: comment evidence only; ownership is not proven.
+        if (set(fields) != {'image', 'position'}
+                or not isinstance(fields['image'], str) or len(fields['image']) > 64
+                or type(fields['position']) is not int or not 0 <= fields['position'] <= 255):
+            raise ValueError('cutinの観測値が不正です。コメント採用のみで実行命令へは変換しません。')
+        return
     if kind == 'classchange':
         if (set(fields) != {'class_id', 'kind'}
                 or type(fields['class_id']) is not int or not 0 <= fields['class_id'] <= 65535
@@ -222,7 +232,7 @@ def validate_timer_trial(report, trial_index):
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'イベントアイコンの showevent、外見変更の setnpcdisplay（01B0／会話外09xx含む）、'
             '表示状態の cloak（自身）、インスタンスマップ上の hide、対応範囲内の viewpoint、'
-            'およびコメント採用の値付きエフェクト・帽子／色付き発言・progressbar に対応しています。'
+            'およびコメント採用の値付きエフェクト・帽子／色付き発言・progressbar・cutin に対応しています。'
             'sound／music／progress_action／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
@@ -236,9 +246,12 @@ def validate_timer_trial(report, trial_index):
         raise ValueError('対象NPCを観測した会話外の演出基準点が必要です。')
     for event in trial['events']:
         row, offset = event['observation'], event['offset_ms']
-        related_announcement = (row.get('context') == 'outside_dialogue' and announcement_in_scope(row, anchor)
+        related_unassigned = (
+            row.get('kind') in UNASSIGNED_TIMER_KINDS
+            and row.get('context') == 'outside_dialogue'
+            and unassigned_in_scope(row, anchor, UNASSIGNED_TIMER_KINDS)
             and event.get('association_basis') == 'selected_timer_window_same_flow')
-        if not related_announcement and (row.get('entity_kind') != 'NPC' or row.get('target_observed') is not True
+        if not related_unassigned and (row.get('entity_kind') != 'NPC' or row.get('target_observed') is not True
                 or row.get('context') != 'outside_dialogue' or scope(row) != scope(anchor)
                 or any(row.get('npc', {}).get(key) != value for key, value in identity.items())):
             raise ValueError('演出の対象・配置・取得範囲が一致しません。')
@@ -373,6 +386,9 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         elif row['kind'] == 'progressbar':
             emit('progressbar', True, seconds=row['fields']['seconds'],
                  color_hex=f"{row['fields']['color'] & 0xffffff:06X}")
+        elif row['kind'] == 'cutin':
+            emit('cutin', True, image=json.dumps(row['fields']['image'], ensure_ascii=False),
+                 position=row['fields']['position'])
         elif row['kind'] == 'classchange':
             target = json.dumps(base_npc_name(identity['name'], identity.get('map_name')),
                                 ensure_ascii=False)
