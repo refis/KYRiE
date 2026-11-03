@@ -13,6 +13,7 @@
   "event_marker": "// showevent {state}, {kind}; // {x}, {y}。rAthenaのshowevent対応は未確定。",
   "hat_effect": "// 帽子エフェクト観測: enabled={enabled}, effect={effect_id}。hateffect等は未生成。",
   "colored_speech": "// 色付きユニット発言観測: color=0x{color_hex}, text={text}。unittalkへは変換しない。",
+  "progressbar": "// progressbar観測: seconds={seconds}, color=0x{color_hex}。待機命令・OnTimer値へは変換しない。",
   "classchange": "setnpcdisplay({target},{class_id});",
   "visibility_action": "{command};",
   "viewpoint": "viewpoint {kind},{x},{y},{marker_id},{color};",

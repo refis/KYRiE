@@ -123,7 +123,7 @@ class EventTimerExportTests(unittest.TestCase):
         for fields in changes:
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation'].update(fields)
             with self.subTest(fields=fields),self.assertRaises(ValueError):validate_timer_trial(changed,0)
-        for kind in ('music','sound','progressbar','progress_action','status_action',
+        for kind in ('music','sound','progress_action','status_action',
                      'script_command','mapcell','dialogue_size'):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation']['kind']=kind
             with self.subTest(kind=kind),self.assertRaises(ValueError):validate_timer_trial(changed,0)
@@ -173,6 +173,8 @@ class EventTimerExportTests(unittest.TestCase):
         self.assertEqual(report,before)
 
     def test_overhead_and_comment_timer_kinds_are_manually_adoptable(self):
+        from pathlib import Path
+        import tempfile
         report = repeated_report('overhead')
         for trial in report['trials']:
             trial['events'][1]['observation']['fields'] = {'text': '頭上"}'}
@@ -185,6 +187,20 @@ class EventTimerExportTests(unittest.TestCase):
         self.assertIn('effect=7, value=9', text)
         self.assertTrue(any(line.lstrip().startswith('//') and 'effect=7, value=9' in line
                             for line in text.splitlines()))
+        progress = repeated_report('progressbar')
+        for trial in progress['trials']:
+            trial['events'][1]['observation']['fields'] = {'seconds': 3, 'color': 0x123456}
+        progress_code = build_timer_candidate(progress, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'seconds=3' in line and '0x123456' in line
+                            for line in progress_code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('progressbar ') for line in progress_code.splitlines()))
+        with tempfile.TemporaryDirectory() as folder:
+            profile = Path(folder) / 'event_timers.json'
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            templates['progressbar'] = 'progressbar {seconds},0x{color_hex};'
+            profile.write_text(json.dumps(templates), encoding='utf-8')
+            with self.assertRaises(ValueError):
+                build_timer_candidate(progress, 0, [100, 1100], confirmed=True, profile=profile)
 
     def test_npc_display_action_timer_emits_setnpcdisplay_for_identity_npc(self):
         report = repeated_report('npc_display_action')
