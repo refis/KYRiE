@@ -74,7 +74,7 @@ def _unassigned_related(row,anchor,mode):
                 or row.get('association_basis') != 'same_flow_active_dialogue_layout'
                 or row.get('conversation_start_packet_index') != anchor.get('packet_index')):
             return False
-    related=unassigned_in_scope(row,anchor,('announcement','music','mapcell') + layouts)
+    related=unassigned_in_scope(row,anchor,('announcement','music','mapcell','cutin') + layouts)
     return related and (mode!='map_arrival' or event_scope(row,mode)==event_scope(anchor,mode))
 
 

@@ -132,13 +132,26 @@ class EventTimerExportTests(unittest.TestCase):
         event['observation'].update(kind='announcement',actor_id=None,target_observed=False,
             entity_kind='unresolved',npc={},fields={'text':'notice','broadcast_prefix':None})
         self.assertIn('announce "notice",0;',build_timer_candidate(announcement,0,[100,1100],confirmed=True)['auriga'])
+        cutin=deepcopy(report);cutin_event=cutin['trials'][0]['events'][1]
+        cutin_event['association_basis']='selected_timer_window_same_flow'
+        cutin_event['observation'].update(kind='cutin',actor_id=None,target_observed=False,
+            entity_kind='unresolved',npc={},fields={'image':'kafra.bmp','position':2})
+        cutin_code=build_timer_candidate(cutin,0,[100,1100],confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'cutin観測' in line
+                            and '"kafra.bmp"' in line and 'position=2' in line
+                            for line in cutin_code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('cutin ') for line in cutin_code.splitlines()))
         for key,value in (('context','input_wait'),('context','close_wait'),('flow_id','other'),('capture_session',9),
                           ('map_context',{'map_name':'other.gat','map_generation':1}),
                           ('map_context',{'map_name':'test.gat','map_generation':2})):
             changed=deepcopy(announcement);changed['trials'][0]['events'][1]['observation'][key]=value
             with self.subTest(key=key,value=value),self.assertRaises(ValueError):validate_timer_trial(changed,0)
+            changed_cutin=deepcopy(cutin);changed_cutin['trials'][0]['events'][1]['observation'][key]=value
+            with self.subTest(cutin_key=key,value=value),self.assertRaises(ValueError):validate_timer_trial(changed_cutin,0)
         changed=deepcopy(announcement);changed['trials'][0]['events'][1].pop('association_basis')
         with self.assertRaises(ValueError):validate_timer_trial(changed,0)
+        changed_cutin=deepcopy(cutin);changed_cutin['trials'][0]['events'][1].pop('association_basis')
+        with self.assertRaises(ValueError):validate_timer_trial(changed_cutin,0)
         self.assertEqual(report,before)
 
     def test_self_unittalk_manual_export_preserves_text_and_rejects_unsafe_profile_or_target(self):
@@ -201,6 +214,17 @@ class EventTimerExportTests(unittest.TestCase):
             profile.write_text(json.dumps(templates), encoding='utf-8')
             with self.assertRaises(ValueError):
                 build_timer_candidate(progress, 0, [100, 1100], confirmed=True, profile=profile)
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            templates['cutin'] = 'cutin {image},{position};'
+            profile.write_text(json.dumps(templates), encoding='utf-8')
+            cutin = deepcopy(report)
+            cutin['trials'][0]['events'][1].update(
+                association_basis='selected_timer_window_same_flow')
+            cutin['trials'][0]['events'][1]['observation'].update(
+                kind='cutin', actor_id=None, target_observed=False, entity_kind='unresolved',
+                npc={}, fields={'image':'a.bmp', 'position':1})
+            with self.assertRaises(ValueError):
+                build_timer_candidate(cutin, 0, [100, 1100], confirmed=True, profile=profile)
 
     def test_npc_display_action_timer_emits_setnpcdisplay_for_identity_npc(self):
         report = repeated_report('npc_display_action')
