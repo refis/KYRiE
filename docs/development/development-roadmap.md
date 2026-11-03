@@ -182,8 +182,9 @@ MARiA差分表を現行実装に合わせ、配置一括出力・通常shop・MO
 待機中の表示設定は正常側との値・順序・件数・区間の完全一致を条件に未応答終了の統合へ対応。
 元観測を保持し正常側から一度だけ命令生成。4入力種別と差分・不正根拠を対象10項目で確認。
 実ログ20会話・10群の生成コードと既存の未応答統合2件は不変。待機中設定＋未応答終了の実例は未確認。
-イベントアイコン（0446）は `event_marker` として構造化保持し、実行命令・タイマー採用は出さない。
-未対応通知の対照は[未対応通知](../npc/unsupported-notifications.md)。成功・待機時間・中断原因は補完しない。
+イベントアイコン（0446）は `event_marker` として構造化保持する。会話本文の単独 showevent は出さず、
+OnQuestInfo 関連付けと手動タイマーの showevent 候補へ進めた（詳細は[未対応通知](../npc/unsupported-notifications.md)）。
+成功・待機時間・中断原因は補完しない。
 起因・隠れた変数やOnTimer値を自動生成せず、既存の手動採用・時刻入力を維持する。
 外見変更履歴は選択中の視界区間の保持分に限定し、未観測の変更を補完しない。
 NPCのdropitem候補に必要な既存の短期相関・重複抑制は維持する。床アイテム消滅だけで新規生成と断定しない。
@@ -389,10 +390,11 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
 - 最初は候補と根拠を保存。利用者が採用した観測に限り、編集用の待機／タイマー形式へ出力する。
   [手動採用・全時刻手入力のNPCタイマー候補](../npc/event-timer-candidates.md)を追加済み。
   実行採用: emotion／effect／effect_remove／announce／unittalk／対象NPC自身のoverhead。
-  コメント採用: effect_value／event_marker／hat_effect／colored_speech。
+  コメント採用: effect_value／hat_effect／colored_speech。
   classchange 手動タイマーは setnpcdisplay 実行命令候補（対象NPC・会話外）。
   会話外 0x0229 の visibility_action は cloak*（自身）と hide（インスタンスMAP・自身）の実行命令候補。
   viewpoint 手動タイマーは会話と同じ対応範囲（種別1／2・座標範囲）の実行命令候補。
+  event_marker 手動タイマーは showevent 実行命令候補（座標は注記）。
   sound／music／progressbar／mapcell等は明示拒否。開始条件は生成しない。
   本体での読込・実行確認は残る。OnTimer値・sleep命令・イベントラベルが元コードと一致するとは扱わない。
 - 完了条件: 単発や欠損ログを自動でタイマー化せず、演出の相違が注意として残り、

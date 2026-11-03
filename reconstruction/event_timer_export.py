@@ -14,7 +14,7 @@ TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
     'visibility_action', 'viewpoint'))
-COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'hat_effect', 'colored_speech'))
+COMMENT_TIMER_KINDS = frozenset(('effect_value', 'hat_effect', 'colored_speech'))
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
 VISIBILITY_TIMER_COMMANDS = HIDE_TIMER_COMMANDS | CLOAK_TIMER_COMMANDS
@@ -194,7 +194,7 @@ def validate_timer_trial(report, trial_index):
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'コメント採用の値付きエフェクト・イベントアイコン・帽子／色付き発言、'
             '外見変更の setnpcdisplay、表示状態の cloak（自身）、インスタンスマップ上の hide、'
-            'および対応範囲内の viewpoint 候補に対応しています。'
+            '対応範囲内の viewpoint、およびイベントアイコンの showevent 候補に対応しています。'
             'sound／music／progressbar／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
@@ -300,6 +300,12 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
                         rf'[ \t]*{re.escape(values["color"])}[ \t]*;')
             if not re.fullmatch(expected, text):
                 raise ValueError('viewpoint書式の種別・座標・色が観測内容と一致しません。')
+        if key == 'event_marker' and not comment_only:
+            # Self-form showevent; observed map coordinates stay in a trailing comment.
+            expected = (rf'showevent[ \t]+{values["state"]}[ \t]*,[ \t]*{values["kind"]}[ \t]*;'
+                        rf'[ \t]*//[ \t]*{values["x"]}[ \t]*,[ \t]*{values["y"]}[ \t]*')
+            if not re.fullmatch(expected, text):
+                raise ValueError('イベントアイコン書式の showevent が観測内容と一致しません。')
         for line in text.split('\n'):
             line = (templates['indent'] if indent else '') + line
             size += len(line) + 1

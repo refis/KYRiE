@@ -178,17 +178,39 @@ class EventTimerExportTests(unittest.TestCase):
             trial['events'][1]['observation']['fields'] = {'text': '頭上"}'}
         code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
         self.assertIn('showmessage ' + json.dumps('頭上"}', ensure_ascii=False) + ';', code)
-        for kind, fields, needle in (
-                ('effect_value', {'effect_id': 7, 'value': 9}, 'effect=7, value=9'),
-                ('event_marker', {'x': 1, 'y': 2, 'state': 3, 'kind': 4}, 'state=3, kind=4, x=1, y=2')):
-            with self.subTest(kind=kind):
-                sample = repeated_report(kind)
-                for trial in sample['trials']:
-                    trial['events'][1]['observation']['fields'] = fields
-                text = build_timer_candidate(sample, 0, [100, 1100], confirmed=True)['auriga']
-                self.assertIn(needle, text)
-                self.assertTrue(any(line.lstrip().startswith('//') and needle in line
-                                    for line in text.splitlines()))
+        sample = repeated_report('effect_value')
+        for trial in sample['trials']:
+            trial['events'][1]['observation']['fields'] = {'effect_id': 7, 'value': 9}
+        text = build_timer_candidate(sample, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('effect=7, value=9', text)
+        self.assertTrue(any(line.lstrip().startswith('//') and 'effect=7, value=9' in line
+                            for line in text.splitlines()))
+
+    def test_event_marker_timer_emits_showevent_with_coordinate_comment(self):
+        from pathlib import Path
+        import tempfile
+        report = repeated_report('event_marker')
+        fields = {'x': 1, 'y': 2, 'state': 3, 'kind': 4}
+        for trial in report['trials']:
+            trial['events'][1]['observation']['fields'] = deepcopy(fields)
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('showevent 3, 4; // 1, 2', code)
+        self.assertFalse(any(line.lstrip().startswith('//') and 'showevent' in line
+                             for line in code.splitlines()))
+        with tempfile.TemporaryDirectory() as folder:
+            profile = Path(folder) / 'event_timers.json'
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            for bad in ('showevent 9, 4; // 1, 2', 'showevent 3, 4;',
+                        'showevent 3, 4; // 9, 2'):
+                templates['event_marker'] = bad
+                profile.write_text(json.dumps(templates), encoding='utf-8')
+                with self.subTest(template=bad), self.assertRaises(ValueError):
+                    build_timer_candidate(report, 0, [100, 1100], confirmed=True, profile=profile)
+        # rAthena profile may keep showevent commented until confirmed.
+        rathena = Path('config/rathena/event_timers.json')
+        commented = build_timer_candidate(report, 0, [100, 1100], confirmed=True, profile=rathena)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'showevent 3, 4' in line
+                            for line in commented.splitlines()))
 
     def test_classchange_timer_emits_setnpcdisplay_for_identity_npc(self):
         from pathlib import Path
