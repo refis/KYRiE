@@ -180,8 +180,7 @@ class EventTimerExportTests(unittest.TestCase):
         self.assertIn('showmessage ' + json.dumps('頭上"}', ensure_ascii=False) + ';', code)
         for kind, fields, needle in (
                 ('effect_value', {'effect_id': 7, 'value': 9}, 'effect=7, value=9'),
-                ('event_marker', {'x': 1, 'y': 2, 'state': 3, 'kind': 4}, 'state=3, kind=4, x=1, y=2'),
-                ('classchange', {'class_id': 1002, 'kind': 1}, 'class=1002, kind=1')):
+                ('event_marker', {'x': 1, 'y': 2, 'state': 3, 'kind': 4}, 'state=3, kind=4, x=1, y=2')):
             with self.subTest(kind=kind):
                 sample = repeated_report(kind)
                 for trial in sample['trials']:
@@ -190,6 +189,30 @@ class EventTimerExportTests(unittest.TestCase):
                 self.assertIn(needle, text)
                 self.assertTrue(any(line.lstrip().startswith('//') and needle in line
                                     for line in text.splitlines()))
+
+    def test_classchange_timer_emits_setnpcdisplay_for_identity_npc(self):
+        from pathlib import Path
+        import tempfile
+        report = repeated_report('classchange')
+        for trial in report['trials']:
+            trial['events'][1]['observation']['fields'] = {'class_id': 1002, 'kind': 1}
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('setnpcdisplay "NPC",1002;', code)
+        self.assertFalse(any(line.lstrip().startswith('//') and 'setnpcdisplay' in line
+                             for line in code.splitlines()))
+        with tempfile.TemporaryDirectory() as folder:
+            profile = Path(folder) / 'event_timers.json'
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            for bad in ('setnpcdisplay "Other",1002;', 'setnpcdisplay "NPC",999;',
+                        '// setnpcdisplay {target},{class_id};'):
+                templates['classchange'] = bad
+                profile.write_text(json.dumps(templates), encoding='utf-8')
+                with self.subTest(template=bad), self.assertRaises(ValueError):
+                    build_timer_candidate(report, 0, [100, 1100], confirmed=True, profile=profile)
+        oversized = deepcopy(report)
+        oversized['trials'][0]['events'][1]['observation']['fields'] = {'class_id': 70000, 'kind': 1}
+        with self.assertRaises(ValueError):
+            build_timer_candidate(oversized, 0, [100, 1100], confirmed=True)
 
     def test_unittalk_audit_is_preliminary_bounded_and_keeps_source_reasons(self):
         from tools.audit_event_trial_review import review_unittalk

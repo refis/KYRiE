@@ -8,11 +8,12 @@ from pathlib import Path
 from string import Formatter
 from reconstruction.announcements import template_values as announcement_values
 from reconstruction.event_trials import announcement_in_scope
+from reconstruction.instance_names import npc_name as base_npc_name
 
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange'))
-COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange'))
+COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'hat_effect', 'colored_speech'))
 
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'event_timers.json'
 MAX_CONFIGURED_BYTES = 32 * 1024 * 1024
@@ -24,7 +25,7 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'event_marker': {'x', 'y', 'state', 'kind'},
           'hat_effect': {'enabled', 'effect_id'},
           'colored_speech': {'color_hex', 'text'},
-          'classchange': {'class_id', 'kind'},
+          'classchange': {'target', 'class_id'},
           'label_end': set()}
 ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
     'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
@@ -123,7 +124,7 @@ def _validate_observation_fields(row):
         return
     if kind == 'classchange':
         if (set(fields) != {'class_id', 'kind'}
-                or type(fields['class_id']) is not int or not 0 <= fields['class_id'] <= 2147483647
+                or type(fields['class_id']) is not int or not 0 <= fields['class_id'] <= 65535
                 or type(fields['kind']) is not int or not 0 <= fields['kind'] <= 255):
             raise ValueError('外見変更の観測値が不正です。')
         return
@@ -153,7 +154,8 @@ def validate_timer_trial(report, trial_index):
         raise ValueError(
             '未対応演出: '+kinds+'。この試行は比較のみです。'
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
-            'およびコメント採用の値付きエフェクト・イベントアイコン・外見変更に対応しています。'
+            'コメント採用の値付きエフェクト・イベントアイコン・帽子／色付き発言、'
+            'および外見変更の setnpcdisplay 候補に対応しています。'
             'sound／music／viewpoint／progressbar／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
@@ -234,6 +236,15 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             raise ValueError('ユニット発言書式の命令・本文が観測内容と一致しません。')
         if key == 'overhead' and not comment_only and text != 'showmessage '+values['text']+';':
             raise ValueError('頭上メッセージ書式の命令・本文が観測内容と一致しません。')
+        if key == 'classchange':
+            if comment_only:
+                raise ValueError('外見変更は setnpcdisplay 実行命令にしてください。')
+            target = re.escape(values['target'])
+            class_id = str(values['class_id'])
+            auriga = rf'setnpcdisplay[ \t]+{target}[ \t]*,[ \t]*{class_id}[ \t]*;'
+            rathena = rf'setnpcdisplay[ \t]*\([ \t]*{target}[ \t]*,[ \t]*{class_id}[ \t]*\)[ \t]*;'
+            if not re.fullmatch(auriga, text) and not re.fullmatch(rathena, text):
+                raise ValueError('外見変更書式の setnpcdisplay 対象・class が観測内容と一致しません。')
         for line in text.split('\n'):
             line = (templates['indent'] if indent else '') + line
             size += len(line) + 1
@@ -266,7 +277,11 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             emit('colored_speech', True, color_hex=f"{row['fields']['color']:08X}",
                  text=json.dumps(row['fields']['text'], ensure_ascii=False))
         elif row['kind'] == 'classchange':
-            emit('classchange', True, class_id=row['fields']['class_id'], kind=row['fields']['kind'])
+            target = json.dumps(base_npc_name(identity['name'], identity.get('map_name')),
+                                ensure_ascii=False)
+            if '@' in (identity.get('map_name') or ''):
+                target = 'getmdnpcname(' + target + ')'
+            emit('classchange', True, target=target, class_id=row['fields']['class_id'])
         else:
             emit(row['kind'], True, value=row['fields']['value'])
         previous_time = time
