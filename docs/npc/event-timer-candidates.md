@@ -49,8 +49,9 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 sound、music、progress_action、mapcell、会話レイアウト、
 status_action、script_command など。
 効果音・BGMはプレイヤー紐付けが必要で、NPCタイマー本文へ置いても同動作を再現できない。
-対象ActorIDのない 02F0 progressbar や会話アクション経路の progress_action は従来どおり拒否する
-（対象付き 09D1 の progressbar 観測のみコメント採用可）。
+会話アクション経路の progress_action は従来どおり拒否する。
+対象付き 09D1 の progressbar はコメント採用可。対象ActorIDのない 02F0 は比較の関連候補にも載せない。
+cutin（対象ActorIDなし）は選択窓の同一取得・フロー関連候補としてコメント採用可（実行 cutin は出さない）。
 未対応演出を含む試行は、黙って省略せず拒否する。
 
 候補は既存の対象NPC本文へ統合するラベル断片。NPC宣言は生成しない。
