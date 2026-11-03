@@ -16,6 +16,59 @@ TEMPLATE_FIELDS = {'header': set(), 'quality': {'count', 'issues', 'saturated', 
 MAX_CONFIGURED_BYTES = 8 * 1024 * 1024
 
 
+def format_observation_evidence(candidate):
+    """Read-only advisory text for manual editors. Never mutates or fills placement_fields."""
+    if not isinstance(candidate, dict):
+        raise ValueError('配置候補が不正です。')
+    observed = candidate.get('observed')
+    if not isinstance(observed, dict):
+        raise ValueError('観測根拠がありません。')
+    appearances = candidate.get('appearances')
+    if not isinstance(appearances, list):
+        appearances = []
+    requires = candidate.get('requires_edit')
+    if not isinstance(requires, list):
+        requires = []
+    intervals = observed.get('intervals') if isinstance(observed.get('intervals'), list) else []
+    positions = observed.get('first_positions') if isinstance(observed.get('first_positions'), list) else []
+    position_lines = []
+    for row in positions[:8]:
+        if not isinstance(row, dict):
+            continue
+        position_lines.append(f"  ({row.get('x')},{row.get('y')}) packet={row.get('packet_index')}")
+    if len(positions) > 8:
+        position_lines.append(f'  …他 {len(positions) - 8} 件')
+    interval_lines = []
+    for row in intervals[:8]:
+        if not isinstance(row, dict):
+            continue
+        interval_lines.append(
+            f"  {row.get('duration_ms')}ms / {row.get('basis')} "
+            f"(configured_respawn_confirmed={row.get('configured_respawn_confirmed')})")
+    if len(intervals) > 8:
+        interval_lines.append(f'  …他 {len(intervals) - 8} 件')
+    lines = [
+        '観測根拠（設定値への自動代入はしません）',
+        f"取得 {observed.get('capture_session')} / 接続 {observed.get('connection')} / "
+        f"MAP世代 {observed.get('map_generation')}",
+        f"マップ {observed.get('map_name')}（origin={observed.get('map_origin')}） / "
+        f"クラス {observed.get('class_id')}",
+        f"出現記録 {observed.get('appearances')} / 個体別行 {len(appearances)} / "
+        f"ユニークActorID {observed.get('unique_actor_ids')}",
+        f"追跡中 {observed.get('tracked_now')} / 追跡ピーク {observed.get('peak_tracked')} "
+        f"（amountへは使いません）",
+        f"死亡 {observed.get('deaths')} / 除去 {observed.get('removals')} / "
+        f"再観測 {observed.get('observed_reappearances')}",
+        '初回座標（x/yへは使いません）:',
+        *(position_lines or ['  なし']),
+        '再観測間隔ms（delay1/delay2へは使いません）:',
+        *(interval_lines or ['  なし']),
+        f"要編集列: {', '.join(requires) if requires else 'なし'}",
+        '注意: 追跡ピーク≠amount、再観測間隔≠delay1/delay2、初回座標≠固定湧き地点',
+    ]
+    return '\n'.join(lines)
+
+
 def _mob_spawn_profile(path=None, configured=False):
     from reconstruction.emulator_profiles import profile
     name = 'mob_spawn_configured.json' if configured else 'mob_spawns.json'

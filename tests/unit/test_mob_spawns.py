@@ -9,7 +9,8 @@ from copy import deepcopy
 from reconstruction.world import WorldStore
 from reconstruction.mob_spawns import MobSpawnStore
 from reconstruction.mob_spawn_export import (build_candidates, render_candidates, DEFAULT_PROFILE,
-    configure_candidate, CONFIGURED_PROFILE, load_configured, validate_configured, render_configured)
+    configure_candidate, CONFIGURED_PROFILE, load_configured, validate_configured, render_configured,
+    format_observation_evidence)
 from tests.support.skills import mob
 from tests.support.world import packet, map_packet, actor_packet
 
@@ -103,6 +104,19 @@ class MobSpawnTests(unittest.TestCase):
                 self.assertIn(key, candidate['requires_edit'])
         self.assertIsNone(report['candidates'][-1]['placement_fields']['map_name'])
         self.assertFalse(report['active_placements_generated'])
+        before_first = deepcopy(first)
+        evidence = format_observation_evidence(first)
+        self.assertEqual(first, before_first)
+        self.assertIn('自動代入はしません', evidence)
+        self.assertIn('amountへは使いません', evidence)
+        self.assertIn('delay1/delay2へは使いません', evidence)
+        self.assertIn('5000ms', evidence)
+        self.assertIn('(150,200)', evidence)
+        self.assertIn('要編集列:', evidence)
+        with self.assertRaises(ValueError):
+            format_observation_evidence({})
+        with self.assertRaises(ValueError):
+            format_observation_evidence(None)
         report['source_sessions'][0] = 'evil\nmonster\tdeclaration'
         text = render_candidates(report)
         self.assertTrue(all(line.startswith('//') for line in text.splitlines()))
