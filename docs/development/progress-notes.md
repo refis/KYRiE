@@ -103,3 +103,4 @@ offscreen で raise_/activate しない。GUI 比較の 09D1 progressbar 期待�
 フォールバックに使う（#114）。bundle の `shop_name_for`／barter `hidden_definition` も
 同フォールバックへ揃え、欠落時は除外記録へ回す。`render_npc_file` は `npc.actor_id is None`
 でも会話／寄与の ActorID へ落とす（`.get` の default では None を置換できない）。
+bundle の並びキーも reference の明示 None より npc 側の有効 ActorID を使う。
