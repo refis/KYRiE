@@ -39,9 +39,52 @@ KINDS = {'visibility_action':'NPC表示状態', 'status_action':'状態変化（
          'effect_value': '値付きエフェクト',
          'dialogue_size':'会話サイズ', 'dialogue_position':'会話位置', 'dialogue_alignment':'会話整列',
     'classchange': '外見変更', 'progressbar': 'プログレスバー',
-         'viewpoint': 'マップマーカー', 'overhead': '頭上メッセージ', 'announcement': 'アナウンス（起因未確定）',
+         'viewpoint': 'マップマーカー', 'viewpoint_observation': 'マップマーカー（未対応値）',
+         'overhead': '頭上メッセージ', 'announcement': 'アナウンス（起因未確定）',
          'player_chat': '本人向け発言通知', 'unittalk': 'ユニット発言',
-         'event_marker': 'イベントアイコン', 'hat_effect': '帽子エフェクト'}
+         'event_marker': 'イベントアイコン', 'hat_effect': '帽子エフェクト',
+         'colored_speech': '色付き発言'}
+
+
+def timer_event_label(row):
+    """Stable Japanese label for timer editor rows. Never invents command text."""
+    kind = row.get('kind')
+    fields = row.get('fields') if isinstance(row.get('fields'), dict) else {}
+    title = KINDS.get(kind, kind)
+    if kind == 'announcement':
+        return 'announce ' + str(fields.get('text', ''))
+    if kind == 'unittalk':
+        return 'unittalk ' + str(fields.get('text', ''))
+    if kind in ('overhead', 'colored_speech'):
+        return f'{title} {fields.get("text", "")}'
+    if kind in ('emotion', 'effect', 'effect_remove'):
+        return f'{title} {fields.get("value")}'
+    if kind == 'effect_value':
+        return f'{title} {fields.get("effect_id")}/{fields.get("value")}'
+    if kind == 'event_marker':
+        return f'{title} state={fields.get("state")} kind={fields.get("kind")}'
+    if kind == 'hat_effect':
+        return f'{title} enabled={fields.get("enabled")} id={fields.get("effect_id")}'
+    if kind == 'progressbar':
+        return f'{title} {fields.get("seconds")}s'
+    if kind == 'cutin':
+        return f'{title} {fields.get("image")} pos={fields.get("position")}'
+    if kind == 'mapcell':
+        return f'{title} ({fields.get("x")},{fields.get("y")}) type={fields.get("cell_type")}'
+    if kind == 'classchange':
+        return f'{title} class={fields.get("class_id")}'
+    if kind == 'visibility_action':
+        commands = fields.get('commands')
+        if not isinstance(commands, list):
+            commands = [fields['command']] if 'command' in fields else []
+        return f'{title} {",".join(str(item) for item in commands)}'
+    if kind in ('viewpoint', 'viewpoint_observation'):
+        return f'{title} type={fields.get("kind")} ({fields.get("x")},{fields.get("y")})'
+    if kind == 'npc_display_action':
+        display = fields.get('display') if isinstance(fields.get('display'), dict) else {}
+        class_id = display.get('class_id', fields.get('class_id'))
+        return f'{title} class={class_id}'
+    return str(title)
 
 
 def labeled(mapping, code):

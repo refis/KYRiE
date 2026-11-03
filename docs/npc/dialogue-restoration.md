@@ -79,6 +79,7 @@ Aurigaと同梱MARiAを照合し、emotion/misceffect/showmessageのNPC名指定
 showeventの対象NPC名指定を候補へ反映する。
 既定の出力はコメント。GUIの対象別通知で emotion／effect／effect_remove／overhead／unittalk／event_marker を
 行ごとに `adoption_confirmed` したときだけ実行命令候補へ切り替える（cause_confirmedは常にfalse）。
+採用案内の文言も同範囲（event_marker を含む）を明示する。
 unittalkの採用時は実行時ActorIDを固定せず getnpcid(0,NPC名) の候補を前置コメント欄へ出す。
 event_marker の採用時は `showevent {state}, {kind}, {target}; // {x}, {y}`（座標は注記）。
 sound／effect_value は採用不可。インスタンスMAPでは名前参照にgetmdnpcnameを使う。

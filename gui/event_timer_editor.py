@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTable
     QTableWidgetItem, QLineEdit, QCheckBox, QPushButton, QPlainTextEdit, QFileDialog, QMessageBox)
 from reconstruction.event_timer_export import (build_timer_candidate, DEFAULT_PROFILE, load_timer_candidate,
                                                 render_timer_text, MAX_CONFIGURED_BYTES, validate_timer_trial)
+from gui.event_trials import timer_event_label
 
 
 class EventTimerEditor(QDialog):
@@ -44,9 +45,7 @@ class EventTimerEditor(QDialog):
         self.times = []
         for index, event in enumerate(trial['events']):
             row = event['observation']
-            label = ('announce ' + row['fields']['text'] if row['kind'] == 'announcement' else
-                     'unittalk ' + row['fields']['text'] if row['kind'] == 'unittalk' else
-                     {'emotion': 'エモーション', 'effect': 'エフェクト', 'effect_remove': 'エフェクト解除'}[row['kind']] + f' {row["fields"]["value"]}')
+            label = timer_event_label(row)
             for col, value in enumerate((label, row['packet_index'], event['offset_ms'])):
                 self.table.setItem(index, col, QTableWidgetItem(str(value)))
             field = QLineEdit()

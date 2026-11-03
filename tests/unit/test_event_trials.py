@@ -376,3 +376,31 @@ class EventTrialTests(unittest.TestCase):
         self.assertEqual(timer_role_label('mapcell'), 'コメント採用のみ（comment）')
         self.assertEqual(timer_role_label('progress_action'), 'タイマー拒否（rejected）')
         self.assertEqual(timer_role_label(None), '—')
+
+    def test_timer_event_label_covers_adopted_kinds_without_requiring_value(self):
+        from gui.event_trials import timer_event_label
+        self.assertEqual(timer_event_label(dict(kind='emotion', fields=dict(value=7))), 'エモーション 7')
+        self.assertEqual(timer_event_label(dict(kind='effect_remove', fields=dict(value=9))), 'エフェクト解除 9')
+        self.assertEqual(timer_event_label(dict(kind='announcement', fields=dict(text='告知'))), 'announce 告知')
+        self.assertEqual(timer_event_label(dict(kind='unittalk', fields=dict(text='hi'))), 'unittalk hi')
+        self.assertEqual(
+            timer_event_label(dict(kind='event_marker', fields=dict(x=1, y=2, state=3, kind=4))),
+            'イベントアイコン state=3 kind=4')
+        self.assertEqual(
+            timer_event_label(dict(kind='progressbar', fields=dict(seconds=5, color=1))),
+            'プログレスバー 5s')
+        self.assertEqual(
+            timer_event_label(dict(kind='overhead', fields=dict(text='head'))),
+            '頭上メッセージ head')
+        self.assertEqual(
+            timer_event_label(dict(kind='visibility_action',
+                                  fields=dict(commands=['cloakonnpc', 'cloakoffnpc']))),
+            'NPC表示状態 cloakonnpc,cloakoffnpc')
+        self.assertEqual(
+            timer_event_label(dict(kind='npc_display_action',
+                                  fields=dict(display=dict(class_id=1005)))),
+            'NPC外見変更 class=1005')
+        self.assertEqual(
+            timer_event_label(dict(kind='viewpoint', fields=dict(kind=1, x=10, y=20))),
+            'マップマーカー type=1 (10,20)')
+        self.assertEqual(timer_event_label(dict(kind='unknown_kind', fields={})), 'unknown_kind')
