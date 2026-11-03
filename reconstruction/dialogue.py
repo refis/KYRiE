@@ -455,21 +455,26 @@ class DialogueStore:
             self._issue(packet, index, str(exc))
             if conversation:
                 conversation.issues.append(dict(packet_index=index, message='Invalid conversation action: ' + str(exc)))
-        if self.world and packet.packet_id in (0x1b0, 0x9ff, 0x9fe, 0x9fd) and conversation:
+        if self.world and packet.packet_id in (0x1b0, 0x9ff, 0x9fe, 0x9fd):
             record = self.world.last_actor_observation
-            if (record and record['kind'] == 'NPC'
-                    and record['map_name'] == conversation.npc.get('map_name')
-                    and record['map_generation'] == conversation.npc.get('map_generation')):
-                if 'class_id' in record['changes']:
-                    display = ({'class_id': record['display']['class_id']} if packet.packet_id == 0x1b0
-                               else {name: deepcopy(record['display'][name]) for name in ('class_id', 'appearance_data')
-                                     if name in record['display']})
-                    self._retain_action(packet, session, index, conversation, 'npc_display_action',
-                        dict(target=dict(name=record['npc_name'], map_name=record['map_name']),
-                             display=display, outside=not record['in_sight']))
-                if packet.packet_id == 0x1b0:
-                    # Known NPCs use the same delta/visibility path, including no-op updates.
-                    return True
+            if record and record['kind'] == 'NPC' and 'class_id' in record.get('changes', {}):
+                display = ({'class_id': record['display']['class_id']} if packet.packet_id == 0x1b0
+                           else {name: deepcopy(record['display'][name]) for name in ('class_id', 'appearance_data')
+                                 if name in record['display']})
+                fields = dict(target=dict(name=record['npc_name'], map_name=record['map_name']),
+                              display=display, outside=not record['in_sight'])
+                if (conversation and record['map_name'] == conversation.npc.get('map_name')
+                        and record['map_generation'] == conversation.npc.get('map_generation')):
+                    self._retain_action(packet, session, index, conversation, 'npc_display_action', fields)
+                elif not conversation and packet.packet_id in (0x9ff, 0x9fe, 0x9fd):
+                    # Outside dialogue: keep spawn/look updates for manual timer setnpcdisplay.
+                    # 0x1b0 outside remains the classchange presentation path.
+                    self._retain_presentation(
+                        packet, session, index, record['actor_id'], 'outside_dialogue',
+                        decoded=('npc_display_action', record['actor_id'], fields))
+            if packet.packet_id == 0x1b0 and conversation:
+                # Known NPCs use the same delta/visibility path, including no-op updates.
+                return True
         if self.world and packet.packet_id in (0x9ff, 0x9fe, 0x9fd, 0x229):
             try:
                 actor = Reader(packet.raw).number(2 if packet.packet_id == 0x229 else 5, 'I')

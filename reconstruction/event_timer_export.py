@@ -6,6 +6,7 @@ import math
 import re
 from pathlib import Path
 from string import Formatter
+from reconstruction.actor_appearance import VISUAL_FIELDS, render_display
 from reconstruction.announcements import template_values as announcement_values
 from reconstruction.event_trials import announcement_in_scope
 from reconstruction.instance_names import npc_name as base_npc_name
@@ -13,7 +14,7 @@ from reconstruction.instance_names import npc_name as base_npc_name
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-    'visibility_action', 'viewpoint'))
+    'visibility_action', 'viewpoint', 'npc_display_action'))
 COMMENT_TIMER_KINDS = frozenset(('effect_value', 'hat_effect', 'colored_speech'))
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
@@ -32,13 +33,14 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'classchange': {'target', 'class_id'},
           'visibility_action': {'command'},
           'viewpoint': {'kind', 'x', 'y', 'marker_id', 'color'},
+          'npc_display_action': {'command'},
           'label_end': set()}
 ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
     'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
                          'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-                         'visibility_action', 'viewpoint')
+                         'visibility_action', 'viewpoint', 'npc_display_action')
 
 
 def _timer_profile(path=None):
@@ -166,6 +168,24 @@ def _validate_observation_fields(row):
                 'viewpointの観測値が不正、またはタイマー採用可能な種別・座標範囲外です。'
                 '未対応値はコメント保持のまま比較のみとしてください。')
         return
+    if kind == 'npc_display_action':
+        target = fields.get('target')
+        display = fields.get('display')
+        visual = display.get('appearance_data') if isinstance(display, dict) else None
+        if (set(fields) != {'target', 'display', 'outside'}
+                or not isinstance(target, dict)
+                or not isinstance(target.get('name'), str) or not target['name']
+                or not isinstance(target.get('map_name'), str) or not target['map_name']
+                or type(fields.get('outside')) is not bool
+                or not isinstance(display, dict)
+                or type(display.get('class_id')) is not int or not 0 <= display['class_id'] <= 65535
+                or set(display) - {'class_id', 'appearance_data'}
+                or (visual is not None and (
+                    not isinstance(visual, dict)
+                    or any(type(visual.get(key)) is not int or not 0 <= visual[key] <= 65535
+                           for key in VISUAL_FIELDS)))):
+            raise ValueError('外見変更の観測値が不正です。対象NPC自身の setnpcdisplay のみ採用できます。')
+        return
     value = fields.get('value')
     if type(value) is not int or not 0 <= value <= (255 if kind == 'emotion' else 2147483647):
         raise ValueError('演出IDが範囲外です。')
@@ -193,8 +213,9 @@ def validate_timer_trial(report, trial_index):
             '未対応演出: '+kinds+'。この試行は比較のみです。'
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'コメント採用の値付きエフェクト・イベントアイコン・帽子／色付き発言、'
-            '外見変更の setnpcdisplay、表示状態の cloak（自身）、インスタンスマップ上の hide、'
-            '対応範囲内の viewpoint、およびイベントアイコンの showevent 候補に対応しています。'
+            '外見変更の setnpcdisplay（01B0／会話外09xx含む）、表示状態の cloak（自身）、'
+            'インスタンスマップ上の hide、対応範囲内の viewpoint、'
+            'およびイベントアイコンの showevent 候補に対応しています。'
             'sound／music／progressbar／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
@@ -306,6 +327,11 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
                         rf'[ \t]*//[ \t]*{values["x"]}[ \t]*,[ \t]*{values["y"]}[ \t]*')
             if not re.fullmatch(expected, text):
                 raise ValueError('イベントアイコン書式の showevent が観測内容と一致しません。')
+        if key == 'npc_display_action':
+            if comment_only:
+                raise ValueError('外見変更は setnpcdisplay 実行命令にしてください。')
+            if text != values['command'] or not re.match(r'setnpcdisplay\b', text):
+                raise ValueError('外見変更書式の setnpcdisplay が観測内容と一致しません。')
         for line in text.split('\n'):
             line = (templates['indent'] if indent else '') + line
             size += len(line) + 1
@@ -352,6 +378,20 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             fields = row['fields']
             emit('viewpoint', True, kind=fields['kind'], x=fields['x'], y=fields['y'],
                  marker_id=fields['marker_id'], color=f'0x{fields["color"] & 0xffffff:06X}')
+        elif row['kind'] == 'npc_display_action':
+            target = row['fields'].get('target') or {}
+            if (base_npc_name(target.get('name'), target.get('map_name'))
+                    != base_npc_name(identity['name'], identity.get('map_name'))
+                    or target.get('map_name') != identity.get('map_name')):
+                raise ValueError('タイマー候補の外見変更は対象NPC自身のみです。')
+            dialogue_templates = json.loads((Path(profile).parent / 'dialogue.json').read_text(encoding='utf-8'))
+            command = render_display(dict(name=identity['name'], map_name=identity['map_name']),
+                                     row['fields']['display'], dialogue_templates, outside=False)
+            unknown = dialogue_templates.get('npc_display_unknown')
+            if (not isinstance(command, str) or not command or command == unknown
+                    or command.lstrip().startswith('//') or not command.startswith('setnpcdisplay')):
+                raise ValueError('外見変更の setnpcdisplay を生成できません。')
+            emit('npc_display_action', True, command=command)
         else:
             emit(row['kind'], True, value=row['fields']['value'])
         previous_time = time

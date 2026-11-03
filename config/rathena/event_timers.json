@@ -16,6 +16,7 @@
   "classchange": "setnpcdisplay({target},{class_id});",
   "visibility_action": "{command};",
   "viewpoint": "viewpoint {kind},{x},{y},{marker_id},{color};",
+  "npc_display_action": "{command}",
   "emotion": "emotion {value};",
   "effect": "specialeffect {value};",
   "label_end": "end;"

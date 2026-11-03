@@ -85,6 +85,29 @@ class ConversationActionTests(unittest.TestCase):
         self.assertFalse(any(row['kind'] == 'visibility_action' for row in store.sessions[0].actions
                              if row['packet_index'] >= rows[0]['packet_index']))
 
+    def test_outside_spawn_class_change_is_retained_as_npc_display_presentation(self):
+        from tests.unit.test_actor_appearance import actor
+        store, consume = self.opened()
+        consume(packet(0xb6, struct.pack('<I', 42)))
+        consume(packet(0x146, struct.pack('<I', 42), direction='SEND'))
+        before = len(store.presentation_observations)
+        event = actor(class_id=139, actor_id=42)
+        raw = bytearray(event.raw)
+        name = 'Owner_0k8'.encode('cp932') + b'\0'
+        raw = bytearray(raw[:84]) + name
+        struct.pack_into('<H', raw, 2, len(raw))
+        consume(replace(event, raw=bytes(raw)))
+        rows = [row for row in store.presentation_observations[before:]
+                if row['kind'] == 'npc_display_action']
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['context'], 'outside_dialogue')
+        self.assertEqual(rows[0]['actor_id'], 42)
+        self.assertEqual(rows[0]['fields']['display']['class_id'], 139)
+        self.assertEqual(rows[0]['fields']['target']['name'], 'Owner_0k8')
+        self.assertFalse(any(row['kind'] == 'npc_display_action'
+                             for row in store.sessions[0].actions
+                             if row.get('packet_index', -1) >= rows[0]['packet_index']))
+
     def test_progress_wait_notification_preserves_reply_link_and_is_deferred_with_comment(self):
         store, consume = self.opened()
         consume(packet(0xb5, struct.pack('<I', 42)))
