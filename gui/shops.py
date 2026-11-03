@@ -7,8 +7,9 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCombo
                                QTableWidget, QTableWidgetItem, QPlainTextEdit, QFileDialog, QMessageBox,
                                QMenu, QDialog, QFormLayout, QLineEdit, QCheckBox, QDialogButtonBox)
 from gui.qt_messages import warning as warn
+from gui.report_export import export_busy, export_report
 from reconstruction.shop_export import ShopRenderer
-from storage.observation_export import save_observations, save_observation_text
+from storage.observation_export import save_observation_text
 from reconstruction.npc_initial_state import visibility_state
 
 ASSOCIATION_LABELS = {'selector_and_buy_reply': '対象選択と購入応答を確認',
@@ -144,14 +145,18 @@ class ShopPanel(QWidget):
         return paths
 
     def save(self):
-        try:
-            result = dict(deepcopy(self.store.snapshot()), source_sessions=dict(self.sources))
-            protected = self.export_protected_paths()
-            path, _ = QFileDialog.getSaveFileName(self, 'ショップ観測を保存', 'shops.json', 'JSON (*.json)')
-            if path:
-                save_observations(path, result, protected)
-        except (OSError, ValueError) as exc:
-            QMessageBox.warning(self, 'ショップ観測を保存できません', str(exc))
+        if export_busy(self):
+            return
+        # Freeze before the file dialog so later packets cannot change the payload.
+        result = dict(deepcopy(self.store.snapshot()),
+                      source_sessions={str(key): value for key, value in self.sources.items()})
+        protected = self.export_protected_paths()
+        path, _ = QFileDialog.getSaveFileName(self, 'ショップ観測を保存', 'shops.json', 'JSON (*.json)')
+        if path:
+            try:
+                export_report(self, path, result, protected, label='ショップ観測')
+            except (OSError, ValueError) as exc:
+                warn(self, 'ショップ観測を保存できません', str(exc))
 
     def export_candidate(self):
         index = self.selection.currentIndex()

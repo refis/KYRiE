@@ -1271,10 +1271,14 @@ class RestorationGuiTests(WindowTestCase):
                 before = target.read_bytes()
                 with patch('gui.shops.ShopExportDialog.exec', new=generate), \
                         patch('gui.shops.QFileDialog.getSaveFileName', return_value=(str(target), '')), \
+                        patch('gui.shops.warn') as warn_msg, \
                         patch('gui.shops.QMessageBox.warning') as warning, \
+                        patch('gui.main_window.QMessageBox.critical') as critical, \
                         patch('storage.observation_export.os.replace', side_effect=OSError('replace failed')) as replace:
                     action()
-                    warning.assert_called_once()
+                    if action is panel.save:
+                        self.wait_display_export()
+                    self.assertEqual(warn_msg.call_count + warning.call_count + critical.call_count, 1)
                     self.assertEqual(replace.call_count, int(protection == 'replacement'))
                 self.assertEqual(target.read_bytes(), before)
 
