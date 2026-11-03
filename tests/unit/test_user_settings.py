@@ -4,7 +4,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from storage.user_settings import DEFAULTS, UserSettingsError, load, save, validate
+from storage.user_settings import (DEFAULTS, UserSettingsError, load, save, validate,
+                                   offline_replay_budget, DEFAULT_OFFLINE_MAX_PACKETS,
+                                   DEFAULT_OFFLINE_MAX_PACKET_MIB)
 
 
 class UserSettingsTests(unittest.TestCase):
@@ -13,7 +15,8 @@ class UserSettingsTests(unittest.TestCase):
             path = Path(folder) / 'user_settings.json'
             self.assertEqual(load(path), DEFAULTS)
             document = dict(DEFAULTS, capture_send=False, display_timestamps=True,
-                            merge_npc_paths=True, pipe_name='gpa-test', manual_server_port='6900')
+                            merge_npc_paths=True, pipe_name='gpa-test', manual_server_port='6900',
+                            offline_max_packets=50000, offline_max_packet_mib=64)
             save(document, path)
             loaded = load(path)
             self.assertFalse(loaded['capture_send'])
@@ -21,6 +24,8 @@ class UserSettingsTests(unittest.TestCase):
             self.assertTrue(loaded['merge_npc_paths'])
             self.assertEqual(loaded['pipe_name'], 'gpa-test')
             self.assertEqual(loaded['manual_server_port'], '6900')
+            self.assertEqual(loaded['offline_max_packets'], 50000)
+            self.assertEqual(loaded['offline_max_packet_mib'], 64)
             self.assertFalse(path.with_suffix('.json.tmp').exists())
 
     def test_failed_atomic_save_keeps_original_and_removes_temporary_file(self):
@@ -49,6 +54,12 @@ class UserSettingsTests(unittest.TestCase):
             validate(dict(DEFAULTS, pipe_name='bad name'))
         with self.assertRaises(UserSettingsError):
             validate(dict(DEFAULTS, unexpected=True))
+        with self.assertRaises(UserSettingsError):
+            validate(dict(DEFAULTS, offline_max_packets=999))
+        with self.assertRaises(UserSettingsError):
+            validate(dict(DEFAULTS, offline_max_packet_mib=7))
+        with self.assertRaises(UserSettingsError):
+            validate(dict(DEFAULTS, offline_max_packets=True))
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'user_settings.json'
             path.write_text('{' + ('"x":1,' * 20000) + '"y":1}', encoding='utf-8')
@@ -64,6 +75,16 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(result['capture_send'])
         self.assertEqual(result['emulator'], 'auriga')
         self.assertEqual(result['script_indent'], 'spaces')
+        self.assertEqual(result['offline_max_packets'], DEFAULT_OFFLINE_MAX_PACKETS)
+        self.assertEqual(result['offline_max_packet_mib'], DEFAULT_OFFLINE_MAX_PACKET_MIB)
+
+    def test_offline_replay_budget_converts_mib_to_bytes(self):
+        packets, nbytes = offline_replay_budget()
+        self.assertEqual(packets, DEFAULT_OFFLINE_MAX_PACKETS)
+        self.assertEqual(nbytes, DEFAULT_OFFLINE_MAX_PACKET_MIB * 1024 * 1024)
+        packets, nbytes = offline_replay_budget(dict(version=1, offline_max_packets=30000,
+                                                    offline_max_packet_mib=48))
+        self.assertEqual((packets, nbytes), (30000, 48 * 1024 * 1024))
 
     def test_gitignore_lists_user_settings_profile(self):
         text = Path(__file__).resolve().parents[2].joinpath('.gitignore').read_text(encoding='utf-8')

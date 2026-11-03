@@ -36,10 +36,18 @@ schema 1のTCPセグメント形式と旧stream_chunk形式を、CLIと同じ処
 記録終端がない場合は主画面にも明示する。未知IDの飛ばし・再同期は行わない。
 不正レコードの値や本文をエラーメッセージに含めない。
 
-GUI再生の上限は入力ファイル128MiB、1行2Mi文字、約20万行、
+GUI再生の既定上限は入力ファイル128MiB、1行2Mi文字、約20万行、
 完全パケット2万件、パケット生データ合計32MiB。
-本文以外にオブジェクトやGUIのメモリも増えるため、初期実装では上限を低く置く。
-上限では部分結果を成功扱いせず、CLIで内容を確認する。
+本文以外にオブジェクトやGUIのメモリも増えるため、既定は低く置く。
+パケット件数とRAW合計は「設定 → 記録」のローカル設定（`config/user_settings.json`）で
+1000〜200000件／8〜256MiBの範囲で変更できる。超過時は部分結果を成功扱いしない。
+GUIが重い・上限を上げたくない場合はCLIで観測JSONへ変換する。
+
+```powershell
+python -m tools.analyze_session logs\SESSION\capture.jsonl --definitions PacketLength.txt --output logs\SESSION\session-analysis.json
+```
+
+長さ定義はログ横の`PacketLength.used.txt`があればそれを優先して指定する。
 ページング、DBからの遅延表示は今後の最適化対象。
 
 ## 保存と検証

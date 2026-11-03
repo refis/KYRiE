@@ -6,7 +6,7 @@ from unittest.mock import patch
 from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtTest import QTest
 
-from gui.offline import ReplayWorker
+from gui.offline import ReplayWorker, replay_budget_from_owner
 from reconstruction.auriga import AurigaRenderer
 from storage.session_log import SessionLog
 from tests.support.dialogue import packet
@@ -16,6 +16,20 @@ from tools.analyze_dialogues import analyze
 
 
 class OfflineReplayTests(WindowTestCase):
+    def test_owner_settings_raise_gui_replay_packet_budget(self):
+        self.assertEqual(replay_budget_from_owner(self.window)[0], 20000)
+        self.window.offline_max_packets.setValue(30000)
+        self.window.offline_max_packet_mib.setValue(48)
+        self.assertEqual(replay_budget_from_owner(self.window), (30000, 48 * 1024 * 1024))
+        path, definitions = self.recording()
+        with patch('gui.main_window.QFileDialog.getOpenFileName', return_value=(str(path), '')):
+            self.window.open_recording()
+        child = self.window.offline_windows[0]
+        self.assertEqual(child.worker.max_packets, 30000)
+        self.assertEqual(child.worker.max_packet_bytes, 48 * 1024 * 1024)
+        child.cancel_replay()
+        self.wait_until(lambda: not self.window.offline_windows)
+
     def test_dialogue_cli_export_protects_sources_configs_and_existing_report_on_failure(self):
         from tools.analyze_dialogues import analyze,save_report,main
         from storage.project import fingerprint
