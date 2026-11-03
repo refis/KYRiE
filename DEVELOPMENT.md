@@ -2359,3 +2359,13 @@ Keep MEMORY_EVENT_LIMIT=50000. Synthetic eviction profile (confirm_db):
 limit50/packets80 retain50 origin30; limit500/600 retain500; limit2000/2100 retain2000;
 DB-failed path never evicts. Dialogue merge for >=64 sessions runs in MergeWorker;
 stale key results are discarded; save_merged forces sync. Selected gui-restoration+dialogue.
+
+### 2026-11-03: v0.0.8 source snapshot
+
+Advanced version.py to 0.0.8 / 2026-11-03. Captures post-v0.0.7 timer boundaries, quest chronology,
+MOB editor evidence, ActorID/offscreen CI fixes, and shared async shop/spawn export (#84–#120).
+Frozen v0.0.4/v0.0.5/v0.0.6/v0.0.7 ZIPs unchanged.
+Selected verification: release+catalog+commands+npc+player+presentation+events+mob+display+dialogue+shop (511)
+and gui-restoration+gui-display+offline+storage (170); total 681. Not full discover.
+Artifacts: dist/KYRiE-v0.0.8-source.zip (+.sha256, verification.json; gitignored).
+See docs/releases/v0.0.8.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.
