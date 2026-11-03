@@ -30,7 +30,7 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 
 ## 出力範囲
 
-手動採用できる演出（対象NPC自身・会話外。announce／cutinは選択窓の関連候補）:
+手動採用できる演出（対象NPC自身・会話外。announce／cutin／mapcellは選択窓の関連候補）:
 
 | 種別 | 出力 |
 |------|------|
@@ -38,7 +38,7 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | unittalk | 実行命令（unittalk） |
 | overhead | 実行命令（showmessage）。対象NPC自身のみ |
 | announcement | announce（関連候補・起因未確定の注記付き） |
-| effect_value / hat_effect / colored_speech / progressbar / cutin | **全行コメント**。実行命令へ落とさない（progressbarの秒数をOnTimer値やsleepへ使わない。cutinは窓内関連・起因未確定） |
+| effect_value / hat_effect / colored_speech / progressbar / cutin / mapcell | **全行コメント**。実行命令へ落とさない（progressbarの秒数をOnTimer値やsleepへ使わない。cutin／mapcellは窓内関連・起因未確定。setcellは出さない） |
 | event_marker | 実行命令 `showevent {state}, {kind}; // {x}, {y}`（対象NPC自身・会話外。座標は注記）。rAthena書式は確認コメントのまま可 |
 | classchange | 実行命令 `setnpcdisplay {NPC名},{class_id};`（対象NPC自身・会話外の手動採用時）。kind は根拠のみ |
 | visibility_action | `cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし。自身発生は受信者本人のみのため採用可）。`hideonnpc;`／`hideoffnpc;`はインスタンスマップ（MAP名に`@`）上の自身向けのみ。通常MAPの hide・他NPC向け target 付きは拒否 |
@@ -46,12 +46,13 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | npc_display_action | 実行命令 `setnpcdisplay …;`（対象NPC自身・会話外の 09FF／09FE／09FD class変更。会話中アクション経路は従来どおり。01B0会話外は classchange 経路） |
 
 未対応のまま拒否する種別（比較列には載せられるがタイマー採用不可）:
-sound、music、progress_action、mapcell、会話レイアウト、
+sound、music、progress_action、会話レイアウト、
 status_action、script_command など。
 効果音・BGMはプレイヤー紐付けが必要で、NPCタイマー本文へ置いても同動作を再現できない。
 会話アクション経路の progress_action は従来どおり拒否する。
 対象付き 09D1 の progressbar はコメント採用可。対象ActorIDのない 02F0 は比較の関連候補にも載せない。
-cutin（対象ActorIDなし）は選択窓の同一取得・フロー関連候補としてコメント採用可（実行 cutin は出さない）。
+cutin／mapcell（対象ActorIDなし）は選択窓の同一取得・フロー関連候補としてコメント採用可
+（実行 cutin／setcell は出さない。mapcellは通知内MAP名と基準NPC MAPの完全一致が必要）。
 未対応演出を含む試行は、黙って省略せず拒否する。
 
 候補は既存の対象NPC本文へ統合するラベル断片。NPC宣言は生成しない。

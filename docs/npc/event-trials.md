@@ -126,8 +126,8 @@ comparisonにmodeと真偽値include_actionsを保存する。会話アクショ
 タイマー扱い列は手動採用側の区分だけを示す（OnTimer値は生成しない）:
 
 - 実行命令候補（command）: emotion／effect／effect_remove／announcement／unittalk／overhead／classchange（setnpcdisplay）／visibility_action（cloak・自身／hide・インスタンスMAPのみ）／viewpoint（対応範囲）／event_marker（showevent）／npc_display_action（会話外09xx setnpcdisplay）
-- コメント採用のみ（comment）: effect_value／hat_effect／colored_speech／progressbar（対象付き・秒数はOnTimerへ使わない）／cutin（選択窓の関連候補・起因未確定）
-- タイマー拒否（rejected）: sound／music／progress_action／mapcell／会話レイアウト／
+- コメント採用のみ（comment）: effect_value／hat_effect／colored_speech／progressbar（対象付き・秒数はOnTimerへ使わない）／cutin／mapcell（選択窓の関連候補・起因未確定。setcellなし）
+- タイマー拒否（rejected）: sound／music／progress_action／会話レイアウト／
   status_action／script_command など。比較列には載せられても採用入口で拒否する
 
 相違・除外理由の表示は `日本語（code）` 形式（例: `対象が異なる（target_changed）`、
@@ -367,8 +367,8 @@ MAP情報がない既存観測は従来どおり比較範囲の候補とし、�
 （showmessage）・外見変更（01B0 classchange／会話外09xx npc_display_action の setnpcdisplay）・
 表示状態（cloak*は自身、hideはインスタンスMAPのみ）・対応範囲内のviewpoint・
 イベントアイコン（showevent）に対応する。
-値付きエフェクト・帽子エフェクト・色付き発言・対象付き progressbar・窓内関連 cutin はコメント採用のみ。
-BGM、効果音、progress_action、mapcell、会話レイアウト、状態変化、script_command などは
+値付きエフェクト・帽子エフェクト・色付き発言・対象付き progressbar・窓内関連 cutin／mapcell はコメント採用のみ。
+BGM、効果音、progress_action、会話レイアウト、状態変化、script_command などは
 比較列には載せられるがタイマー採用は拒否する。詳細は[タイマー候補](event-timer-candidates.md)。
 プレイヤーや別NPC向けの処理を、指定なしの自己対象命令へ変換しない。
 
@@ -664,7 +664,8 @@ SEND 02F1クライアント報告、RECV 02F2サーバー中断と、同一会�
 RECV0192は厳密24byteで、対象マップ名・X/Y・セル値を構造化して保持する。
 演出比較には「マップセル変更」「セル: MAP (X,Y)」と表示する。
 受信時の会話中・入力待ち・close待ち・会話外を区別するが、呼出元NPCは未特定のままとし、
-会話の命令列・setcell・タイマーへ自動変換しない。セル値の意味・設定上の範囲も補完しない。
+会話の命令列・setcellへ自動変換しない。手動タイマーでは選択窓の関連候補として
+全行コメント採用のみ（setcellは出さない）。セル値の意味・設定上の範囲も補完しない。
 
 比較窓に関連付けるには、取得・フロー・観測MAP世代の一致に加えて、通知内の対象MAP名が
 基準NPCのMAP名と完全一致しなければならない。MAP文脈がなければ対象外。

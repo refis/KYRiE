@@ -124,7 +124,7 @@ class EventTimerExportTests(unittest.TestCase):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation'].update(fields)
             with self.subTest(fields=fields),self.assertRaises(ValueError):validate_timer_trial(changed,0)
         for kind in ('music','sound','progress_action','status_action',
-                     'script_command','mapcell','dialogue_size'):
+                     'script_command','dialogue_size'):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation']['kind']=kind
             with self.subTest(kind=kind),self.assertRaises(ValueError):validate_timer_trial(changed,0)
         announcement=deepcopy(report);event=announcement['trials'][0]['events'][1]
@@ -141,6 +141,17 @@ class EventTimerExportTests(unittest.TestCase):
                             and '"kafra.bmp"' in line and 'position=2' in line
                             for line in cutin_code.splitlines()))
         self.assertFalse(any(line.strip().startswith('cutin ') for line in cutin_code.splitlines()))
+        mapcell=deepcopy(report);mapcell_event=mapcell['trials'][0]['events'][1]
+        mapcell_event['association_basis']='selected_timer_window_same_flow'
+        mapcell_event['observation'].update(
+            kind='mapcell',actor_id=None,target_observed=False,entity_kind='unresolved',npc={},
+            fields={'map_name':'test.gat','x':10,'y':20,'cell_type':3},
+            map_context={'map_name':'test.gat','map_generation':1})
+        mapcell_code=build_timer_candidate(mapcell,0,[100,1100],confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'mapcell観測' in line
+                            and 'x=10' in line and 'cell_type=3' in line
+                            for line in mapcell_code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('setcell ') for line in mapcell_code.splitlines()))
         for key,value in (('context','input_wait'),('context','close_wait'),('flow_id','other'),('capture_session',9),
                           ('map_context',{'map_name':'other.gat','map_generation':1}),
                           ('map_context',{'map_name':'test.gat','map_generation':2})):
@@ -148,6 +159,10 @@ class EventTimerExportTests(unittest.TestCase):
             with self.subTest(key=key,value=value),self.assertRaises(ValueError):validate_timer_trial(changed,0)
             changed_cutin=deepcopy(cutin);changed_cutin['trials'][0]['events'][1]['observation'][key]=value
             with self.subTest(cutin_key=key,value=value),self.assertRaises(ValueError):validate_timer_trial(changed_cutin,0)
+        bad_map=deepcopy(mapcell)
+        bad_map['trials'][0]['events'][1]['observation']['fields']=dict(
+            map_name='other.gat',x=10,y=20,cell_type=3)
+        with self.assertRaises(ValueError):validate_timer_trial(bad_map,0)
         changed=deepcopy(announcement);changed['trials'][0]['events'][1].pop('association_basis')
         with self.assertRaises(ValueError):validate_timer_trial(changed,0)
         changed_cutin=deepcopy(cutin);changed_cutin['trials'][0]['events'][1].pop('association_basis')
@@ -225,6 +240,18 @@ class EventTimerExportTests(unittest.TestCase):
                 npc={}, fields={'image':'a.bmp', 'position':1})
             with self.assertRaises(ValueError):
                 build_timer_candidate(cutin, 0, [100, 1100], confirmed=True, profile=profile)
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            templates['mapcell'] = 'setcell {map_name},{x},{y},{cell_type};'
+            profile.write_text(json.dumps(templates), encoding='utf-8')
+            mapcell = deepcopy(report)
+            mapcell['trials'][0]['events'][1].update(
+                association_basis='selected_timer_window_same_flow')
+            mapcell['trials'][0]['events'][1]['observation'].update(
+                kind='mapcell', actor_id=None, target_observed=False, entity_kind='unresolved',
+                npc={}, fields={'map_name':'test.gat','x':1,'y':2,'cell_type':3},
+                map_context={'map_name':'test.gat','map_generation':1})
+            with self.assertRaises(ValueError):
+                build_timer_candidate(mapcell, 0, [100, 1100], confirmed=True, profile=profile)
 
     def test_npc_display_action_timer_emits_setnpcdisplay_for_identity_npc(self):
         report = repeated_report('npc_display_action')

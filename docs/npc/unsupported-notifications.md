@@ -147,7 +147,7 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | kind / ID | 保持 | 生成・タイマー |
 |-----------|------|----------------|
 | `music`（07FE/0B8C） | 対象なしで構造化 | 本文・タイマーへ musiceffect しない（[event-trials](event-trials.md)） |
-| `mapcell`（0192） | 構造化 | setcell／タイマーへ出さない |
+| `mapcell`（0192） | 構造化 | setcellは出さない。タイマーは選択窓関連のコメント採用可 |
 | `effect_value`（0284） | 構造化・コメント | 実行命令なし。タイマーはコメント採用可（[event-timer-candidates](event-timer-candidates.md)） |
 | `event_marker`（0446） | 構造化・コメント／OnQuestInfo | 会話単独はコメント。タイマー・外部明示採用は showevent 実行命令可（座標注記） |
 | `hat_effect`（0A3B） | 構造化・コメント | 実行命令なし。タイマーはコメント採用可 |

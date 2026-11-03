@@ -372,5 +372,7 @@ class EventTrialTests(unittest.TestCase):
         self.assertEqual(timer_role_label('progressbar'), 'コメント採用のみ（comment）')
         self.assertEqual(timer_role_code('cutin'), 'comment')
         self.assertEqual(timer_role_label('cutin'), 'コメント採用のみ（comment）')
+        self.assertEqual(timer_role_code('mapcell'), 'comment')
+        self.assertEqual(timer_role_label('mapcell'), 'コメント採用のみ（comment）')
         self.assertEqual(timer_role_label('progress_action'), 'タイマー拒否（rejected）')
         self.assertEqual(timer_role_label(None), '—')

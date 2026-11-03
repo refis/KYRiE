@@ -14,10 +14,11 @@ from reconstruction.instance_names import npc_name as base_npc_name
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-    'visibility_action', 'viewpoint', 'npc_display_action', 'progressbar', 'cutin'))
+    'visibility_action', 'viewpoint', 'npc_display_action', 'progressbar', 'cutin',
+    'mapcell'))
 COMMENT_TIMER_KINDS = frozenset(
-    ('effect_value', 'hat_effect', 'colored_speech', 'progressbar', 'cutin'))
-UNASSIGNED_TIMER_KINDS = frozenset(('announcement', 'cutin'))
+    ('effect_value', 'hat_effect', 'colored_speech', 'progressbar', 'cutin', 'mapcell'))
+UNASSIGNED_TIMER_KINDS = frozenset(('announcement', 'cutin', 'mapcell'))
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
 VISIBILITY_TIMER_COMMANDS = HIDE_TIMER_COMMANDS | CLOAK_TIMER_COMMANDS
@@ -34,6 +35,7 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'colored_speech': {'color_hex', 'text'},
           'progressbar': {'seconds', 'color_hex'},
           'cutin': {'image', 'position'},
+          'mapcell': {'map_name', 'x', 'y', 'cell_type'},
           'classchange': {'target', 'class_id'},
           'visibility_action': {'command'},
           'viewpoint': {'kind', 'x', 'y', 'marker_id', 'color'},
@@ -44,7 +46,8 @@ ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
                          'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'progressbar',
-                         'cutin', 'classchange', 'visibility_action', 'viewpoint', 'npc_display_action')
+                         'cutin', 'mapcell', 'classchange', 'visibility_action', 'viewpoint',
+                         'npc_display_action')
 
 
 def _timer_profile(path=None):
@@ -149,6 +152,15 @@ def _validate_observation_fields(row):
                 or type(fields['position']) is not int or not 0 <= fields['position'] <= 255):
             raise ValueError('cutinの観測値が不正です。コメント採用のみで実行命令へは変換しません。')
         return
+    if kind == 'mapcell':
+        # Unassigned cell change: comment evidence only; never emit setcell.
+        if (set(fields) != {'x', 'y', 'cell_type', 'map_name'}
+                or any(type(fields[key]) is not int or not 0 <= fields[key] <= 65535
+                       for key in ('x', 'y', 'cell_type'))
+                or not isinstance(fields['map_name'], str) or not fields['map_name']
+                or len(fields['map_name']) > 16):
+            raise ValueError('mapcellの観測値が不正です。コメント採用のみで setcell へは変換しません。')
+        return
     if kind == 'classchange':
         if (set(fields) != {'class_id', 'kind'}
                 or type(fields['class_id']) is not int or not 0 <= fields['class_id'] <= 65535
@@ -232,8 +244,8 @@ def validate_timer_trial(report, trial_index):
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'イベントアイコンの showevent、外見変更の setnpcdisplay（01B0／会話外09xx含む）、'
             '表示状態の cloak（自身）、インスタンスマップ上の hide、対応範囲内の viewpoint、'
-            'およびコメント採用の値付きエフェクト・帽子／色付き発言・progressbar・cutin に対応しています。'
-            'sound／music／progress_action／mapcell／会話レイアウトは未対応です。')
+            'およびコメント採用の値付きエフェクト・帽子／色付き発言・progressbar・cutin・mapcell に対応しています。'
+            'sound／music／progress_action／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
         raise ValueError('対象NPCの名前とマップが必要です。')
@@ -241,17 +253,27 @@ def validate_timer_trial(report, trial_index):
     def scope(row):
         npc = row.get('npc', {})
         return (row['capture_session'], row['flow_id'], row['actor_id'], npc.get('map_generation'), npc.get('appearance'))
+
+    def related_unassigned(row, event):
+        if (row.get('kind') not in UNASSIGNED_TIMER_KINDS
+                or row.get('context') != 'outside_dialogue'
+                or event.get('association_basis') != 'selected_timer_window_same_flow'
+                or not unassigned_in_scope(row, anchor, UNASSIGNED_TIMER_KINDS)):
+            return False
+        # mapcell already requires exact target map + scene evidence in comparison;
+        # re-check here so timer adoption cannot loosen that contract.
+        if row['kind'] == 'mapcell':
+            return (bool(row.get('map_context'))
+                    and row['fields'].get('map_name') == (anchor.get('npc') or {}).get('map_name'))
+        return True
+
     previous = -1
     if anchor.get('entity_kind') != 'NPC' or anchor.get('target_observed') is not True or anchor.get('context') != 'outside_dialogue':
         raise ValueError('対象NPCを観測した会話外の演出基準点が必要です。')
     for event in trial['events']:
         row, offset = event['observation'], event['offset_ms']
-        related_unassigned = (
-            row.get('kind') in UNASSIGNED_TIMER_KINDS
-            and row.get('context') == 'outside_dialogue'
-            and unassigned_in_scope(row, anchor, UNASSIGNED_TIMER_KINDS)
-            and event.get('association_basis') == 'selected_timer_window_same_flow')
-        if not related_unassigned and (row.get('entity_kind') != 'NPC' or row.get('target_observed') is not True
+        if not related_unassigned(row, event) and (
+                row.get('entity_kind') != 'NPC' or row.get('target_observed') is not True
                 or row.get('context') != 'outside_dialogue' or scope(row) != scope(anchor)
                 or any(row.get('npc', {}).get(key) != value for key, value in identity.items())):
             raise ValueError('演出の対象・配置・取得範囲が一致しません。')
@@ -389,6 +411,9 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         elif row['kind'] == 'cutin':
             emit('cutin', True, image=json.dumps(row['fields']['image'], ensure_ascii=False),
                  position=row['fields']['position'])
+        elif row['kind'] == 'mapcell':
+            emit('mapcell', True, map_name=json.dumps(row['fields']['map_name'], ensure_ascii=False),
+                 x=row['fields']['x'], y=row['fields']['y'], cell_type=row['fields']['cell_type'])
         elif row['kind'] == 'classchange':
             target = json.dumps(base_npc_name(identity['name'], identity.get('map_name')),
                                 ensure_ascii=False)
