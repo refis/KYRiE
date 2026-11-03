@@ -11,6 +11,7 @@ class MobSpawnStore:
         self.world, self.max_records = world, max_records
         self.records, self.active, self.previous, self.groups = [], {}, {}, {}
         self.current_capture, self.revision, self.saturated = -1, 0, False
+        self.world_issue_count = 0
 
     def _end(self, key, kind, timestamp=None, packet_index=None, reason=None):
         row = self.active.pop(key)
@@ -122,6 +123,8 @@ class MobSpawnStore:
                 observed_reappearances=len(intervals), intervals=deepcopy(intervals),
                 first_positions=[dict(row['first_position'], packet_index=row['first_packet_index']) for row in rows],
                 configured_spawn_count=None, configured_respawn_ms=None))
+        if self.world is not None:
+            self.world_issue_count = self.world.issue_count
         return dict(schema_version=1, groups=groups, appearances=deepcopy(sorted(self.records, key=actor_sort_key)), saturated=self.saturated,
                     transport_quality='not_verified', server_spawn_settings_restored=False,
-                    world_issue_count=self.world.issue_count)
+                    world_issue_count=self.world_issue_count)

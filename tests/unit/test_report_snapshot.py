@@ -30,6 +30,21 @@ class ReportSnapshotTests(unittest.TestCase):
         self.assertNotEqual(skills.snapshot()['observations'],skill_expected['observations'])
         self.assertGreater(combat.snapshot()['issue_count'],combat_expected['issue_count'])
 
+    def test_frozen_spawn_report_survives_later_world_updates(self):
+        from reconstruction.mob_spawns import MobSpawnStore
+        world = WorldStore()
+        spawns = MobSpawnStore(world)
+        sources = {0: 'original.jsonl'}
+        for index, event in enumerate((mob(),)):
+            world.apply(event, packet_index=index)
+            spawns.apply(event, packet_index=index)
+        expected = dict(deepcopy(spawns.snapshot()), source_sessions={'0': 'original.jsonl'})
+        job = freeze_mob_report(spawns, sources)
+        world.apply(mob(actor=99), packet_index=1)
+        spawns.apply(mob(actor=99), packet_index=1)
+        sources[0] = 'changed.jsonl'
+        self.assertEqual(job.build(), expected)
+        self.assertNotEqual(spawns.snapshot()['groups'], expected['groups'])
 
     def test_npc_freeze_preserves_dialogue_shops_and_all_rendering_files(self):
         from unittest.mock import patch
