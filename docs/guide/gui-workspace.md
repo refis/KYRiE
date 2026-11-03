@@ -51,6 +51,8 @@
 表示JSON自体は外部ファイルとして保存・編集する。
 チェックボックス等のGUI設定はローカルの`config/user_settings.json`へ保存し、次回起動時に自動適用する。
 このファイルはGit・ソーススナップショットの対象外（`.gitignore` / `tools/build_snapshot.py`）。
+生ログGUI再生のパケット件数／RAW合計上限も同ファイル（設定→記録）で変更できる。
+大きなログは[保存ログの再解析](offline-replay.md)のCLI手順も参照。
 非表示設定（ignorepacket）は別ファイルで、[観測ログの表示除外](ignorepacket.md)を参照。
 
 ## 復元機能の実装に伴う拡張

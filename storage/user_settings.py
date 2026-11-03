@@ -14,6 +14,12 @@ MAX_BYTES = 65536
 EMULATORS = frozenset({'auriga', 'rathena'})
 SCRIPT_INDENTS = frozenset({'spaces', 'tabs'})
 
+# GUI offline replay staging budget (not live capture). CLI analyze_* has no packet cap.
+DEFAULT_OFFLINE_MAX_PACKETS = 20000
+DEFAULT_OFFLINE_MAX_PACKET_MIB = 32
+OFFLINE_MAX_PACKETS_RANGE = (1000, 200000)
+OFFLINE_MAX_PACKET_MIB_RANGE = (8, 256)
+
 DEFAULTS = dict(
     version=1,
     capture_send=True,
@@ -32,10 +38,19 @@ DEFAULTS = dict(
     display_unmapped=False,
     record_stream=False,
     log_root=str(PROJECT_ROOT / 'logs'),
+    offline_max_packets=DEFAULT_OFFLINE_MAX_PACKETS,
+    offline_max_packet_mib=DEFAULT_OFFLINE_MAX_PACKET_MIB,
     pipe_enabled=False,
     pipe_name='',
     merge_npc_paths=False,
 )
+
+
+def offline_replay_budget(settings=None):
+    """Return (max_packets, max_packet_bytes) for GUI ReplayWorker staging."""
+    document = validate(settings if settings is not None else DEFAULTS)
+    return (document['offline_max_packets'],
+            document['offline_max_packet_mib'] * 1024 * 1024)
 
 
 def indent_value(setting):
@@ -75,6 +90,20 @@ def validate(document):
         if type(default) is bool:
             if type(value) is not bool:
                 raise UserSettingsError(f'{key}: expected boolean')
+            result[key] = value
+        elif key == 'offline_max_packets':
+            if type(value) is not int or isinstance(value, bool):
+                raise UserSettingsError(f'{key}: expected integer')
+            low, high = OFFLINE_MAX_PACKETS_RANGE
+            if not low <= value <= high:
+                raise UserSettingsError(f'{key}: must be {low}..{high}')
+            result[key] = value
+        elif key == 'offline_max_packet_mib':
+            if type(value) is not int or isinstance(value, bool):
+                raise UserSettingsError(f'{key}: expected integer')
+            low, high = OFFLINE_MAX_PACKET_MIB_RANGE
+            if not low <= value <= high:
+                raise UserSettingsError(f'{key}: must be {low}..{high}')
             result[key] = value
         elif key == 'emulator':
             if value not in EMULATORS:
@@ -168,6 +197,8 @@ def collect_from_window(window):
         display_unmapped=window.display_unmapped.isChecked(),
         record_stream=window.record_stream.isChecked(),
         log_root=window.log_root.text().strip(),
+        offline_max_packets=int(window.offline_max_packets.value()),
+        offline_max_packet_mib=int(window.offline_max_packet_mib.value()),
         pipe_enabled=window.pipe_enabled.isChecked(),
         pipe_name=window.pipe_name.text().strip(),
         merge_npc_paths=window.dialogue_panel.merge_checkbox.isChecked(),
@@ -217,6 +248,12 @@ def apply_to_window(window, settings):
         window.render_timestamps = document['display_timestamps']
         window.record_stream.setChecked(document['record_stream'])
         window.log_root.setText(document['log_root'])
+        window.offline_max_packets.blockSignals(True)
+        window.offline_max_packet_mib.blockSignals(True)
+        window.offline_max_packets.setValue(document['offline_max_packets'])
+        window.offline_max_packet_mib.setValue(document['offline_max_packet_mib'])
+        window.offline_max_packets.blockSignals(False)
+        window.offline_max_packet_mib.blockSignals(False)
         window.pipe_enabled.setChecked(document['pipe_enabled'])
         if document['pipe_name']:
             window.pipe_name.setText(document['pipe_name'])

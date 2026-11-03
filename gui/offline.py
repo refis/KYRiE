@@ -10,6 +10,7 @@ from gui.main_window import MainWindow
 from parser.display import DisplayProfile, ReceiveDisplay
 from tools.replay_capture import replay, ReplayCancelled
 from storage.project import fingerprint, verify_project, save_project, save_multiple_project, CATALOG_PATHS
+from storage.user_settings import offline_replay_budget
 from parser.definitions import load_lengths
 from reconstruction.emulator_profiles import profile as generation_profile
 
@@ -18,16 +19,29 @@ class ReplayLimitError(ValueError):
     pass
 
 
+def replay_budget_from_owner(owner):
+    """Read GUI replay staging limits from the live settings controls."""
+    packets = getattr(getattr(owner, 'offline_max_packets', None), 'value', None)
+    mib = getattr(getattr(owner, 'offline_max_packet_mib', None), 'value', None)
+    if callable(packets) and callable(mib):
+        return offline_replay_budget(dict(version=1,
+                                          offline_max_packets=int(packets()),
+                                          offline_max_packet_mib=int(mib())))
+    return offline_replay_budget()
+
+
 class ReplayWorker(QThread):
     loaded = Signal(object)
     failed = Signal(str)
     progress = Signal(int)
 
-    def __init__(self, path, definitions, parent=None, *, max_packets=20000, max_packet_bytes=32 * 1024 * 1024,
+    def __init__(self, path, definitions, parent=None, *, max_packets=None, max_packet_bytes=None,
                  project=None, cancelled=None):
         super().__init__(parent)
         self.path, self.definitions = Path(path), dict(definitions)
-        self.max_packets, self.max_packet_bytes = max_packets, max_packet_bytes
+        defaults = offline_replay_budget()
+        self.max_packets = defaults[0] if max_packets is None else max_packets
+        self.max_packet_bytes = defaults[1] if max_packet_bytes is None else max_packet_bytes
         self.project = project
         self.cancelled_check = cancelled
 
@@ -68,7 +82,8 @@ class ReplayWorker(QThread):
         except ReplayCancelled:
             return
         except ReplayLimitError:
-            self.failed.emit('GUI再生の上限に到達しました。CLIで対象範囲を確認してください。')
+            self.failed.emit('GUI再生の上限に到達しました。設定→記録で上限を上げるか、'
+                             'CLI（python -m tools.analyze_session）で変換してください。')
         except Exception:
             if self.is_cancelled():
                 return
@@ -80,8 +95,9 @@ class ReplayWorker(QThread):
 
 class MultiReplayWorker(ReplayWorker):
     """Stage each log independently, publishing only a complete bounded set."""
-    def __init__(self, inputs, parent=None, project=None):
-        super().__init__(inputs[0][0], inputs[0][1], parent, project=project)
+    def __init__(self, inputs, parent=None, project=None, *, max_packets=None, max_packet_bytes=None):
+        super().__init__(inputs[0][0], inputs[0][1], parent, project=project,
+                         max_packets=max_packets, max_packet_bytes=max_packet_bytes)
         self.inputs = inputs
 
     def run(self):
@@ -149,8 +165,12 @@ class OfflineWindow(MainWindow):
         self.setWindowTitle(f'保存ログの再解析 — {self.source_path.parent.name}')
         self.entity_timer.stop()
         self.multiple = inputs is not None
-        self.worker = (MultiReplayWorker(inputs, self, project=project) if inputs is not None else
-                       ReplayWorker(self.source_path, definitions, self, project=project))
+        max_packets, max_packet_bytes = replay_budget_from_owner(owner)
+        self.worker = (MultiReplayWorker(inputs, self, project=project,
+                                         max_packets=max_packets, max_packet_bytes=max_packet_bytes)
+                       if inputs is not None else
+                       ReplayWorker(self.source_path, definitions, self, project=project,
+                                    max_packets=max_packets, max_packet_bytes=max_packet_bytes))
         if self.multiple:
             self.setWindowTitle(f'保存ログの比較 — {len(inputs)}ファイル')
         self.worker.loaded.connect(self._loaded)

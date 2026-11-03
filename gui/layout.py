@@ -6,7 +6,7 @@ import uuid
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
-    QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QSplitter,
+    QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QSpinBox, QSplitter,
     QTabWidget, QTableWidget, QVBoxLayout, QWidget,
 )
 
@@ -19,6 +19,8 @@ from gui.skills import MobSkillPanel
 from gui.combat import MobPerformancePanel
 from gui.shops import ShopPanel
 from gui.mob_spawns import MobSpawnPanel
+from storage.user_settings import (DEFAULT_OFFLINE_MAX_PACKETS, DEFAULT_OFFLINE_MAX_PACKET_MIB,
+                                   OFFLINE_MAX_PACKETS_RANGE, OFFLINE_MAX_PACKET_MIB_RANGE)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -366,8 +368,21 @@ def _build_settings(w):
     recording.addWidget(w.record_stream)
     log_form = QFormLayout()
     log_form.addRow('ログ保存先', w.log_root)
+    w.offline_max_packets = QSpinBox()
+    w.offline_max_packets.setRange(*OFFLINE_MAX_PACKETS_RANGE)
+    w.offline_max_packets.setSingleStep(1000)
+    w.offline_max_packets.setValue(DEFAULT_OFFLINE_MAX_PACKETS)
+    w.offline_max_packets.setToolTip('生ログをGUIで開くときの完全パケット件数上限。超過時は部分結果を出さず失敗する。')
+    w.offline_max_packet_mib = QSpinBox()
+    w.offline_max_packet_mib.setRange(*OFFLINE_MAX_PACKET_MIB_RANGE)
+    w.offline_max_packet_mib.setSuffix(' MiB')
+    w.offline_max_packet_mib.setValue(DEFAULT_OFFLINE_MAX_PACKET_MIB)
+    w.offline_max_packet_mib.setToolTip('GUI再生で保持するパケット生データの合計上限。ファイル自体は最大128MiB。')
+    log_form.addRow('GUI再生パケット上限', w.offline_max_packets)
+    log_form.addRow('GUI再生RAW合計', w.offline_max_packet_mib)
     recording.addLayout(log_form)
     recording.addWidget(QLabel('パケットのSQLite保存と診断メタデータの記録は、通常どおり行います。'))
+    recording.addWidget(QLabel('大きいログは上限を上げるか、CLI（tools.analyze_session）でJSONへ変換してください。'))
     recording.addStretch(1)
 
     extensions = _page(w.settings_tabs, '拡張')
