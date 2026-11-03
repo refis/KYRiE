@@ -140,6 +140,19 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 表示テンプレートがあるが、現状 `decode_dialogue` へ未配線だった ID は上記へ個別配線済み。
 新たな display_only 候補が出たときだけ、この表へ追加する。
 
+## クライアントナビ開始（08E2）
+
+| 項目 | 内容 |
+|------|------|
+| PacketID | `08E2`（27バイト固定。PacketLength登録済み） |
+| 表示名 | クライアント Navigation 開始 / rAthena `navigateto` → `clif_navigateTo` |
+| フィールド（rA照合） | type@2 u8（0=座標あり／1=座標なし／3=mob指定）、flag@3 u8（`NAV_*`）、hide_window@4 u8、map@5 char[16]、x@21 u16、y@23 u16、mob_id@25 u16 |
+| 状態 | 長さ定義のみ。`display.json` 未登録・decode／会話ステップ未配線（`display_only` 以前） |
+| 生成 | `navigateto` 命令は未生成。warp（0092）や viewpoint（0144）と混同しない |
+| 実測 | 2026-11-03 採取の `小さなトネリコの木#c1p1` で「一緒に行く」選択後・close前に3回。例: map=`ygg_edge`, type=0, flag=0x65（`NAV_KAFRA_AND_AIRSHIP`=101）, hide_window=1, x=253, y=246, mob_id=1002。直後の map 転送は 0092→`ygg_edge.gat` 255,240 |
+
+同ログの `ナビエル#c1p1naviel` は別経路で `0144` viewpoint（KYRiE観測済み）と mes 内 `<NAVI>…<INFO>…</INFO></NAVI>` クリックリンク（本文として保持、専用decodeなし）を使う。`0B18`（`ZC_EXTEND_BODYITEM_SIZE`）はマップ入場付近の所持枠通知でナビ無関係。
+
 ## 観測済みだが実行命令未採用（not_adopted の例）
 
 詳細は各専用ドキュメント。ここは対照用の要約。
