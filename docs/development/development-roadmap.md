@@ -549,7 +549,7 @@ OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント�
 MOB skill/spawn 編集根拠表示 #109/#110、offscreen Qt／Targets ログ #113、
 shop／bundle／render_npc_file ActorID フォールバック #114–#116、
 bundle 並び #117、offscreen generate 警告 #118、MOB配置の共有非同期保存 #119 含む）。
-ShopPanel.save の共有非同期保存は進行中（候補テキストは同期のまま）。
+ShopPanel.save の共有非同期保存は #120（候補テキストは同期のまま）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
