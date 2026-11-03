@@ -275,7 +275,7 @@ mapcell、BGM、showscript、status、会話サイズ・位置・整列等を逐
 | quest set／delete | 通知と命令候補。条件式は生成しない |
 | classchange（01B0） | 観測。setnpcdisplay経路／コメント。単純classchange命令化は限定 |
 | progressbar（02F0／09D1） | 構造化。会話中は条件付き命令、対象付き・応答成功は断定しない |
-| viewpoint | 対応値は命令、未対応はコメント。タイマー採用は拒否 |
+| viewpoint | 対応値は命令、未対応はコメント。手動タイマーも対応範囲内のみ実行命令 |
 | 値付き effect（0284）・BGM（07FE/0B8C） | 観測／コメント。実行命令・NPC割当なし |
 | mapcell（0192） | 構造化と比較窓関連。setcell未生成。実ログ例は未確認 |
 | showscript系 | overhead／showmessage候補。MARiA逐次表示の完全互換ではない |
@@ -385,14 +385,15 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
   基準点・観測窓の保存と再開も追加済み。ログ内容と演出列の照合を行い、再比較は明示操作とする。
   会話開始・マップ到着の基準点比較と保存・再開を追加済み。新基準点のタイマー直接生成は行わない。
   共通イベント列の載せる／載せない方針と相違・除外理由の `日本語（code）` 表示、タイマー扱い列は
-  #17 で整理済み。OnTimer値・開始条件の自動生成はしない。sound／music／viewpoint 等のタイマー拒否は維持。
+  #17 で整理済み。OnTimer値・開始条件の自動生成はしない。sound／music 等のタイマー拒否は維持。
 - 最初は候補と根拠を保存。利用者が採用した観測に限り、編集用の待機／タイマー形式へ出力する。
   [手動採用・全時刻手入力のNPCタイマー候補](../npc/event-timer-candidates.md)を追加済み。
   実行採用: emotion／effect／effect_remove／announce／unittalk／対象NPC自身のoverhead。
   コメント採用: effect_value／event_marker／hat_effect／colored_speech。
   classchange 手動タイマーは setnpcdisplay 実行命令候補（対象NPC・会話外）。
   会話外 0x0229 の visibility_action は cloak*（自身）と hide（インスタンスMAP・自身）の実行命令候補。
-  sound／music／viewpoint／progressbar／mapcell等は明示拒否。開始条件は生成しない。
+  viewpoint 手動タイマーは会話と同じ対応範囲（種別1／2・座標範囲）の実行命令候補。
+  sound／music／progressbar／mapcell等は明示拒否。開始条件は生成しない。
   本体での読込・実行確認は残る。OnTimer値・sleep命令・イベントラベルが元コードと一致するとは扱わない。
 - 完了条件: 単発や欠損ログを自動でタイマー化せず、演出の相違が注意として残り、
   採用した形式がAurigaで読込・実行できること。

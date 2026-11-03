@@ -13,7 +13,7 @@ from reconstruction.instance_names import npc_name as base_npc_name
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-    'visibility_action'))
+    'visibility_action', 'viewpoint'))
 COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'hat_effect', 'colored_speech'))
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
@@ -31,13 +31,14 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'colored_speech': {'color_hex', 'text'},
           'classchange': {'target', 'class_id'},
           'visibility_action': {'command'},
+          'viewpoint': {'kind', 'x', 'y', 'marker_id', 'color'},
           'label_end': set()}
 ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
     'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
                          'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-                         'visibility_action')
+                         'visibility_action', 'viewpoint')
 
 
 def _timer_profile(path=None):
@@ -153,6 +154,18 @@ def _validate_observation_fields(row):
         if any(command in HIDE_TIMER_COMMANDS for command in commands) and '@' not in map_name:
             raise ValueError('hideonnpc／hideoffnpc はインスタンスマップ上の観測のみタイマー採用できます。')
         return
+    if kind == 'viewpoint':
+        # Same supported window as dialogue rendering: type 1/2, map coords, marker 0-255.
+        if (set(fields) != {'kind', 'x', 'y', 'marker_id', 'color'}
+                or fields.get('kind') not in (1, 2)
+                or any(type(fields.get(key)) is not int or not 0 <= fields[key] <= 1023
+                       for key in ('x', 'y'))
+                or type(fields.get('marker_id')) is not int or not 0 <= fields['marker_id'] <= 255
+                or type(fields.get('color')) is not int or not 0 <= fields['color'] <= 0xffffffff):
+            raise ValueError(
+                'viewpointの観測値が不正、またはタイマー採用可能な種別・座標範囲外です。'
+                '未対応値はコメント保持のまま比較のみとしてください。')
+        return
     value = fields.get('value')
     if type(value) is not int or not 0 <= value <= (255 if kind == 'emotion' else 2147483647):
         raise ValueError('演出IDが範囲外です。')
@@ -180,9 +193,9 @@ def validate_timer_trial(report, trial_index):
             '未対応演出: '+kinds+'。この試行は比較のみです。'
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'コメント採用の値付きエフェクト・イベントアイコン・帽子／色付き発言、'
-            '外見変更の setnpcdisplay、表示状態の cloak（自身）、'
-            'およびインスタンスマップ上の hide 候補に対応しています。'
-            'sound／music／viewpoint／progressbar／mapcell／会話レイアウトは未対応です。')
+            '外見変更の setnpcdisplay、表示状態の cloak（自身）、インスタンスマップ上の hide、'
+            'および対応範囲内の viewpoint 候補に対応しています。'
+            'sound／music／progressbar／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
         raise ValueError('対象NPCの名前とマップが必要です。')
@@ -279,6 +292,14 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
                 raise ValueError('未対応の表示状態命令です。')
             if not re.fullmatch(re.escape(command) + r'[ \t]*;', text):
                 raise ValueError('表示状態書式の hide/cloak 命令が観測内容と一致しません。')
+        if key == 'viewpoint':
+            if comment_only:
+                raise ValueError('viewpointは実行命令にしてください。')
+            expected = (rf'viewpoint[ \t]+{values["kind"]}[ \t]*,[ \t]*{values["x"]}[ \t]*,'
+                        rf'[ \t]*{values["y"]}[ \t]*,[ \t]*{values["marker_id"]}[ \t]*,'
+                        rf'[ \t]*{re.escape(values["color"])}[ \t]*;')
+            if not re.fullmatch(expected, text):
+                raise ValueError('viewpoint書式の種別・座標・色が観測内容と一致しません。')
         for line in text.split('\n'):
             line = (templates['indent'] if indent else '') + line
             size += len(line) + 1
@@ -321,6 +342,10 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
                 raise ValueError('タイマー候補の表示状態変更は対象NPC自身のみです。')
             for command in row['fields']['commands']:
                 emit('visibility_action', True, command=command)
+        elif row['kind'] == 'viewpoint':
+            fields = row['fields']
+            emit('viewpoint', True, kind=fields['kind'], x=fields['x'], y=fields['y'],
+                 marker_id=fields['marker_id'], color=f'0x{fields["color"] & 0xffffff:06X}')
         else:
             emit(row['kind'], True, value=row['fields']['value'])
         previous_time = time

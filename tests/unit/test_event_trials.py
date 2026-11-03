@@ -361,7 +361,7 @@ class EventTrialTests(unittest.TestCase):
         self.assertEqual(timer_role_code('effect_value'), 'comment')
         self.assertEqual(timer_role_code('sound'), 'rejected')
         self.assertEqual(timer_role_code('music'), 'rejected')
-        self.assertEqual(timer_role_code('viewpoint'), 'rejected')
+        self.assertEqual(timer_role_code('viewpoint'), 'command')
         self.assertIsNone(timer_role_code(None))
         self.assertEqual(timer_role_label('unittalk'), '実行命令候補（command）')
         self.assertEqual(timer_role_label('classchange'), '実行命令候補（command）')

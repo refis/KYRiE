@@ -226,7 +226,9 @@ buildin_viewpoint → clif_viewpointを照合し、Aurigaでは実行元NPCのst
 マーカーIDが0〜255の通知は外部テンプレートviewpointで命令候補を出す。
 それ以外はviewpoint_observationによるコメントへ残し、元の受信値を失わない。
 根拠では32bit色を保持し、出力はMARiA同様に下位24bitを0xRRGGBBとして用いる。
-起因・条件・マーカー維持時間は生成しない。手動タイマーへの採用も未対応。
+起因・条件・マーカー維持時間は生成しない。
+手動タイマー候補では、会話外・対象NPC自身の対応範囲内 viewpoint を実行命令として採用できる
+（[タイマー候補](event-timer-candidates.md)）。未対応値はタイマー採用入口で拒否する。
 
 NPC別ignorepacketの対象だが、非表示でも根拠とコード生成は保持する。
 既存ログ3件に0144はなく、合成パケットとGUIによる検証まで。現クライアント・Auriga実行は未確認。

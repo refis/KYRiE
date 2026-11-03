@@ -125,9 +125,9 @@ comparisonにmodeと真偽値include_actionsを保存する。会話アクショ
 
 タイマー扱い列は手動採用側の区分だけを示す（OnTimer値は生成しない）:
 
-- 実行命令候補（command）: emotion／effect／effect_remove／announcement／unittalk／overhead／classchange（setnpcdisplay）／visibility_action（cloak・自身／hide・インスタンスMAPのみ）
+- 実行命令候補（command）: emotion／effect／effect_remove／announcement／unittalk／overhead／classchange（setnpcdisplay）／visibility_action（cloak・自身／hide・インスタンスMAPのみ）／viewpoint（対応範囲）
 - コメント採用のみ（comment）: effect_value／event_marker／hat_effect／colored_speech
-- タイマー拒否（rejected）: sound／music／viewpoint／progressbar／mapcell／会話レイアウト／
+- タイマー拒否（rejected）: sound／music／progressbar／mapcell／会話レイアウト／
   status_action／script_command／npc_display_action など。比較列には載せられても採用入口で拒否する
 
 相違・除外理由の表示は `日本語（code）` 形式（例: `対象が異なる（target_changed）`、
@@ -364,9 +364,10 @@ MAP情報がない既存観測は従来どおり比較範囲の候補とし、�
 入力待ち・close待ちのannounceを、関連付け根拠だけで採用することはできない。
 
 手動タイマーの実行命令はエモーション・エフェクト・解除・announce・対象NPC自身のunittalk／overhead
-（showmessage）・外見変更（setnpcdisplay）・表示状態（cloak*は自身、hideはインスタンスMAPのみ）に対応する。
+（showmessage）・外見変更（setnpcdisplay）・表示状態（cloak*は自身、hideはインスタンスMAPのみ）・
+対応範囲内のviewpointに対応する。
 値付きエフェクト・イベントアイコン・帽子エフェクト・色付き発言はコメント採用のみ。
-BGM、効果音、viewpoint、プログレス、mapcell、会話レイアウト、状態変化、script_command などは
+BGM、効果音、プログレス、mapcell、会話レイアウト、状態変化、script_command などは
 比較列には載せられるがタイマー採用は拒否する。詳細は[タイマー候補](event-timer-candidates.md)。
 プレイヤーや別NPC向けの処理を、指定なしの自己対象命令へ変換しない。
 
