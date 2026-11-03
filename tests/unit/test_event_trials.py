@@ -368,5 +368,7 @@ class EventTrialTests(unittest.TestCase):
         self.assertEqual(timer_role_label('classchange'), '実行命令候補（command）')
         self.assertEqual(timer_role_label('event_marker'), '実行命令候補（command）')
         self.assertEqual(timer_role_label('hat_effect'), 'コメント採用のみ（comment）')
-        self.assertEqual(timer_role_label('progressbar'), 'タイマー拒否（rejected）')
+        self.assertEqual(timer_role_code('progressbar'), 'comment')
+        self.assertEqual(timer_role_label('progressbar'), 'コメント採用のみ（comment）')
+        self.assertEqual(timer_role_label('progress_action'), 'タイマー拒否（rejected）')
         self.assertEqual(timer_role_label(None), '—')

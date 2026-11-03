@@ -14,8 +14,8 @@ from reconstruction.instance_names import npc_name as base_npc_name
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-    'visibility_action', 'viewpoint', 'npc_display_action'))
-COMMENT_TIMER_KINDS = frozenset(('effect_value', 'hat_effect', 'colored_speech'))
+    'visibility_action', 'viewpoint', 'npc_display_action', 'progressbar'))
+COMMENT_TIMER_KINDS = frozenset(('effect_value', 'hat_effect', 'colored_speech', 'progressbar'))
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
 VISIBILITY_TIMER_COMMANDS = HIDE_TIMER_COMMANDS | CLOAK_TIMER_COMMANDS
@@ -30,6 +30,7 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'event_marker': {'x', 'y', 'state', 'kind'},
           'hat_effect': {'enabled', 'effect_id'},
           'colored_speech': {'color_hex', 'text'},
+          'progressbar': {'seconds', 'color_hex'},
           'classchange': {'target', 'class_id'},
           'visibility_action': {'command'},
           'viewpoint': {'kind', 'x', 'y', 'marker_id', 'color'},
@@ -39,8 +40,8 @@ ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
     'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
-                         'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
-                         'visibility_action', 'viewpoint', 'npc_display_action')
+                         'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'progressbar',
+                         'classchange', 'visibility_action', 'viewpoint', 'npc_display_action')
 
 
 def _timer_profile(path=None):
@@ -131,6 +132,13 @@ def _validate_observation_fields(row):
                 or not isinstance(fields['text'], str) or len(fields['text']) > 65535):
             raise ValueError('色付きユニット発言の観測値が不正です。')
         return
+    if kind == 'progressbar':
+        # Comment-only: keep observed seconds/color. Never treat seconds as OnTimer values.
+        if (set(fields) != {'seconds', 'color'}
+                or type(fields['seconds']) is not int or not 0 <= fields['seconds'] <= 2147483
+                or type(fields['color']) is not int or not 0 <= fields['color'] <= 0xffffffff):
+            raise ValueError('progressbarの観測値が不正です。コメント採用のみで待機命令へは変換しません。')
+        return
     if kind == 'classchange':
         if (set(fields) != {'class_id', 'kind'}
                 or type(fields['class_id']) is not int or not 0 <= fields['class_id'] <= 65535
@@ -212,11 +220,10 @@ def validate_timer_trial(report, trial_index):
         raise ValueError(
             '未対応演出: '+kinds+'。この試行は比較のみです。'
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
-            'コメント採用の値付きエフェクト・イベントアイコン・帽子／色付き発言、'
-            '外見変更の setnpcdisplay（01B0／会話外09xx含む）、表示状態の cloak（自身）、'
-            'インスタンスマップ上の hide、対応範囲内の viewpoint、'
-            'およびイベントアイコンの showevent 候補に対応しています。'
-            'sound／music／progressbar／mapcell／会話レイアウトは未対応です。')
+            'イベントアイコンの showevent、外見変更の setnpcdisplay（01B0／会話外09xx含む）、'
+            '表示状態の cloak（自身）、インスタンスマップ上の hide、対応範囲内の viewpoint、'
+            'およびコメント採用の値付きエフェクト・帽子／色付き発言・progressbar に対応しています。'
+            'sound／music／progress_action／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
         raise ValueError('対象NPCの名前とマップが必要です。')
@@ -363,6 +370,9 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         elif row['kind'] == 'colored_speech':
             emit('colored_speech', True, color_hex=f"{row['fields']['color']:08X}",
                  text=json.dumps(row['fields']['text'], ensure_ascii=False))
+        elif row['kind'] == 'progressbar':
+            emit('progressbar', True, seconds=row['fields']['seconds'],
+                 color_hex=f"{row['fields']['color'] & 0xffffff:06X}")
         elif row['kind'] == 'classchange':
             target = json.dumps(base_npc_name(identity['name'], identity.get('map_name')),
                                 ensure_ascii=False)
