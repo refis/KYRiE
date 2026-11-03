@@ -100,4 +100,5 @@ offscreen で raise_/activate しない。GUI 比較の 09D1 progressbar 期待�
 #89 の配置ヘッダ ActorID 必須化以降、World 由来の shop/会話 `npc` に `actor_id` が載らず
 `ShopExportDialog.generate` が ValueError → `QMessageBox.warning` で offscreen CI が
 30分タイムアウトしていた。entity→npc へ `actor_id` をコピーし、export は record 側を
-フォールバックに使う。
+フォールバックに使う（#114）。bundle の `shop_name_for`／barter `hidden_definition` も
+同フォールバックへ揃え、欠落時は除外記録へ回す。
