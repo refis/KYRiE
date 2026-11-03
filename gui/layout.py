@@ -1,5 +1,6 @@
 """Purpose-focused main view, with capture settings and diagnostics separated."""
 from pathlib import Path
+import os
 import uuid
 
 from PySide6.QtCore import Qt
@@ -269,8 +270,10 @@ def show_panel(dialog):
         dialog.move(left,top)
         dialog.setProperty('workspaceGeometryReady',True)
     dialog.show()
-    dialog.raise_()
-    dialog.activateWindow()
+    # Offscreen QPA cannot raise/activate; calling them only spams unsupported-plugin warnings.
+    if os.environ.get('QT_QPA_PLATFORM') != 'offscreen':
+        dialog.raise_()
+        dialog.activateWindow()
 
 
 def _build_settings(w):

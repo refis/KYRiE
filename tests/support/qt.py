@@ -1,18 +1,52 @@
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+from PySide6.QtCore import qInstallMessageHandler
 from PySide6.QtWidgets import QApplication
 from gui.main_window import MainWindow
 from storage.database import PacketDatabase
+
+# Offscreen QPA prints these for show()/raise_()/layout; they are not test failures.
+_OFFSCREEN_QT_NOISE = (
+    'This plugin does not support propagateSizeHints()',
+    'This plugin does not support raise()',
+)
+_previous_qt_handler = None
+
+
+def _filter_offscreen_qt_messages(mode, context, message):
+    if message in _OFFSCREEN_QT_NOISE:
+        return
+    if _previous_qt_handler is not None:
+        _previous_qt_handler(mode, context, message)
+        return
+    stream = sys.stderr
+    stream.write(message + '\n')
+    stream.flush()
+
+
+def install_offscreen_qt_message_filter():
+    """Install once per process before GUI tests create widgets."""
+    global _previous_qt_handler
+    if getattr(install_offscreen_qt_message_filter, '_installed', False):
+        return
+    if os.environ.get('QT_QPA_PLATFORM') == 'offscreen':
+        _previous_qt_handler = qInstallMessageHandler(_filter_offscreen_qt_messages)
+        install_offscreen_qt_message_filter._installed = True
+
+
+install_offscreen_qt_message_filter()
 
 
 class WindowTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        install_offscreen_qt_message_filter()
         cls.app = QApplication.instance() or QApplication([])
 
     def setUp(self):

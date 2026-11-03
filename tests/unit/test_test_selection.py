@@ -2,7 +2,9 @@
 from pathlib import Path
 import unittest
 
-from tools.run_tests import GROUPS, cases, selected_names, selected_suite
+from tools.run_tests import (
+    GROUPS, cases, format_target_listing, selected_names, selected_suite,
+)
 
 
 class TestSelectionTests(unittest.TestCase):
@@ -17,11 +19,19 @@ class TestSelectionTests(unittest.TestCase):
     def test_selection_keeps_method_scope_and_deduplicates_overlapping_targets(self):
         method = __name__ + '.TestSelectionTests.test_groups_cover_existing_modules_without_stale_entries'
         suite = selected_suite(selected_names(['selection', method, 'selection']))
-        self.assertEqual(suite.countTestCases(), 3)
-        self.assertEqual(len({case.id() for case in cases(suite)}), 3)
+        self.assertEqual(suite.countTestCases(), 4)
+        self.assertEqual(len({case.id() for case in cases(suite)}), 4)
         self.assertEqual(selected_suite([method]).countTestCases(), 1)
 
     def test_unknown_targets_are_rejected_without_broadening_scope(self):
         for target in ('all', 'shpo', 'tests', 'tools.run_tests'):
             with self.subTest(target=target), self.assertRaises(ValueError):
                 selected_names([target])
+
+    def test_target_listing_is_one_module_per_line(self):
+        names = selected_names(['selection'])
+        lines = format_target_listing(names, case_count=4)
+        self.assertEqual(lines[0], f'Targets ({len(names)} modules):')
+        self.assertEqual(lines[1:-1], names)
+        self.assertEqual(lines[-1], 'Running 4 cases...')
+        self.assertTrue(all(',' not in line for line in lines[1:-1]))

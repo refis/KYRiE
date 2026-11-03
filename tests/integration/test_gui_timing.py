@@ -341,7 +341,8 @@ class TimingComparisonGuiTests(WindowTestCase):
         self.assertFalse(panel.adopt_button.isEnabled())
         self.assertEqual(panel.events.item(1,5).text(),'タイマー拒否（rejected）')
         self.assertEqual(panel.events.item(2,5).text(),'タイマー拒否（rejected）')
-        self.assertEqual(panel.events.item(3,5).text(),'タイマー拒否（rejected）')
+        # 09D1 progressbar is comment-adoptable (#103); sound/music stay rejected.
+        self.assertEqual(panel.events.item(3,5).text(),'コメント採用のみ（comment）')
         panel.events.selectRow(1);self.assertIn('音源の根拠',panel.event_difference.toPlainText())
         panel.events.selectRow(2);self.assertIn('対象ActorIDを含みません',panel.event_difference.toPlainText())
         panel.events.selectRow(3);self.assertIn('発生元',panel.event_difference.toPlainText())

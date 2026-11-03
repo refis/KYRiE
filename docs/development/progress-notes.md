@@ -86,4 +86,11 @@ roadmap の MARiA 差分表・P1-B・次の着手単位を現行コードに再�
 ### テスト整理（#109–#111 後 / 2026-11-03）
 
 観測根拠・タイマーラベルの文言検証を unit に集約。GUI は配線のみ。
-配置根拠を独立 unit へ分離し、外部採用案内は定数化。ソース読込照合を削除。
+配置根拠を独立 unit へ分離し、外部採用案内は定数化。ソース読込照合を削除（#112）。
+
+### CI offscreen Qt 警告と progressbar 役割（2026-11-03）
+
+offscreen QPA の `propagateSizeHints()`/`raise()` をテスト側で抑制し、`show_panel` は
+offscreen で raise_/activate しない。GUI 比較の 09D1 progressbar 期待を comment に更新（#103 後の取り残し）。
+`run_tests` の Targets を1モジュール1行にし、CI ログの途中切れを「colored_speech で停止」と
+誤認しないようにする（実ハングは GUI 側の offscreen 警告以降）。

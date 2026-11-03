@@ -66,9 +66,14 @@ python -m unittest discover -s tests/integration -t . -q
 ```
 
 結果には実行した対象と件数を記載し、選択実行の成功を全件成功とは表現しません。
+`tools.run_tests` は対象モジュールを1行ずつ出し、続けてケース件数を出します
+（長い1行の `Targets:` は CI ログで途中切れに見え、そのモジュールで停止したように誤認しやすい）。
 
 GUIテストはoffscreenで動作し、メモリDBと一時ログディレクトリを使用します。
 Windows実機でのNpcap動作確認を代替するものではありません。
+offscreen QPA が出す `propagateSizeHints()` / `raise()` 非対応メッセージは、
+`tests/support/qt.py` で抑制する（失敗扱いではない）。`show_panel` も offscreen では
+raise_/activateWindow を呼ばない。
 
 `support/` はパケット・会話生成の共通ヘルパーとGUI準備処理です。
 テストモジュール同士をimportせず、必要なヘルパーをここから明示的にimportします。
