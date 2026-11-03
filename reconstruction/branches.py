@@ -12,7 +12,7 @@ from dataclasses import asdict
 from reconstruction.timing import build_timeline
 from reconstruction.quests import valid_counter_fields
 
-PRESENTATION_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment', 'emotion', 'effect', 'effect_value', 'effect_remove', 'event_marker', 'hat_effect', 'achievement', 'item_preview', 'map_property', 'status_enter', 'mercenary', 'sound', 'cutin', 'classchange', 'progressbar', 'viewpoint', 'overhead', 'announcement', 'unittalk', 'colored_speech', 'visibility_action', 'status_action', 'progress_action', 'unittalk_target', 'action_wait_review', 'script_command', 'npc_display_action'}
+PRESENTATION_KINDS = {'dialogue_size', 'dialogue_position', 'dialogue_alignment', 'emotion', 'effect', 'effect_value', 'effect_remove', 'event_marker', 'hat_effect', 'achievement', 'item_preview', 'map_property', 'status_enter', 'mercenary', 'navigation_active', 'sound', 'cutin', 'classchange', 'progressbar', 'viewpoint', 'overhead', 'announcement', 'unittalk', 'colored_speech', 'visibility_action', 'status_action', 'progress_action', 'unittalk_target', 'action_wait_review', 'script_command', 'npc_display_action'}
 
 
 def validate_external(conversation):

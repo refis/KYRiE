@@ -224,10 +224,12 @@ NPC演出の非表示リストには連動せず、非表示にする場合はPa
 
 ### クライアントナビ08E2（2026-11-03）
 
-固定長27バイト。rAthenaの`navigateto` → `clif_navigateTo`（PacketID `08E2`）と照合できる。
+固定長27バイトの`PACKET_ZC_NAVIGATION_ACTIVE`。公式レイアウトは
+Type／SetType／Hide／MapName[16]／xPos／yPos／sprIndex。
+rAthenaの`navigateto` → `clif_navigateTo` と対応する。
 ミニマップマーカーの`viewpoint`（0144）や mes 内 `<NAVI>` クリックリンクとは別経路。
-KYRiEは長さ定義のみ把握し、表示decode・会話ステップ・命令生成は未接続
-（[未対応通知](unsupported-notifications.md#クライアントナビ開始08e2)）。
+観測 kind は`navigation_active`（対象ActorIDなし・会話本文へ未挿入）。
+`navigateto`実行命令は未生成（[未対応通知](unsupported-notifications.md#クライアントナビ開始08e2)）。
 実測例は `小さなトネリコの木#c1p1` の同行選択直後。起因条件は生成しない。
 
 ### マップマーカー0144（2026-10-28）

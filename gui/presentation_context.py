@@ -22,6 +22,10 @@ def presentation_context(row):
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='アイテムプレビューは対象ActorID未記録。所持Indexの観測メモでありgetitemへは出しません。',
             summary='0x0AB9（47バイト）／0x0B13（48バイト）は表示定義どおり index@2（生値-2）だけを保持します。他バイトは未解釈です。会話中に届いてもNPCの発生元とせず、getitem／itempreview 実行命令やタイマーへ変換しません。')
+    elif kind=='navigation_active':
+        result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
+            short='クライアントNavigation開始。対象ActorID未記録。viewpoint／warpと混同せずnavigateto実行命令は出しません。',
+            summary='0x08E2（PACKET_ZC_NAVIGATION_ACTIVE、27バイト）は Type／SetType／Hide／MapName／xPos／yPos／sprIndex を保持します。rAthena navigateto→clif_navigateTo と対応しますが、会話中でもNPC発生元とせず、viewpoint（0144）や0092 warpと同一視しません。実行命令・タイマーへは変換しません。')
     elif kind=='map_property':
         result.update(actor_role='map_property',observed_actor_id=None,player_context_required=True,
             short='マップ属性通知です。対象ActorIDは未記録で、NPC本文命令へは出しません。',

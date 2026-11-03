@@ -136,7 +136,8 @@ ActorID／offscreen CI対策・共有非同期保存までをソースZIPへ保�
 
 `prt_fild05` の `小さなトネリコの木#c1p1`（class 10620／ActorID 6979）会話で、
 「一緒に行く」後に RECV `08E2`（27B）→ close → cutin解除 → `0092` warp（`ygg_edge`）を確認。
-フレーミング欠落・未知ID停止はなし（replay errors 0）。`08E2` は rAthena
-`navigateto`／`clif_navigateTo` と一致し、KYRiEは未decode。同セッションの
+フレーミング欠落・未知ID停止はなし（replay errors 0）。公式
+`PACKET_ZC_NAVIGATION_ACTIVE` と rAthena `navigateto`／`clif_navigateTo` に合わせ、
+kind=`navigation_active` として構造化観測（実行命令は未生成）。同セッションの
 `ナビエル` は `0144` viewpoint と mes の `<NAVI>` タグ（本文保持のみ）。
 詳細は[未対応通知](../npc/unsupported-notifications.md#クライアントナビ開始08e2)。
