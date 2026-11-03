@@ -114,3 +114,8 @@ shop／MOB skill・spawn／timer の `generate()` 失敗は `gui.qt_messages.war
 
 `MobSpawnPanel.save` を skill／combat と同じ `export_report`／`prepare_mob_export` 経路へ揃える。
 spawn は `records` 件数で凍結判定（`events` なし）。
+
+### ショップ観測の非同期保存（2026-11-03）
+
+`ShopPanel.save` も同じ共有 `export_report` スロットへ揃える（ダイアログ前に snapshot 凍結）。
+候補テキスト出力と amount／delay 補完は対象外。失敗は `gui.qt_messages.warning`。
