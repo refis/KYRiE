@@ -4,6 +4,7 @@ from copy import deepcopy
 from storage.observation_export import save_observations, save_observation_text
 from pathlib import Path
 from reconstruction.mob_spawn_export import build_candidates, render_candidates, DEFAULT_PROFILE
+from gui.report_export import export_report, export_busy, prepare_mob_export, export_prepared
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                                QTableWidget, QTableWidgetItem, QPlainTextEdit, QFileDialog, QMessageBox)
 
@@ -64,12 +65,20 @@ class MobSpawnPanel(QWidget):
             self.on_source(self.rows[row]['first_positions'][0]['packet_index'])
 
     def save(self):
-        report = dict(deepcopy(self.store.snapshot()), source_sessions=dict(self.sources))
+        if export_busy(self):
+            return
+        prepared = prepare_mob_export(self, self.store, self.sources)
+        report = (None if prepared is not None else
+                  dict(deepcopy(self.store.snapshot()),
+                       source_sessions={str(key): value for key, value in self.sources.items()}))
         protected = self.export_protected_paths()
         path, _ = QFileDialog.getSaveFileName(self, 'MOB配置観測を保存', 'mob-spawns.json', 'JSON (*.json)')
         if path:
             try:
-                save_observations(path, report, protected)
+                if prepared is not None:
+                    export_prepared(self, path, prepared, protected, label='MOB配置観測')
+                else:
+                    export_report(self, path, report, protected, label='MOB配置観測')
             except (OSError, ValueError) as exc:
                 QMessageBox.warning(self, '保存できません', str(exc))
 

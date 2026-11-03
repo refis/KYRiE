@@ -109,3 +109,8 @@ bundle の並びキーも reference の明示 None より npc 側の有効 Actor
 
 shop／MOB skill・spawn／timer の `generate()` 失敗は `gui.qt_messages.warning` 経由とし、
 `QT_QPA_PLATFORM=offscreen` ではモーダルを出さない。プレビュー付き編集は本文にエラーを残す。
+
+### MOB配置観測の非同期保存（2026-11-03）
+
+`MobSpawnPanel.save` を skill／combat と同じ `export_report`／`prepare_mob_export` 経路へ揃える。
+spawn は `records` 件数で凍結判定（`events` なし）。

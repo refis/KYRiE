@@ -23,7 +23,11 @@ def prepare_mob_export(owner,store,sources,names=None):
     """Freeze large model evidence first; defer expensive summaries to the worker."""
     from reconstruction.report_snapshot import freeze_mob_report
     workspace=owner.window()
-    if len(store.events)>1000 and hasattr(workspace,'save_prepared_report'):
+    if not hasattr(workspace,'save_prepared_report'):
+        return None
+    # Skill/combat use events; spawn uses records (no event log on the store).
+    size=len(getattr(store,'events',None) or getattr(store,'records',()) or ())
+    if size>1000:
         return freeze_mob_report(store,sources,names)
     return None
 

@@ -2340,9 +2340,11 @@ class RestorationGuiTests(WindowTestCase):
         spawn_path = Path(self.log_folder.name) / 'mob-spawns.json'
         with patch('gui.mob_spawns.QFileDialog.getSaveFileName', return_value=(str(spawn_path), '')):
             spawn_panel.save()
+            self.wait_display_export()
         spawn_report = json.loads(spawn_path.read_text(encoding='utf-8'))
         self.assertEqual(spawn_report['groups'][0]['peak_tracked'], 1)
         self.assertIsNone(spawn_report['groups'][0]['configured_spawn_count'])
+        self.assertIn('source_sessions', spawn_report)
         spawn_review = Path(self.log_folder.name) / 'mob-spawn-review.txt'
         with patch('gui.mob_spawns.QFileDialog.getSaveFileName', return_value=(str(spawn_review), '')):
             spawn_panel.save_candidates()
