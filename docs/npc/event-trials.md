@@ -126,7 +126,7 @@ comparisonにmodeと真偽値include_actionsを保存する。会話アクショ
 タイマー扱い列は手動採用側の区分だけを示す（OnTimer値は生成しない）:
 
 - 実行命令候補（command）: emotion／effect／effect_remove／announcement／unittalk／overhead／classchange（setnpcdisplay）／visibility_action（cloak・自身／hide・インスタンスMAPのみ）／viewpoint（対応範囲）／event_marker（showevent）／npc_display_action（会話外09xx setnpcdisplay）
-- コメント採用のみ（comment）: effect_value／hat_effect／colored_speech／progressbar（対象付き・秒数はOnTimerへ使わない）／cutin／mapcell（選択窓の関連候補・起因未確定。setcellなし）
+- コメント採用のみ（comment）: effect_value／hat_effect／colored_speech／progressbar（対象付き・秒数はOnTimerへ使わない）／cutin／mapcell（選択窓の関連候補・起因未確定。setcellなし）／viewpoint未対応値
 - タイマー拒否（rejected）: sound／music／progress_action／会話レイアウト／
   status_action／script_command など。比較列には載せられても採用入口で拒否する
 

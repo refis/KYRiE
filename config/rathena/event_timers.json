@@ -19,6 +19,7 @@
   "classchange": "setnpcdisplay({target},{class_id});",
   "visibility_action": "{command};",
   "viewpoint": "viewpoint {kind},{x},{y},{marker_id},{color};",
+  "viewpoint_observation": "// 未対応値を含むviewpoint観測: type={kind}, x={x}, y={y}, id={marker_id}, color={color}。命令は未生成。",
   "npc_display_action": "{command}",
   "emotion": "emotion {value};",
   "effect": "specialeffect {value};",
