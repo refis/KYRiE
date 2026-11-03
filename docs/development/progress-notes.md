@@ -66,4 +66,9 @@ GUI更新前の受信更新も表示前に同期する。モデル・全件保�
 会話外の classchange／visibility／viewpoint／event_marker／npc_display を実行命令候補へ、
 effect_value／hat_effect／colored_speech／progressbar／cutin／mapcell／viewpoint未対応値を
 コメント採用へ揃えた。sound／music／progress_action 等の拒否は維持。
-roadmap の MARiA 差分表・P1-B・次の着手単位を現行コードに再同期（本PR）。
+roadmap の MARiA 差分表・P1-B・次の着手単位を現行コードに再同期（#108）。
+
+### P1-C MOBスキル編集の観測根拠表示（2026-11-03）
+
+手動設定エディタ上部に、開いた時点で固定した観測根拠（詠唱通知・個体内間隔・cancel件数等）を
+読み取り専用表示。CASTTIME／DELAY／CANCEL への自動代入はしない。

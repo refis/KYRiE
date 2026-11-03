@@ -2025,6 +2025,15 @@ class RestorationGuiTests(WindowTestCase):
         editor=MobSkillEditor(candidate,{},w)
         self.assertEqual(editor.fields['NAME'].text(),'ポリン＠'+name)
         self.assertEqual(editor.fields['NAME'].maxLength(),256)
+        evidence=editor.evidence.toPlainText()
+        self.assertIn('自動代入はしません',evidence)
+        self.assertIn('CASTTIMEへは使いません',evidence)
+        for key in ('STATE','RATE','CASTTIME','DELAY','CANCEL','TARGET','CONDITION'):
+            widget=editor.fields[key]
+            if hasattr(widget,'currentData'):
+                self.assertEqual(widget.currentData(),'')
+            else:
+                self.assertEqual(widget.text(),'')
         editor.close()
 
     def test_skill_hp_percent_reference_and_manual_comparison_do_not_infer_conditions(self):

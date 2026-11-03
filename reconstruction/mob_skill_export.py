@@ -60,6 +60,53 @@ def valid_val_token(value):
             and all(char.isprintable() and not char.isspace() for char in value))
 
 
+def format_observation_evidence(candidate):
+    """Read-only advisory text for manual editors. Never mutates or fills db_fields."""
+    if not isinstance(candidate, dict):
+        raise ValueError('観測候補が不正です。')
+    observed = candidate.get('observed')
+    if not isinstance(observed, dict):
+        raise ValueError('観測根拠がありません。')
+    individuals = candidate.get('individuals')
+    if not isinstance(individuals, list):
+        individuals = []
+    requires = candidate.get('requires_edit')
+    if not isinstance(requires, list):
+        requires = []
+    counts = observed.get('counts') if isinstance(observed.get('counts'), dict) else {}
+    intervals = observed.get('intervals') if isinstance(observed.get('intervals'), dict) else {}
+    cast_ms = observed.get('cast_ms') if isinstance(observed.get('cast_ms'), list) else []
+    raw_levels = observed.get('raw_levels') if isinstance(observed.get('raw_levels'), list) else []
+    known_levels = observed.get('known_levels') if isinstance(observed.get('known_levels'), list) else []
+    targets = observed.get('targets') if isinstance(observed.get('targets'), dict) else {}
+    count_text = ', '.join(f'{key}={counts[key]}' for key in sorted(counts)) or 'なし'
+    interval_lines = []
+    for key in sorted(intervals):
+        row = intervals[key]
+        if not isinstance(row, dict) or not row.get('count'):
+            continue
+        interval_lines.append(
+            f"  {key}: min={row.get('min_ms')} median={row.get('median_ms')} "
+            f"max={row.get('max_ms')} count={row.get('count')}")
+    target_text = ', '.join(f'{key}={targets[key]}' for key in sorted(targets)) or 'なし'
+    lines = [
+        '観測根拠（設定値への自動代入はしません）',
+        f"クラス {candidate.get('class_id')} / スキル {candidate.get('skill_id')}",
+        f"観測個体数: {observed.get('source_appearances')}（個体別行 {len(individuals)}）",
+        f'通知件数: {count_text}',
+        f'生レベル: {raw_levels} / 既知レベル: {known_levels} / '
+        f"未知レベル通知: {observed.get('unknown_level_notifications', 0)} / "
+        f"解析問題通知: {observed.get('issue_notifications', 0)}",
+        f'詠唱通知ms: {cast_ms}（CASTTIMEへは使いません）',
+        '個体内の最短観測間隔ms（DELAYへは使いません）:',
+        *(interval_lines or ['  なし']),
+        f'対象種別: {target_text}',
+        f"要編集列: {', '.join(requires) if requires else 'なし'}",
+        '注意: 観測間隔≠DELAY、詠唱通知≠CASTTIME、cancel通知≠CANCEL=yes',
+    ]
+    return '\n'.join(lines)
+
+
 def load_templates(profile=None):
     templates = json.loads(_mob_skill_profile(profile).read_text(encoding='utf-8'))
     defaults = {'name':'{monster_name}＠{skill_name}', 'unknown_monster':'MOB_ID_{mob_id}', 'unknown_skill':'SKILL_ID_{skill_id}'}
