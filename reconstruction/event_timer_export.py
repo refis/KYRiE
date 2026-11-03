@@ -19,7 +19,7 @@ TIMER_PRESENTATION_KINDS = frozenset((
 COMMENT_TIMER_KINDS = frozenset(
     ('effect_value', 'hat_effect', 'colored_speech', 'progressbar', 'cutin', 'mapcell',
      'viewpoint_observation'))
-UNASSIGNED_TIMER_KINDS = frozenset(('announcement', 'cutin', 'mapcell'))
+UNASSIGNED_TIMER_KINDS = frozenset(('announcement', 'cutin', 'mapcell', 'progressbar'))
 VIEWPOINT_FIELD_KEYS = ('kind', 'x', 'y', 'marker_id', 'color')
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
