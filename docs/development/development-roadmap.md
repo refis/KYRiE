@@ -252,9 +252,11 @@ SHA256: `74e5748d61ac8c23222c3a55ac7a7e78f167826165075a51caa636eccabad7ef`。
 [公開元](https://github.com/refis/MARiA/blob/master/maria.py)の将来の変更まで反映した比較ではない。
 参照ソース上での機能存在を確認したもので、両製品の全動作を同一条件で試験した結果ではない。
 
-以下は2026-11-01再確認の現行作業版。初期調査時の「未対応」記載を更新した。
+以下は2026-11-03再確認の現行作業版。初期調査時の「未対応」記載を更新した。
 保存済みZIPの同梱範囲や実機検証済み範囲を拡大した意味ではない。
 受信表示側の要約は[受信パケットの表示書式](../capture/receive-display.md#mariaからの調査範囲と互換性)を参照。
+手動タイマーの種別別到達点は[タイマー候補](../npc/event-timer-candidates.md)と
+[未対応通知](../npc/unsupported-notifications.md)を正とする。
 
 ### 1. NPC情報・会話・経路
 
@@ -273,15 +275,16 @@ mapcell、BGM、showscript、status、会話サイズ・位置・整列等を逐
 | 種別 | KYRiEの到達点 |
 |------|----------------|
 | announce・通常 effect／解除・emotion・sound・cutin・unittalk | 条件付きで本文／命令候補へ |
-| quest set／delete | 通知と命令候補。条件式は生成しない |
-| classchange（01B0） | 観測。setnpcdisplay経路／コメント。単純classchange命令化は限定 |
-| progressbar（02F0／09D1） | 構造化。会話中は条件付き命令、対象付き・応答成功は断定しない |
-| viewpoint | 対応値は命令、未対応はコメント。手動タイマーも対応範囲内のみ実行命令 |
-| 値付き effect（0284）・BGM（07FE/0B8C） | 観測／コメント。実行命令・NPC割当なし |
-| mapcell（0192） | 構造化と比較窓関連。setcell未生成。実ログ例は未確認 |
+| quest set／delete | 通知と命令候補。条件式は生成しない。0446 showeventは OnQuestInfo 関連付け可 |
+| classchange（01B0） | 観測。会話／タイマーは setnpcdisplay 経路。単純classchange命令化は限定 |
+| progressbar（02F0／09D1） | 構造化。会話中は条件付き命令。手動タイマーはコメント採用（秒数≠OnTimer）。応答成功は断定しない |
+| viewpoint | 対応値は命令、未対応はコメント。手動タイマーも同じ対応範囲／コメント区分 |
+| 値付き effect（0284）・BGM（07FE/0B8C） | 観測／コメント。実行命令・NPC割当なし。BGMのタイマー採用は拒否 |
+| mapcell（0192） | 構造化と比較窓関連。タイマーはコメント採用可。setcell未生成。実ログ例は未確認 |
 | showscript系 | overhead／showmessage候補。MARiA逐次表示の完全互換ではない |
-| 会話サイズ・位置・整列 | 構造化・比較・進行中会話の命令生成まで対応 |
-| 0446／0A3B | 観測・コメント／`not_adopted`。実行命令なし |
+| 会話サイズ・位置・整列 | 構造化・比較・進行中会話の命令生成まで対応。タイマー採用は拒否 |
+| 0446 event_marker | 構造化。会話単独はコメント。OnQuestInfo／手動タイマー／外部明示採用は showevent 可（座標注記） |
+| 0A3B hat_effect | 構造化・コメント。hateffect 実行命令なし。タイマーはコメント採用可 |
 | display_only | [未対応通知](../npc/unsupported-notifications.md) |
 
 ### 3. ワープ・移動・アイテム・Zeny
@@ -388,20 +391,15 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
   共通イベント列の載せる／載せない方針と相違・除外理由の `日本語（code）` 表示、タイマー扱い列は
   #17 で整理済み。OnTimer値・開始条件の自動生成はしない。sound／music 等のタイマー拒否は維持。
 - 最初は候補と根拠を保存。利用者が採用した観測に限り、編集用の待機／タイマー形式へ出力する。
-  [手動採用・全時刻手入力のNPCタイマー候補](../npc/event-timer-candidates.md)を追加済み。
-  実行採用: emotion／effect／effect_remove／announce／unittalk／対象NPC自身のoverhead。
-  コメント採用: effect_value／hat_effect／colored_speech。
-  classchange 手動タイマーは setnpcdisplay 実行命令候補（対象NPC・会話外）。
-  会話外 0x0229 の visibility_action は cloak*（自身）と hide（インスタンスMAP・自身）の実行命令候補。
-  viewpoint 手動タイマーは会話と同じ対応範囲（種別1／2・座標範囲）の実行命令候補。
-  event_marker 手動タイマーは showevent 実行命令候補（座標は注記）。
-  会話外 09xx の npc_display_action は setnpcdisplay 実行命令候補（対象NPC自身）。
-  progressbar 手動タイマーは全行コメント採用（09D1同一NPC／選択窓内の02F0。秒数をOnTimer／sleepへ使わない）。
-  選択窓内の関連 cutin（対象ActorIDなし）は全行コメント採用（実行 cutin は出さない）。
-  選択窓内の関連 mapcell（MAP名一致）は全行コメント採用（setcellは出さない）。
-  viewpoint 未対応値の手動タイマーは viewpoint_observation コメント採用（実行命令なし）。
-  sound／music／progress_action等は明示拒否。progressbar／cutin／mapcellはコメント採用可。開始条件は生成しない。
-  本体での読込・実行確認は残る。OnTimer値・sleep命令・イベントラベルが元コードと一致するとは扱わない。
+  [手動採用・全時刻手入力のNPCタイマー候補](../npc/event-timer-candidates.md)を追加済み
+  （#97–#107 で実行／コメント／拒否の境界を現行コードと揃えた）。
+  実行採用: emotion／effect／effect_remove／announce／unittalk／対象NPC自身のoverhead／
+  classchange・会話外09xx npc_display（setnpcdisplay）／visibility（cloak・自身、hide・インスタンス自身）／
+  viewpoint（対応範囲）／event_marker（showevent・座標注記）。
+  コメント採用: effect_value／hat_effect／colored_speech／progressbar（09D1同一NPC／窓内02F0）／
+  cutin／mapcell（窓内関連・setcellなし）／viewpoint未対応値（viewpoint_observation）。
+  sound／music／progress_action／会話レイアウト／status_action／script_command 等は明示拒否。
+  開始条件・OnTimer値の自動生成はしない。本体での読込・実行確認は残る。
 - 完了条件: 単発や欠損ログを自動でタイマー化せず、演出の相違が注意として残り、
   採用した形式がAurigaで読込・実行できること。
 
@@ -437,8 +435,9 @@ P0のログ再生・品質連携の後、P1-A/Bと独立して進める。
 ### P2: 演出・イベントの対応範囲拡大
 
 MARiAとの差を一度に埋めず、実ログで必要なものから進める。
-優先候補はprogressbar、announce/showscript、BGM、値付きエフェクトと解除、
-viewpoint、classchange、クエスト通知、会話レイアウト、NPCによるスキル演出。
+優先候補だったprogressbar、announce/showscript、viewpoint、classchange、クエスト通知は
+観測／条件付き命令／タイマーコメントまで到達済み（BGM・会話レイアウトのタイマー採用は拒否維持）。
+残る拡大はNPCによるスキル演出と、採取で必要になった未対応通知の切り出し。
 0B0Dエフェクト解除は会話・並行観測・外部候補・反復矛盾・手動タイマー候補へ追加済み。
 付与とは別イベントとして保持する。合成データ・GUI検証済み、実機・Auriga実行確認は残る。
 0284値付きエフェクトはIDと追加値を保持し、会話・並行観測・外部候補・反復照合へ追加済み。
@@ -543,20 +542,24 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-02時点（[v0.0.7](../releases/v0.0.7.md) 保存後）。
-#45–#66・#71–#83 相当は完了または main 反映済み
-（display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、スナップショット #83 含む）。
+2026-11-03時点（[v0.0.7](../releases/v0.0.7.md) 保存後、P1-B 手動タイマー #97–#107 反映後）。
+#45–#66・#71–#83・#93–#107 相当は完了または main 反映済み
+（display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、スナップショット #83、
+OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント境界 #96–#107 含む）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
 残作業（採取必須のものは採取後）:
 
-1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない）
+1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない。手動タイマー候補の本体読込含む）
 2. 視覚エフェクト日本語は確認済み出典が揃うまで空のまま（[クライアント資料計画](client-data-utilization-plan.md)）。
    stateiconimginfo の画像名は辞書化しない。原資料の Git 持ち出し禁止。
 3. **O2（#77/#85）**: メモリ退避の合成計測は `python -m tools.profile_memory_eviction`。
    既定 50000 は維持（退避動作は確認済み。実機ピークに基づく変更は別途）。
    演出JSON差分キー抑止と、会話64件以上の統合計算ワーカー（古いキーは破棄）まで完了。
+4. P1-B タイマーの sound／music／progress_action／会話レイアウト／status_action 等は
+   意図的拒否のまま維持（プレイヤー紐付けや開始条件の推測を増やさない）。
+   次のコード着手は採取で必要になった非対称、または MOB（P1-C）側の確認入力から。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。

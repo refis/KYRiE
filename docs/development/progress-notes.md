@@ -60,3 +60,10 @@ GUI更新前の受信更新も表示前に同期する。モデル・全件保�
 
 演出JSONの差分キー抑止と `profile_memory_eviction` を追加。既定上限 50000 は維持。
 会話64件以上の統合は MergeWorker へ移し、完了キー不一致は破棄。残る実機ピークに基づく上限変更は任意。
+
+### P1-B 手動タイマー境界（#96–#107 / 2026-11-03）
+
+会話外の classchange／visibility／viewpoint／event_marker／npc_display を実行命令候補へ、
+effect_value／hat_effect／colored_speech／progressbar／cutin／mapcell／viewpoint未対応値を
+コメント採用へ揃えた。sound／music／progress_action 等の拒否は維持。
+roadmap の MARiA 差分表・P1-B・次の着手単位を現行コードに再同期（本PR）。
