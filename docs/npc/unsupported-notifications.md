@@ -26,8 +26,8 @@
 | フィールド | actor_id@2 u32, x@6 u16, y@8 u16, state@10 u16, kind@12 u16 |
 | 状態 | `observed` + （単独時）`not_adopted` / （クエスト関連時）OnQuestInfo |
 | 観測 kind | `event_marker` |
-| 生成 | 単独はコメントのみ（`event_marker` / `external_event_marker`）。会話中（close2判定中含む）の `setquest`／`delquest` 直後に続いた場合は該当NPCの `OnQuestInfo:` へ `showevent {state}, {kind}, "{name}"; // {quest_id}: {x}, {y}` を追加 |
-| タイマー | 手動採用時は**全行コメント**のみ。実行 showevent は出さない（[event-timer-candidates](event-timer-candidates.md)） |
+| 生成 | 会話本文の単独はコメントのみ（`event_marker` / `external_event_marker`）。会話中（close2判定中含む）の `setquest`／`delquest` 直後に続いた場合は該当NPCの `OnQuestInfo:` へ `showevent {state}, {kind}, "{name}"; // {quest_id}: {x}, {y}` を追加 |
+| タイマー | 手動採用時は `showevent {state}, {kind}; // {x}, {y}`（対象NPC自身・会話外）。rAthena書式は確認コメント可（[event-timer-candidates](event-timer-candidates.md)） |
 | 外部候補 | 会話中の別既知NPCへ届いた場合は `external_presentations` へ保持。クエスト関連付け済みなら OnQuestInfo 側へ移し、外部コメントは出さない |
 
 合成パケットで decode・保持・コメント出力・タイマー拒否を確認。実機／Auriga実行確認は不要（本Issue範囲）。

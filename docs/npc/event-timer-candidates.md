@@ -38,7 +38,8 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | unittalk | 実行命令（unittalk） |
 | overhead | 実行命令（showmessage）。対象NPC自身のみ |
 | announcement | announce（関連候補・起因未確定の注記付き） |
-| effect_value / event_marker / hat_effect / colored_speech | **全行コメント**。実行命令へ落とさない |
+| effect_value / hat_effect / colored_speech | **全行コメント**。実行命令へ落とさない |
+| event_marker | 実行命令 `showevent {state}, {kind}; // {x}, {y}`（対象NPC自身・会話外。座標は注記）。rAthena書式は確認コメントのまま可 |
 | classchange | 実行命令 `setnpcdisplay {NPC名},{class_id};`（対象NPC自身・会話外の手動採用時）。kind は根拠のみ |
 | visibility_action | `cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし。自身発生は受信者本人のみのため採用可）。`hideonnpc;`／`hideoffnpc;`はインスタンスマップ（MAP名に`@`）上の自身向けのみ。通常MAPの hide・他NPC向け target 付きは拒否 |
 | viewpoint | 実行命令 `viewpoint {kind},{x},{y},{marker_id},{color};`（対象NPC自身・会話外。種別1／2・座標0〜1023・marker 0〜255のみ。未対応値は拒否） |
