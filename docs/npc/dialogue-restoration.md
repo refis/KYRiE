@@ -331,6 +331,19 @@ NPC用通知をプレイヤー用待機命令へ置き換えない。
 自身向け cloak（受信が本人限定）と、インスタンスMAP上の自身向け hide のみ採用する
 （[タイマー候補](event-timer-candidates.md)）。通常MAPの hide は採用しない。
 
+### 視界外 cloak と出現パケット（検討メモ）
+
+作業仮説: クライアントはMAP滞在中に限り cloakoff 対象リストを持ち、cloaked NPCが
+視界に入ったときの出現パケット（09FF系）の options に反映する。リストはMAP移動で消えるため、
+再シードは到着地点付近の OnTouch、または対象NPC／近傍NPCの OnTouch による、と見る。
+リストに無い cloaked NPC は OnTouch しない（`can_trigger` は現在 options の hide/cloak を除外）。
+配置宣言用の `initial_options`（初回出現）は後続の hideoff/cloakoff で上書きしない。
+
+実測（ygg_roots 調査地点#ch01_1 など）: 初回は cloaked 出現→直後 0229 cloakoff。同MAP再出現は
+出現時点で options が非cloak（`initial_options` は cloaked のまま）。`appearance_vs_initial` として
+会話外観測に残し、タイマーの cloak 実行命令へは出さない。サーバー恒久 cloakoff とクライアント
+リストの切り分け、OnTouch→リスト追加の命令生成は未確定のため未実装。
+
 会話内の追加アクションはConversation.actionsに受信Packetの根拠とともに保存する。
 プログレスバー、表示状態、状態異常を入力応答のstepsへ挿入しないため、next/input等の返信対応は維持される。
 本文へは受信順で取り込み、同じアンカーのクエスト命令等との順序も維持する。

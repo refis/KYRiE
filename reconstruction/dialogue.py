@@ -520,6 +520,23 @@ class DialogueStore:
                                 decoded=('visibility_action', actor,
                                          dict(commands=changes, target=None, options=entity.options,
                                               previous_options=previous)))
+                    elif (type(entity.initial_options) is int
+                            and (entity.initial_options & 6) != (entity.options & 6)
+                            and not conversation):
+                        # Re-sight appearance differs from first-seen hide/cloak bits. Evidence for
+                        # client-side view overrides (e.g. cloakoff list) without claiming the cause.
+                        # Extra field `basis` keeps this out of timer cloak/hide adoption.
+                        changes = []
+                        for bit, on, off in ((2, 'hideonnpc', 'hideoffnpc'), (4, 'cloakonnpc', 'cloakoffnpc')):
+                            if (entity.initial_options & bit) != (entity.options & bit):
+                                changes.append(on if entity.options & bit else off)
+                        if changes:
+                            self._retain_presentation(
+                                packet, session, index, actor, 'outside_dialogue',
+                                decoded=('visibility_action', actor,
+                                         dict(commands=changes, target=None, options=entity.options,
+                                              previous_options=entity.initial_options,
+                                              basis='appearance_vs_initial')))
             except ObservationError as exc:
                 invalid(exc)
             return packet.packet_id == 0x229
