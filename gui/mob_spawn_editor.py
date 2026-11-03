@@ -7,6 +7,7 @@ from copy import deepcopy
 from pathlib import Path
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QLabel, QLineEdit,
     QCheckBox, QPushButton, QFileDialog, QMessageBox, QPlainTextEdit, QScrollArea, QWidget)
+from gui.qt_messages import warning as warn
 from reconstruction.mob_spawn_export import (PLACEMENT_FIELDS, DEFAULT_PROFILE,
     CONFIGURED_PROFILE, configure_candidate, load_configured, render_configured,
     format_observation_evidence)
@@ -78,8 +79,8 @@ class MobSpawnEditor(QDialog):
         try:
             self.preview.setPlainText(render_configured(self.document(), self.candidate, self.sources))
         except (ValueError, OSError) as exc:
-            self.clear_preview()
-            QMessageBox.warning(self, '配置を表示できません', str(exc))
+            self.preview.setPlainText(str(exc))
+            warn(self, '配置を表示できません', str(exc))
 
     def document(self):
         return configure_candidate(self.candidate, {key: field.text() for key, field in self.fields.items()},

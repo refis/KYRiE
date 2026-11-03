@@ -562,9 +562,9 @@ class TimingComparisonGuiTests(WindowTestCase):
             self.assertIn('OnTimer1100:',editor.preview.toPlainText())
             change()
             with self.assertRaises(ValueError):editor.document()
-            with patch('gui.event_timer_editor.QMessageBox.warning') as warning:editor.generate()
+            with patch('gui.event_timer_editor.warn') as warning:editor.generate()
             warning.assert_called_once()
-            self.assertEqual(editor.preview.toPlainText(),'')
+            self.assertTrue(editor.preview.toPlainText())
             editor.close();editor.deleteLater()
         self.assertEqual(report,before)
 
@@ -649,10 +649,10 @@ class TimingComparisonGuiTests(WindowTestCase):
             editor.load()
         stale_load.assert_called_once()
         self.assertEqual([field.text() for field in editor.times], ['100', '100'])
-        with patch('gui.event_timer_editor.QMessageBox.warning') as warning:
+        with patch('gui.event_timer_editor.warn') as warning:
             editor.generate()
         warning.assert_called_once()
-        self.assertEqual(editor.preview.toPlainText(), '')
+        self.assertTrue(editor.preview.toPlainText())
         self.assertEqual(report, before)
         editor.close(); editor.deleteLater()
         panel.report = deepcopy(report)

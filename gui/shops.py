@@ -6,6 +6,7 @@ from copy import deepcopy
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,
                                QTableWidget, QTableWidgetItem, QPlainTextEdit, QFileDialog, QMessageBox,
                                QMenu, QDialog, QFormLayout, QLineEdit, QCheckBox, QDialogButtonBox)
+from gui.qt_messages import warning as warn
 from reconstruction.shop_export import ShopRenderer
 from storage.observation_export import save_observations, save_observation_text
 from reconstruction.npc_initial_state import visibility_state
@@ -63,7 +64,7 @@ class ShopExportDialog(QDialog):
                 conversation=self.conversation)
             self.accept()
         except (ValueError, OSError) as exc:
-            QMessageBox.warning(self, 'ショップ候補を生成できません', str(exc))
+            warn(self, 'ショップ候補を生成できません', str(exc))
 
 
 class ShopPanel(QWidget):
