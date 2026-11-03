@@ -55,7 +55,7 @@ def presentation_context(row):
     elif kind=='event_marker':
         result.update(actor_role='event_marker_target',
             short='イベントアイコンの対象IDです。起因NPC・OnTimer・表示条件は未確定です。',
-            summary='0x0446は対象ActorIDと座標・state・kindを保持します。表示JSONの@showevent雛形とは別で、会話命令やNPCタイマーへは変換しません。起因・他ユーザー操作の混入は確定せず、手動確認前の実行命令も生成しません。')
+            summary='0x0446は対象ActorIDと座標・state・kindを保持します。会話本文の単独はコメントのみ（OnQuestInfo関連付けは別経路）。手動タイマー採用と外部NPC候補の明示採用では showevent 実行命令候補を出します。起因・他ユーザー操作の混入は確定しません。')
     elif kind=='hat_effect':
         result.update(actor_role='hat_effect_target',
             short='帽子エフェクトの対象IDです。起因・装備条件・実行命令は未確定です。',

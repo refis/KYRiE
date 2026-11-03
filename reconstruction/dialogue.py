@@ -310,7 +310,8 @@ class DialogueStore:
         self.resource_count += 1
         self.revision += 1
 
-    ADOPTABLE_EXTERNAL_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk'))
+    ADOPTABLE_EXTERNAL_KINDS = frozenset(
+        ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk', 'event_marker'))
 
     def set_resource_adoption(self, conversation, packet_index, confirmed):
         """Explicit per-row adoption for command candidates. Never flips cause_confirmed."""
