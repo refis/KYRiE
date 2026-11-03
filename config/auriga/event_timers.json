@@ -15,6 +15,7 @@
   "colored_speech": "// 色付きユニット発言観測: color=0x{color_hex}, text={text}。unittalkへは変換しない。",
   "classchange": "setnpcdisplay {target},{class_id};",
   "visibility_action": "{command};",
+  "viewpoint": "viewpoint {kind},{x},{y},{marker_id},{color};",
   "emotion": "emotion {value};",
   "effect": "misceffect {value};",
   "label_end": "end;"

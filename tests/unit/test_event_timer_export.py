@@ -123,7 +123,7 @@ class EventTimerExportTests(unittest.TestCase):
         for fields in changes:
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation'].update(fields)
             with self.subTest(fields=fields),self.assertRaises(ValueError):validate_timer_trial(changed,0)
-        for kind in ('music','sound','viewpoint','progressbar','progress_action','status_action',
+        for kind in ('music','sound','progressbar','progress_action','status_action',
                      'script_command','npc_display_action','mapcell','dialogue_size'):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation']['kind']=kind
             with self.subTest(kind=kind),self.assertRaises(ValueError):validate_timer_trial(changed,0)
@@ -266,6 +266,37 @@ class EventTimerExportTests(unittest.TestCase):
             commands=['viewpoint'], target=None, options=0, previous_options=None)
         with self.assertRaises(ValueError):
             build_timer_candidate(invalid, 0, [100, 1100], confirmed=True)
+
+    def test_viewpoint_timer_emits_supported_command_and_rejects_out_of_range(self):
+        from pathlib import Path
+        import tempfile
+        report = repeated_report('viewpoint')
+        fields = dict(kind=1, x=100, y=200, marker_id=7, color=0xff123456)
+        for trial in report['trials']:
+            trial['events'][1]['observation']['fields'] = deepcopy(fields)
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('viewpoint 1,100,200,7,0x123456;', code)
+        self.assertFalse(any(line.lstrip().startswith('//') and 'viewpoint' in line
+                             for line in code.splitlines()))
+        with tempfile.TemporaryDirectory() as folder:
+            profile = Path(folder) / 'event_timers.json'
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            for bad in ('viewpoint 9,100,200,7,0x123456;', '// viewpoint {kind},{x},{y},{marker_id},{color};',
+                        'viewpoint {kind},{x},{y},{marker_id},{color};\nend;'):
+                templates['viewpoint'] = bad
+                profile.write_text(json.dumps(templates), encoding='utf-8')
+                with self.subTest(template=bad), self.assertRaises(ValueError):
+                    build_timer_candidate(report, 0, [100, 1100], confirmed=True, profile=profile)
+        unsupported = deepcopy(report)
+        unsupported['trials'][0]['events'][1]['observation']['fields'] = dict(
+            kind=3, x=100, y=200, marker_id=7, color=0xff123456)
+        with self.assertRaises(ValueError):
+            build_timer_candidate(unsupported, 0, [100, 1100], confirmed=True)
+        oversized = deepcopy(report)
+        oversized['trials'][0]['events'][1]['observation']['fields'] = dict(
+            kind=1, x=2000, y=200, marker_id=7, color=0xff123456)
+        with self.assertRaises(ValueError):
+            build_timer_candidate(oversized, 0, [100, 1100], confirmed=True)
 
     def test_unittalk_audit_is_preliminary_bounded_and_keeps_source_reasons(self):
         from tools.audit_event_trial_review import review_unittalk
