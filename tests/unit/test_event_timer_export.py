@@ -214,18 +214,31 @@ class EventTimerExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_timer_candidate(oversized, 0, [100, 1100], confirmed=True)
 
-    def test_visibility_action_timer_emits_self_hide_cloak_commands(self):
+    def test_visibility_action_timer_allows_cloak_anywhere_and_hide_on_instance_only(self):
         from pathlib import Path
         import tempfile
-        report = repeated_report('visibility_action')
-        fields = dict(commands=['hideonnpc', 'cloakoffnpc'], target=None, options=2, previous_options=4)
-        for trial in report['trials']:
-            trial['events'][1]['observation']['fields'] = deepcopy(fields)
-        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        cloak = repeated_report('visibility_action')
+        for trial in cloak['trials']:
+            trial['events'][1]['observation']['fields'] = dict(
+                commands=['cloakonnpc'], target=None, options=4, previous_options=0)
+        cloak_code = build_timer_candidate(cloak, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('cloakonnpc;', cloak_code)
+        self.assertNotIn('hideonnpc;', cloak_code)
+
+        instance = repeated_report('visibility_action')
+        for trial in instance['trials']:
+            trial['anchor']['npc'] = dict(trial['anchor']['npc'], map_name='1@toy.gat')
+            for event in trial['events']:
+                event['observation']['npc'] = dict(event['observation']['npc'], map_name='1@toy.gat')
+            trial['events'][1]['observation']['fields'] = dict(
+                commands=['hideonnpc', 'cloakoffnpc'], target=None, options=2, previous_options=4)
+        instance['npc_identity'] = dict(instance['npc_identity'], map_name='1@toy.gat')
+        code = build_timer_candidate(instance, 0, [100, 1100], confirmed=True)['auriga']
         self.assertIn('hideonnpc;', code)
         self.assertIn('cloakoffnpc;', code)
         self.assertFalse(any(line.lstrip().startswith('//') and 'hideonnpc' in line
                              for line in code.splitlines()))
+
         with tempfile.TemporaryDirectory() as folder:
             profile = Path(folder) / 'event_timers.json'
             templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
@@ -233,14 +246,22 @@ class EventTimerExportTests(unittest.TestCase):
                 templates['visibility_action'] = bad
                 profile.write_text(json.dumps(templates), encoding='utf-8')
                 with self.subTest(template=bad), self.assertRaises(ValueError):
-                    build_timer_candidate(report, 0, [100, 1100], confirmed=True, profile=profile)
-        targeted = deepcopy(report)
+                    build_timer_candidate(instance, 0, [100, 1100], confirmed=True, profile=profile)
+
+        non_instance_hide = repeated_report('visibility_action')
+        for trial in non_instance_hide['trials']:
+            trial['events'][1]['observation']['fields'] = dict(
+                commands=['hideonnpc'], target=None, options=2, previous_options=0)
+        with self.assertRaises(ValueError):
+            build_timer_candidate(non_instance_hide, 0, [100, 1100], confirmed=True)
+
+        targeted = deepcopy(instance)
         targeted['trials'][0]['events'][1]['observation']['fields'] = dict(
-            commands=['hideonnpc'], target=dict(name='Other', map_name='test.gat'),
-            options=2, previous_options=0)
+            commands=['cloakonnpc'], target=dict(name='Other', map_name='1@toy.gat'),
+            options=4, previous_options=0)
         with self.assertRaises(ValueError):
             build_timer_candidate(targeted, 0, [100, 1100], confirmed=True)
-        invalid = deepcopy(report)
+        invalid = deepcopy(cloak)
         invalid['trials'][0]['events'][1]['observation']['fields'] = dict(
             commands=['viewpoint'], target=None, options=0, previous_options=None)
         with self.assertRaises(ValueError):

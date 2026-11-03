@@ -40,7 +40,7 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | announcement | announce（関連候補・起因未確定の注記付き） |
 | effect_value / event_marker / hat_effect / colored_speech | **全行コメント**。実行命令へ落とさない |
 | classchange | 実行命令 `setnpcdisplay {NPC名},{class_id};`（対象NPC自身・会話外の手動採用時）。kind は根拠のみ |
-| visibility_action | 実行命令 `hideonnpc;`／`hideoffnpc;`／`cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし）。他NPC向け target 付きは拒否 |
+| visibility_action | `cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし。自身発生は受信者本人のみのため採用可）。`hideonnpc;`／`hideoffnpc;`はインスタンスマップ（MAP名に`@`）上の自身向けのみ。通常MAPの hide・他NPC向け target 付きは拒否 |
 
 未対応のまま拒否する種別（比較列には載せられるがタイマー採用不可）:
 sound、music、viewpoint、progressbar／progress_action、mapcell、会話レイアウト、

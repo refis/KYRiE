@@ -15,7 +15,9 @@ TIMER_PRESENTATION_KINDS = frozenset((
     'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
     'visibility_action'))
 COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'hat_effect', 'colored_speech'))
-VISIBILITY_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc', 'cloakonnpc', 'cloakoffnpc'))
+HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
+CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
+VISIBILITY_TIMER_COMMANDS = HIDE_TIMER_COMMANDS | CLOAK_TIMER_COMMANDS
 
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'event_timers.json'
 MAX_CONFIGURED_BYTES = 32 * 1024 * 1024
@@ -142,7 +144,14 @@ def _validate_observation_fields(row):
                 or type(fields.get('options')) is not int or not 0 <= fields['options'] <= 0xffffffff
                 or (previous is not None
                     and (type(previous) is not int or not 0 <= previous <= 0xffffffff))):
-            raise ValueError('表示状態変更の観測値が不正です。対象NPC自身の hide/cloak のみ採用できます。')
+            raise ValueError(
+                '表示状態変更の観測値が不正です。'
+                '対象NPC自身の cloak、およびインスタンスマップ上の hide のみ採用できます。')
+        # cloak*: self-originated packets reach only the viewing client — adoptable on any map.
+        # hide*: adoptable only on instance maps, where delivery scope matches the script context.
+        map_name = (row.get('npc') or {}).get('map_name') or ''
+        if any(command in HIDE_TIMER_COMMANDS for command in commands) and '@' not in map_name:
+            raise ValueError('hideonnpc／hideoffnpc はインスタンスマップ上の観測のみタイマー採用できます。')
         return
     value = fields.get('value')
     if type(value) is not int or not 0 <= value <= (255 if kind == 'emotion' else 2147483647):
@@ -171,7 +180,8 @@ def validate_timer_trial(report, trial_index):
             '未対応演出: '+kinds+'。この試行は比較のみです。'
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'コメント採用の値付きエフェクト・イベントアイコン・帽子／色付き発言、'
-            '外見変更の setnpcdisplay、および表示状態の hide/cloak 候補に対応しています。'
+            '外見変更の setnpcdisplay、表示状態の cloak（自身）、'
+            'およびインスタンスマップ上の hide 候補に対応しています。'
             'sound／music／viewpoint／progressbar／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
