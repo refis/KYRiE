@@ -328,3 +328,26 @@ class NpcBundleTests(unittest.TestCase):
         self.assertFalse(report['excluded'])
         self.assertIn('callshop "test.gat#callshop"', report['auriga'])
         self.assertEqual((record, conversation), before)
+
+    def test_bundle_sort_uses_npc_actor_id_when_reference_actor_id_is_null(self):
+        """Explicit None on shop record must not sort as the 0x100000000 sentinel."""
+        from tests.unit.test_shop_export import observe_shop
+        high = dict(entity(), name='High', actor_id=100, capture_session=0,
+                    server_endpoint=dict(ip='10.0.0.2', port=5121))
+        record, _opened = observe_shop(False)
+        record['npc'] = dict(record['npc'], name='LowShop', actor_id=2, kind='NPC',
+                             capture_session=0, server_endpoint=dict(ip='10.0.0.2', port=5121),
+                             group_id=7, title='案内',
+                             metadata_evidence={'group_id': {'packet_id': 0xadf},
+                                                'title': {'packet_id': 0xadf}})
+        record['actor_id'] = None
+        record['conversation_id'] = None
+        record['conversation_link_basis'] = None
+        before = deepcopy((high, record))
+        report = build_npc_bundle([high], [], shops=[record])
+        self.assertFalse(report['excluded'])
+        names = [entry['npc']['name'] for entry in report['entries']]
+        self.assertEqual(names, ['LowShop', 'High'])
+        self.assertLess(report['auriga'].index('\tshop\tLowShop\t'),
+                        report['auriga'].index('\tscript\tHigh\t'))
+        self.assertEqual((high, record), before)

@@ -14,7 +14,7 @@ from reconstruction.entity_metadata import render_npc_initialization
 from reconstruction.quest_info import append_quest_info, collect_quest_info_links
 from reconstruction.npc_initial_state import visibility_state
 from reconstruction.shop_export import ShopRenderer, shop_name_for
-from reconstruction.barter_export import BarterRenderer, barter_name_for
+from reconstruction.barter_export import BarterRenderer
 
 
 def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=False, shops=(),
@@ -37,8 +37,13 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             return None
         if key not in buckets:
             buckets[key] = dict(npc=deepcopy(npc), entities=[], conversations=[], metadata=[])
-        order = actor_sort_key(dict(npc, actor_id=reference.get('actor_id', npc.get('actor_id')),
-                                   capture_session=reference.get('capture_session', npc.get('capture_session', 0))))
+        aid = reference.get('actor_id')
+        if type(aid) is not int:
+            aid = npc.get('actor_id')
+        session = reference.get('capture_session')
+        if session is None:
+            session = npc.get('capture_session', 0)
+        order = actor_sort_key(dict(npc, actor_id=aid, capture_session=session))
         buckets[key]['sort_key'] = min(buckets[key].get('sort_key', order), order)
         buckets[key]['metadata'].append(deepcopy(npc))
         return buckets[key]
