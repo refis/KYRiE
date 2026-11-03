@@ -530,6 +530,15 @@ class DialogueStore:
             except ObservationError as exc:
                 invalid(exc)
             return True
+        if packet.packet_id == 0x8e2 and conversation:
+            # Player Navigation UI (PACKET_ZC_NAVIGATION_ACTIVE). Link to the active
+            # dialogue as an action; do not invent ownership beyond same-flow timing.
+            try:
+                _, _, fields = decode_dialogue(packet)
+                self._retain_action(packet, session, index, conversation, 'navigation_action', fields)
+            except ObservationError as exc:
+                invalid(exc)
+            return True
         if packet.packet_id in STATUS_IDS:
             try:
                 actor, fields = status_event(packet)

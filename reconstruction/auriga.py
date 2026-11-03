@@ -93,6 +93,7 @@ for _command in ('hideonnpc', 'hideoffnpc', 'cloakonnpc', 'cloakoffnpc'):
     FILE_FIELDS[_command] = set()
     FILE_FIELDS[_command + '_target'] = {'target'}
 FILE_FIELDS.update({'unittalk_target': {'text', 'target'}, 'progress_action': {'seconds', 'color'},
+                    'navigation_action': {'type', 'set_type', 'hide', 'map_name', 'x', 'y', 'spr_index'},
                     'status_start': {'symbol', 'duration', 'value'}, 'status_end': {'symbol'},
                     'status_review': {'evidence'}, 'action_observation': {'evidence'}, 'action_wait_review': set()})
 for _command, _args in COMMAND_ARGS.items():
@@ -703,6 +704,11 @@ class AurigaRenderer:
                 if not 0 <= fields['seconds'] <= 2147483 or not 0 <= fields['color'] <= 0xffffffff:
                     raise ValueError('Invalid progressbar values')
                 emit('progress_action', depth, seconds=fields['seconds'], color=f"0x{fields['color']:06X}")
+            elif kind == 'navigation_action':
+                # Comment-only link to rAthena navigateto / ZC_NAVIGATION_ACTIVE; no executable form yet.
+                emit('navigation_action', depth, type=fields['type'], set_type=fields['set_type'],
+                     hide=fields['hide'], map_name=_quote(fields['map_name']), x=fields['x'], y=fields['y'],
+                     spr_index=fields['spr_index'])
             elif kind == 'status_action':
                 entry = self.status_ids.get(str(fields['effect_id']))
                 if entry and fields['flag'] == 0:

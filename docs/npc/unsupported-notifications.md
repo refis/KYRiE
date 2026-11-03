@@ -147,10 +147,10 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | PacketID | `08E2`（`PACKET_ZC_NAVIGATION_ACTIVE`、27バイト固定） |
 | 表示名 | クライアント Navigation 開始 / rAthena `navigateto` → `clif_navigateTo` |
 | フィールド（公式） | `Type`@2 u8、`SetType`@3 u8、`Hide`@4 bool、`MapName`@5 char[16]、`xPos`@0x15 i16、`yPos`@0x17 i16、`sprIndex`@0x19 i16 |
-| 観測 fields | `type`／`set_type`／`hide`／`map_name`／`x`／`y`／`spr_index`（kind=`navigation_active`） |
-| 状態 | `observed` + `not_adopted`。対象ActorIDなし。会話ステップへは挿入しない |
-| 生成 | `navigateto` 実行命令は未生成。warp（0092）や viewpoint（0144）と混同しない |
-| 実測 | 2026-11-03 採取の `小さなトネリコの木#c1p1` で「一緒に行く」選択後・close前に3回。例: Type=0, SetType=0x65（`NAV_KAFRA_AND_AIRSHIP`=101）, Hide=1, MapName=`ygg_edge`, xPos=253, yPos=246, sprIndex=1002。直後の map 転送は 0092→`ygg_edge.gat` 255,240 |
+| 観測 fields | `type`／`set_type`／`hide`／`map_name`／`x`／`y`／`spr_index` |
+| 状態 | 会話中は `navigation_action`（同一フロー会話へ時間紐付け、`cause_confirmed=false`）。会話外・close待ちは `navigation_active` 演出観測。対象ActorIDなし |
+| 生成 | 会話本文へは `// navigateto 観測: ...` コメントのみ。実行 `navigateto`・タイマー変換はしない。warp（0092）や viewpoint（0144）と混同しない |
+| 実測 | 2026-11-03 採取の `小さなトネリコの木#c1p1` で「一緒に行く」選択後・close前に3回。例: Type=0, SetType=0x65（`NAV_KAFRA_AND_AIRSHIP`=101）, Hide=1, MapName=`ygg_edge`, xPos=253, yPos=246, sprIndex=1002。直後の map 転送は 0092→`ygg_edge.gat` 255,240。続きログ（ygg_fruit／ygg_roots）でも会話直前ナビを同様に確認 |
 
 同ログの `ナビエル#c1p1naviel` は別経路で `0144` viewpoint（KYRiE観測済み）と mes 内 `<NAVI>…<INFO>…</INFO></NAVI>` クリックリンク（本文として保持、専用decodeなし）を使う。`0B18`（`ZC_EXTEND_BODYITEM_SIZE`）はマップ入場付近の所持枠通知でナビ無関係。
 
@@ -172,7 +172,7 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | `mercenary`（029B） | 構造化・コメント | makemerc 実行命令・タイマーへ出さない |
 | `external_*` | 外部候補 | 既定はコメント。emotion／effect／解除／overhead／unittalk／event_marker は明示採用可。sound等は不可 |
 | `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 09D1／窓内02F0 progressbar はタイマーコメント採用可（秒数≠OnTimer）。viewpoint対応範囲はタイマー実行命令、未対応値はコメント採用 |
-| `navigation_active`（08E2） | 構造化 | navigateto 実行命令・タイマーへ出さない。viewpoint／warp と分離 |
+| `navigation_action`／`navigation_active`（08E2） | 構造化・コメント紐付け | 会話中はアクションコメント。実行 navigateto・タイマーへ出さない。viewpoint／warp と分離 |
 
 ## 変更時の確認
 

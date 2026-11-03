@@ -21,31 +21,36 @@ def navigation_active(nav_type=0, set_type=0x65, hide=1, map_name=b'ygg_edge', x
 
 
 class NavigationActiveObservationTests(unittest.TestCase):
-    def test_navigation_active_observes_official_layout_without_npc_assignment(self):
+    def test_navigation_links_to_dialogue_action_and_stays_comment_only(self):
         store = DialogueStore()
         events = [navigation_active(),
                   packet(0x90, struct.pack('<IB', 42, 1), 'SEND'),
                   packet(0xb4, struct.pack('<I', 42) + b'hello\0'),
-                  navigation_active(nav_type=1, set_type=0, hide=0, map_name=b'prontera', x=0, y=0, spr=0),
+                  navigation_active(nav_type=0, set_type=0x65, hide=1, map_name=b'ygg_fruit', x=82, y=120, spr=1002),
                   packet(0xb6, struct.pack('<I', 42)),
                   navigation_active(map_name=b'pay_fild01', x=10, y=20, spr=0)]
         for event in events:
             store.apply(event)
-        rows = store.presentation_observations
-        self.assertEqual([row['context'] for row in rows],
-                         ['outside_dialogue', 'during_dialogue', 'close_wait'])
-        self.assertTrue(all(row['kind'] == 'navigation_active' and row['actor_id'] is None
-                            and not row['target_observed'] and row['npc'] == {}
+        rows = [row for row in store.presentation_observations if row['kind'] == 'navigation_active']
+        self.assertEqual([row['context'] for row in rows], ['outside_dialogue', 'close_wait'])
+        self.assertTrue(all(row['actor_id'] is None and not row['target_observed'] and row['npc'] == {}
                             for row in rows))
-        self.assertEqual(rows[0]['fields'],
-                         dict(type=0, set_type=0x65, hide=1, map_name='ygg_edge', x=253, y=246, spr_index=1002))
-        self.assertEqual(rows[1]['fields']['map_name'], 'prontera')
-        self.assertEqual(rows[1]['fields']['type'], 1)
+        self.assertEqual(rows[0]['fields']['map_name'], 'ygg_edge')
         self.assertEqual(len(store.sessions), 1)
-        self.assertFalse(any(step['kind'] == 'navigation_active' for step in store.sessions[0].steps))
-        code = AurigaRenderer().render(store.sessions[0])
-        self.assertNotIn('navigateto', code)
-        self.assertNotIn('@navigation', code)
+        item = store.sessions[0]
+        self.assertFalse(any(step['kind'] == 'navigation_active' for step in item.steps))
+        self.assertEqual(len(item.actions), 1)
+        action = item.actions[0]
+        self.assertEqual(action['kind'], 'navigation_action')
+        self.assertEqual(action['fields'],
+                         dict(type=0, set_type=0x65, hide=1, map_name='ygg_fruit', x=82, y=120, spr_index=1002))
+        self.assertFalse(action['cause_confirmed'])
+        code = AurigaRenderer().render(item)
+        self.assertIn('navigateto 観測', code)
+        self.assertIn('map="ygg_fruit"', code)
+        self.assertTrue(any(line.lstrip().startswith('//') and 'navigateto 観測' in line
+                            for line in code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('navigateto ') for line in code.splitlines()))
         self.assertEqual(
             decode_dialogue(navigation_active()),
             ('navigation_active', None,
@@ -67,7 +72,7 @@ class NavigationActiveObservationTests(unittest.TestCase):
     def test_presentation_context_keeps_player_notification_boundary(self):
         from gui.presentation_context import presentation_context
         row = dict(kind='navigation_active', packet_id=0x8e2, actor_id=None,
-                   context='during_dialogue', npc={},
+                   context='outside_dialogue', npc={},
                    fields=dict(type=0, set_type=101, hide=1, map_name='ygg_edge', x=253, y=246, spr_index=1002))
         before = deepcopy(row)
         note = presentation_context(row)

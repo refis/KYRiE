@@ -228,9 +228,11 @@ NPC演出の非表示リストには連動せず、非表示にする場合はPa
 Type／SetType／Hide／MapName[16]／xPos／yPos／sprIndex。
 rAthenaの`navigateto` → `clif_navigateTo` と対応する。
 ミニマップマーカーの`viewpoint`（0144）や mes 内 `<NAVI>` クリックリンクとは別経路。
-観測 kind は`navigation_active`（対象ActorIDなし・会話本文へ未挿入）。
-`navigateto`実行命令は未生成（[未対応通知](unsupported-notifications.md#クライアントナビ開始08e2)）。
-実測例は `小さなトネリコの木#c1p1` の同行選択直後。起因条件は生成しない。
+会話中の受信は`navigation_action`として同一フローの会話へ時間紐付けし、
+本文には`// navigateto 観測: ...`コメントのみ出す（実行命令・起因確定はしない）。
+会話外・close待ちは`navigation_active`演出観測として保持する
+（[未対応通知](unsupported-notifications.md#クライアントナビ開始08e2)）。
+実測例は `小さなトネリコの木#c1p1` の同行選択直後、および ygg 系会話のナビ。
 
 ### マップマーカー0144（2026-10-28）
 

@@ -63,7 +63,9 @@ def validate_actions(conversation):
         raise ValueError('Conversation action capacity exceeded')
     for row in conversation.actions:
         anchor = row.get('after_step_index')
-        if (row.get('kind') not in ('visibility_action', 'status_action', 'progress_action', 'script_command', 'npc_display_action', 'dialogue_size', 'dialogue_position', 'dialogue_alignment')
+        if (row.get('kind') not in ('visibility_action', 'status_action', 'progress_action', 'navigation_action',
+                                    'script_command', 'npc_display_action', 'dialogue_size', 'dialogue_position',
+                                    'dialogue_alignment')
                 or row.get('capture_session') != conversation.capture_session or row.get('flow_id') != conversation.flow_id
                 or row.get('cause_confirmed') is not False or row.get('direction') != 'RECV'
                 or type(anchor) is not int or not 0 <= anchor < len(conversation.steps)
@@ -78,6 +80,8 @@ def validate_actions(conversation):
         kind = row['kind']
         def uint(value):
             return type(value) is int and 0 <= value <= 0xffffffff
+        def sint16(value):
+            return type(value) is int and -32768 <= value <= 32767
         if kind in ('dialogue_size', 'dialogue_position', 'dialogue_alignment'):
             keys, packets = {
                 'dialogue_size': ({'height', 'width'}, (0xba2,)),
@@ -95,6 +99,14 @@ def validate_actions(conversation):
             valid = command in COMMAND_ARGS and isinstance(fields.get('arguments'), dict) and set(fields['arguments']) == set(COMMAND_ARGS[command])
         elif kind == 'progress_action':
             valid = row['packet_id'] == 0x2f0 and set(fields) == {'seconds', 'color'} and all(uint(v) for v in fields.values())
+        elif kind == 'navigation_action':
+            # PACKET_ZC_NAVIGATION_ACTIVE fields; navigateto executable form stays comment-only.
+            valid = (row['packet_id'] == 0x8e2
+                     and set(fields) == {'type', 'set_type', 'hide', 'map_name', 'x', 'y', 'spr_index'}
+                     and all(type(fields[key]) is int and 0 <= fields[key] <= 255
+                             for key in ('type', 'set_type', 'hide'))
+                     and isinstance(fields['map_name'], str) and len(fields['map_name']) <= 16
+                     and all(sint16(fields[key]) for key in ('x', 'y', 'spr_index')))
         elif kind == 'status_action':
             required = {'effect_id', 'flag', 'remaining_ms', 'value1', 'value2', 'value3'}
             valid = (row['packet_id'] in STATUS_IDS and required <= fields.keys() <= required | {'tick'}
