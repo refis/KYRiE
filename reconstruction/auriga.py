@@ -58,6 +58,7 @@ PRESENTATION_FIELDS = {'dialogue_size': {'height', 'width'},
                        'adopted_external_effect_remove': {'value', 'target'},
                        'adopted_external_overhead': {'text', 'target'},
                        'adopted_external_unittalk': {'text', 'target'},
+                       'adopted_external_event_marker': {'state', 'kind', 'target', 'x', 'y'},
                        'external_sound': {'sound', 'mode', 'interval', 'target'},
                        'announcement': {'text', 'flag'},
                        'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'},
@@ -240,7 +241,8 @@ class AurigaRenderer:
         return append_quest_info(body, conversation.quest_info_links, self.templates,
                                  map_name=conversation.npc.get('map_name'))
 
-    ADOPTABLE_EXTERNAL_KINDS = frozenset(('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk'))
+    ADOPTABLE_EXTERNAL_KINDS = frozenset(
+        ('emotion', 'effect', 'effect_remove', 'overhead', 'unittalk', 'event_marker'))
 
     def _external_preamble(self, conversation):
         result = []

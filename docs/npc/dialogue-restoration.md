@@ -9,7 +9,9 @@
 会話中（close2判定中含む）の setquest／delquest の後に観測した場合は関連付けし、
 該当NPCの `OnQuestInfo:` へ `showevent` と `// {quest_id}: {x}, {y}` を追加する。
 手動タイマー候補では会話外・対象NPC自身の `showevent {state}, {kind}; // {x}, {y}` を実行命令として採用できる
-（[タイマー候補](event-timer-candidates.md)）。対照表は[未対応通知](unsupported-notifications.md)。
+（[タイマー候補](event-timer-candidates.md)）。
+外部候補（別既知NPC）は既定コメントで、明示採用時のみ `showevent {state}, {kind}, {target}; // {x}, {y}` を出す。
+対照表は[未対応通知](unsupported-notifications.md)。
 
 ## 色付きユニット発言（02C1）
 
@@ -73,11 +75,13 @@ cause_confirmed=falseとし、他ユーザー操作の混入可能性を残す�
 0x008Dのunittalkは総パケット長・ActorID・CP932本文を検証する。会話NPC自身の通知は通常の演出と同様に扱い、
 別NPCの通知は外部候補とする。既存の0x08B3はshowmessageの候補として区別する。
 
-Aurigaと同梱MARiAを照合し、emotion/misceffect/showmessageのNPC名指定、unittalkのunit_id指定を候補へ反映する。
-既定の出力はコメント。GUIの対象別通知で emotion／effect／effect_remove／overhead／unittalk を
+Aurigaと同梱MARiAを照合し、emotion/misceffect/showmessageのNPC名指定、unittalkのunit_id指定、
+showeventの対象NPC名指定を候補へ反映する。
+既定の出力はコメント。GUIの対象別通知で emotion／effect／effect_remove／overhead／unittalk／event_marker を
 行ごとに `adoption_confirmed` したときだけ実行命令候補へ切り替える（cause_confirmedは常にfalse）。
 unittalkの採用時は実行時ActorIDを固定せず getnpcid(0,NPC名) の候補を前置コメント欄へ出す。
-sound／effect_value／event_marker は採用不可。インスタンスMAPでは名前参照にgetmdnpcnameを使う。
+event_marker の採用時は `showevent {state}, {kind}, {target}; // {x}, {y}`（座標は注記）。
+sound／effect_value は採用不可。インスタンスMAPでは名前参照にgetmdnpcnameを使う。
 入力応答の順序・会話終了判定は変更しない。書式はconfig/auriga/dialogue.jsonのexternal_*／adopted_external_*。
 
 ## アナウンスの観測（2026-10-28追加）

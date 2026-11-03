@@ -40,8 +40,7 @@ class EventMarkerObservationTests(unittest.TestCase):
             self.assertEqual(item.external_presentations[0]['fields'],
                              {'x': 30, 'y': 40, 'state': 5, 'kind': 6})
             code = AurigaRenderer().render(item)
-            self.assertIn('state=5, kind=6, x=30, y=40, target="Target"', code)
-            self.assertTrue(any('イベントアイコン' in line for line in code.splitlines()))
+            self.assertIn('// showevent 5, 6, "Target"; // 30, 40', code)
             self.assertFalse(any(line.strip().startswith('showevent') for line in code.splitlines()))
             self.assertFalse(build_merged([('one', item)])['excluded'])
         good = event_marker()
@@ -85,7 +84,45 @@ class EventMarkerObservationTests(unittest.TestCase):
         self.assertEqual(note['observed_actor_id'], 43)
         self.assertFalse(note['cause_confirmed'])
         self.assertFalse(note['automatic_timer_supported'])
+        self.assertIn('showevent', note['summary'])
         self.assertEqual(row, before)
+
+    def test_external_adoption_emits_showevent_with_target(self):
+        world = WorldStore()
+        store = DialogueStore(world=world)
+        for event in (map_packet('1@toy.gat'), actor_packet(name='Speaker'),
+                      actor_packet(actor_id=43, name='Target'),
+                      packet(0x90, struct.pack('<IB', 42, 1), direction='SEND'),
+                      packet(0xb5, struct.pack('<I', 42)),
+                      event_marker(43, 30, 40, 5, 6),
+                      packet(0xb6, struct.pack('<I', 42))):
+            world.apply(event)
+            store.apply(event)
+        item = store.sessions[0]
+        marker = item.external_presentations[0]
+        self.assertEqual(marker['kind'], 'event_marker')
+        self.assertFalse(marker['cause_confirmed'])
+        self.assertFalse(marker['adoption_confirmed'])
+        text = AurigaRenderer().render(item)
+        self.assertIn('// showevent 5, 6, getmdnpcname("Target"); // 30, 40', text)
+        self.assertFalse(any(line.strip().startswith('showevent') for line in text.splitlines()))
+        store.set_external_adoption(item, marker['packet_index'], True)
+        self.assertTrue(marker['adoption_confirmed'])
+        self.assertFalse(marker['cause_confirmed'])
+        text = AurigaRenderer().render(item)
+        self.assertIn('確認採用した外部演出候補', text)
+        self.assertTrue(any(line.strip().startswith('showevent 5, 6, getmdnpcname("Target");')
+                            for line in text.splitlines()))
+        self.assertIn('// 30, 40', text)
+        from pathlib import Path
+        rathena = AurigaRenderer(Path('config/rathena/dialogue.json')).render(item)
+        self.assertTrue(any(line.lstrip().startswith('//') and 'showevent 5, 6,' in line
+                            for line in rathena.splitlines()))
+        self.assertFalse(any(line.strip().startswith('showevent ') for line in rathena.splitlines()))
+        store.set_external_adoption(item, marker['packet_index'], False)
+        text = AurigaRenderer().render(item)
+        self.assertFalse(any(line.strip().startswith('showevent') for line in text.splitlines()))
+        self.assertIn('// showevent 5, 6, getmdnpcname("Target"); // 30, 40', text)
 
     def test_outside_dialogue_retention_obeys_capacity(self):
         store = DialogueStore()
