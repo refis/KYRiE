@@ -7,7 +7,8 @@ from reconstruction.world import WorldStore
 from reconstruction.skills import SkillStore
 from reconstruction.mob_skill_export import (build_candidates, render_candidates, DEFAULT_PROFILE,
     COLUMNS, configure_candidate, STATUS_CONDITIONS, STATUS_VALUES, NUMERIC_CONDITIONS,
-    load_configured, MAX_CONFIGURED_BYTES, render_configured, valid_val_token)
+    load_configured, MAX_CONFIGURED_BYTES, render_configured, valid_val_token,
+    format_observation_evidence)
 from tests.support.skills import mob, damage, cast
 
 
@@ -228,6 +229,28 @@ class MobSkillExportTests(unittest.TestCase):
             world.apply(event, packet_index=index)
             skills.apply(event, packet_index=index)
         return skills
+
+    def test_observation_evidence_text_is_advisory_and_does_not_mutate_candidate(self):
+        from copy import deepcopy
+        skills = self.observed([65535, 65535])
+        candidate = build_candidates(skills.snapshot(), {177: 'blind'})['candidates'][0]
+        before = deepcopy(candidate)
+        text = format_observation_evidence(candidate)
+        self.assertEqual(candidate, before)
+        self.assertIn('自動代入はしません', text)
+        self.assertIn('CASTTIMEへは使いません', text)
+        self.assertIn('DELAYへは使いません', text)
+        self.assertIn('cancel通知≠CANCEL=yes', text)
+        self.assertIn('server_tick_damage', text)
+        self.assertIn('詠唱通知ms: [500]', text)
+        self.assertIn('要編集列:', text)
+        self.assertIn('CASTTIME', text)
+        for key in ('STATE', 'RATE', 'CASTTIME', 'DELAY', 'CANCEL'):
+            self.assertIsNone(candidate['db_fields'][key])
+        with self.assertRaises(ValueError):
+            format_observation_evidence({})
+        with self.assertRaises(ValueError):
+            format_observation_evidence(None)
 
     def test_unknown_values_are_not_replaced_by_counts_or_observed_intervals(self):
         skills = self.observed([65535, 65535])

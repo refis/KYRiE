@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QFormLayout, QWidge
     QScrollArea, QLineEdit, QComboBox, QCheckBox, QPushButton, QFileDialog, QMessageBox, QPlainTextEdit)
 from reconstruction.mob_skill_export import (COLUMNS, MANUAL_CHOICES, configure_candidate,
     DEFAULT_PROFILE, STATUS_CONDITIONS, STATUS_VALUES, load_configured, MAX_CONFIGURED_BYTES,
-    CONFIGURED_PROFILE, render_configured)
+    CONFIGURED_PROFILE, render_configured, format_observation_evidence)
 
 
 class MobSkillEditor(QDialog):
@@ -17,7 +17,7 @@ class MobSkillEditor(QDialog):
         super().__init__(parent)
         self.candidate, self.source_sessions = deepcopy(candidate), deepcopy(source_sessions)
         self.setWindowTitle('Auriga MOBスキル設定の編集')
-        self.resize(720, 720)
+        self.resize(720, 800)
         layout = QVBoxLayout(self)
         note = QLabel('未知値は空欄です。全列を確認して入力してください。\n'
                       'RATEは万分率、時間はms。条件は手動指定。\n'
@@ -26,6 +26,12 @@ class MobSkillEditor(QDialog):
                       '根拠は画面を開いた時点で固定。追加観測を使う場合は開き直してください。')
         note.setWordWrap(True)
         layout.addWidget(note)
+        self.evidence = QPlainTextEdit()
+        self.evidence.setReadOnly(True)
+        self.evidence.setPlainText(format_observation_evidence(self.candidate))
+        self.evidence.setMinimumHeight(140)
+        self.evidence.setMaximumHeight(220)
+        layout.addWidget(self.evidence)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         body = QWidget()
