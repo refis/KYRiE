@@ -124,7 +124,7 @@ class EventTimerExportTests(unittest.TestCase):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation'].update(fields)
             with self.subTest(fields=fields),self.assertRaises(ValueError):validate_timer_trial(changed,0)
         for kind in ('music','sound','progressbar','progress_action','status_action',
-                     'script_command','npc_display_action','mapcell','dialogue_size'):
+                     'script_command','mapcell','dialogue_size'):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation']['kind']=kind
             with self.subTest(kind=kind),self.assertRaises(ValueError):validate_timer_trial(changed,0)
         announcement=deepcopy(report);event=announcement['trials'][0]['events'][1]
@@ -185,6 +185,27 @@ class EventTimerExportTests(unittest.TestCase):
         self.assertIn('effect=7, value=9', text)
         self.assertTrue(any(line.lstrip().startswith('//') and 'effect=7, value=9' in line
                             for line in text.splitlines()))
+
+    def test_npc_display_action_timer_emits_setnpcdisplay_for_identity_npc(self):
+        report = repeated_report('npc_display_action')
+        fields = dict(target=dict(name='NPC', map_name='test.gat'),
+                      display=dict(class_id=139), outside=False)
+        for trial in report['trials']:
+            trial['events'][1]['observation']['fields'] = deepcopy(fields)
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('setnpcdisplay "NPC",139;', code)
+        self.assertFalse(any(line.lstrip().startswith('//') and 'setnpcdisplay' in line
+                             for line in code.splitlines()))
+        targeted = deepcopy(report)
+        targeted['trials'][0]['events'][1]['observation']['fields'] = dict(
+            target=dict(name='Other', map_name='test.gat'), display=dict(class_id=139), outside=False)
+        with self.assertRaises(ValueError):
+            build_timer_candidate(targeted, 0, [100, 1100], confirmed=True)
+        invalid = deepcopy(report)
+        invalid['trials'][0]['events'][1]['observation']['fields'] = dict(
+            target=dict(name='NPC', map_name='test.gat'), display=dict(class_id=70000), outside=False)
+        with self.assertRaises(ValueError):
+            build_timer_candidate(invalid, 0, [100, 1100], confirmed=True)
 
     def test_event_marker_timer_emits_showevent_with_coordinate_comment(self):
         from pathlib import Path

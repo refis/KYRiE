@@ -395,6 +395,7 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
   会話外 0x0229 の visibility_action は cloak*（自身）と hide（インスタンスMAP・自身）の実行命令候補。
   viewpoint 手動タイマーは会話と同じ対応範囲（種別1／2・座標範囲）の実行命令候補。
   event_marker 手動タイマーは showevent 実行命令候補（座標は注記）。
+  会話外 09xx の npc_display_action は setnpcdisplay 実行命令候補（対象NPC自身）。
   sound／music／progressbar／mapcell等は明示拒否。開始条件は生成しない。
   本体での読込・実行確認は残る。OnTimer値・sleep命令・イベントラベルが元コードと一致するとは扱わない。
 - 完了条件: 単発や欠損ログを自動でタイマー化せず、演出の相違が注意として残り、
