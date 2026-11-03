@@ -12,8 +12,10 @@ from reconstruction.instance_names import npc_name as base_npc_name
 
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
-    'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange'))
+    'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
+    'visibility_action'))
 COMMENT_TIMER_KINDS = frozenset(('effect_value', 'event_marker', 'hat_effect', 'colored_speech'))
+VISIBILITY_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc', 'cloakonnpc', 'cloakoffnpc'))
 
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'event_timers.json'
 MAX_CONFIGURED_BYTES = 32 * 1024 * 1024
@@ -26,12 +28,14 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'hat_effect': {'enabled', 'effect_id'},
           'colored_speech': {'color_hex', 'text'},
           'classchange': {'target', 'class_id'},
+          'visibility_action': {'command'},
           'label_end': set()}
 ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
     'announcement_styled': {'text', 'color', 'font_type', 'font_size', 'font_align', 'font_y'}}
 FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
-                         'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange')
+                         'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'classchange',
+                         'visibility_action')
 
 
 def _timer_profile(path=None):
@@ -128,6 +132,18 @@ def _validate_observation_fields(row):
                 or type(fields['kind']) is not int or not 0 <= fields['kind'] <= 255):
             raise ValueError('外見変更の観測値が不正です。')
         return
+    if kind == 'visibility_action':
+        commands = fields.get('commands')
+        previous = fields.get('previous_options')
+        if (set(fields) != {'commands', 'target', 'options', 'previous_options'}
+                or fields.get('target') is not None
+                or not isinstance(commands, list) or not 1 <= len(commands) <= 2
+                or not all(command in VISIBILITY_TIMER_COMMANDS for command in commands)
+                or type(fields.get('options')) is not int or not 0 <= fields['options'] <= 0xffffffff
+                or (previous is not None
+                    and (type(previous) is not int or not 0 <= previous <= 0xffffffff))):
+            raise ValueError('表示状態変更の観測値が不正です。対象NPC自身の hide/cloak のみ採用できます。')
+        return
     value = fields.get('value')
     if type(value) is not int or not 0 <= value <= (255 if kind == 'emotion' else 2147483647):
         raise ValueError('演出IDが範囲外です。')
@@ -155,7 +171,7 @@ def validate_timer_trial(report, trial_index):
             '未対応演出: '+kinds+'。この試行は比較のみです。'
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'コメント採用の値付きエフェクト・イベントアイコン・帽子／色付き発言、'
-            'および外見変更の setnpcdisplay 候補に対応しています。'
+            '外見変更の setnpcdisplay、および表示状態の hide/cloak 候補に対応しています。'
             'sound／music／viewpoint／progressbar／mapcell／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
@@ -245,6 +261,14 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             rathena = rf'setnpcdisplay[ \t]*\([ \t]*{target}[ \t]*,[ \t]*{class_id}[ \t]*\)[ \t]*;'
             if not re.fullmatch(auriga, text) and not re.fullmatch(rathena, text):
                 raise ValueError('外見変更書式の setnpcdisplay 対象・class が観測内容と一致しません。')
+        if key == 'visibility_action':
+            if comment_only:
+                raise ValueError('表示状態変更は hide/cloak 実行命令にしてください。')
+            command = values['command']
+            if command not in VISIBILITY_TIMER_COMMANDS:
+                raise ValueError('未対応の表示状態命令です。')
+            if not re.fullmatch(re.escape(command) + r'[ \t]*;', text):
+                raise ValueError('表示状態書式の hide/cloak 命令が観測内容と一致しません。')
         for line in text.split('\n'):
             line = (templates['indent'] if indent else '') + line
             size += len(line) + 1
@@ -282,6 +306,11 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             if '@' in (identity.get('map_name') or ''):
                 target = 'getmdnpcname(' + target + ')'
             emit('classchange', True, target=target, class_id=row['fields']['class_id'])
+        elif row['kind'] == 'visibility_action':
+            if row['fields'].get('target') is not None:
+                raise ValueError('タイマー候補の表示状態変更は対象NPC自身のみです。')
+            for command in row['fields']['commands']:
+                emit('visibility_action', True, command=command)
         else:
             emit(row['kind'], True, value=row['fields']['value'])
         previous_time = time

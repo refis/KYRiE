@@ -305,6 +305,8 @@ NPC用通知をプレイヤー用待機命令へ置き換えない。
 指定なし、他のNPCは`unittalk getnpcid(0,NPC名),文字列;`とする。
 他NPCは同一capture・flow・MAP世代の現在の個体であることを確認する。
 インスタンス名は完全な接尾辞だけを除去し、命令のNPC参照ではgetmdnpcnameを使用する。
+会話外の0x0229差分は演出観測（visibility_action）として保持し、手動タイマー候補では
+対象NPC自身の引数なし hide/cloak のみ採用する（[タイマー候補](event-timer-candidates.md)）。
 
 会話内の追加アクションはConversation.actionsに受信Packetの根拠とともに保存する。
 プログレスバー、表示状態、状態異常を入力応答のstepsへ挿入しないため、next/input等の返信対応は維持される。
