@@ -396,7 +396,7 @@ P0-Aの比較可能な反復ログを前提とする。P1-Aと独立して進め
   viewpoint 手動タイマーは会話と同じ対応範囲（種別1／2・座標範囲）の実行命令候補。
   event_marker 手動タイマーは showevent 実行命令候補（座標は注記）。
   会話外 09xx の npc_display_action は setnpcdisplay 実行命令候補（対象NPC自身）。
-  対象付き progressbar（09D1）手動タイマーは全行コメント採用（秒数をOnTimer／sleepへ使わない）。
+  progressbar 手動タイマーは全行コメント採用（09D1同一NPC／選択窓内の02F0。秒数をOnTimer／sleepへ使わない）。
   選択窓内の関連 cutin（対象ActorIDなし）は全行コメント採用（実行 cutin は出さない）。
   選択窓内の関連 mapcell（MAP名一致）は全行コメント採用（setcellは出さない）。
   viewpoint 未対応値の手動タイマーは viewpoint_observation コメント採用（実行命令なし）。

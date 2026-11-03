@@ -141,6 +141,17 @@ class EventTimerExportTests(unittest.TestCase):
                             and '"kafra.bmp"' in line and 'position=2' in line
                             for line in cutin_code.splitlines()))
         self.assertFalse(any(line.strip().startswith('cutin ') for line in cutin_code.splitlines()))
+        unassigned_progress=deepcopy(report);progress_event=unassigned_progress['trials'][0]['events'][1]
+        progress_event['association_basis']='selected_timer_window_same_flow'
+        progress_event['observation'].update(
+            kind='progressbar',actor_id=None,target_observed=False,entity_kind='unresolved',npc={},
+            fields={'seconds':5,'color':0x112233})
+        progress_code=build_timer_candidate(unassigned_progress,0,[100,1100],confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'progressbar観測' in line
+                            and 'seconds=5' in line and '0x112233' in line
+                            for line in progress_code.splitlines()))
+        self.assertFalse(any(line.strip().startswith(('progressbar ', 'sleep '))
+                             for line in progress_code.splitlines()))
         mapcell=deepcopy(report);mapcell_event=mapcell['trials'][0]['events'][1]
         mapcell_event['association_basis']='selected_timer_window_same_flow'
         mapcell_event['observation'].update(
@@ -159,6 +170,10 @@ class EventTimerExportTests(unittest.TestCase):
             with self.subTest(key=key,value=value),self.assertRaises(ValueError):validate_timer_trial(changed,0)
             changed_cutin=deepcopy(cutin);changed_cutin['trials'][0]['events'][1]['observation'][key]=value
             with self.subTest(cutin_key=key,value=value),self.assertRaises(ValueError):validate_timer_trial(changed_cutin,0)
+            changed_progress=deepcopy(unassigned_progress)
+            changed_progress['trials'][0]['events'][1]['observation'][key]=value
+            with self.subTest(progress_key=key,value=value),self.assertRaises(ValueError):
+                validate_timer_trial(changed_progress,0)
         bad_map=deepcopy(mapcell)
         bad_map['trials'][0]['events'][1]['observation']['fields']=dict(
             map_name='other.gat',x=10,y=20,cell_type=3)
@@ -167,6 +182,9 @@ class EventTimerExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):validate_timer_trial(changed,0)
         changed_cutin=deepcopy(cutin);changed_cutin['trials'][0]['events'][1].pop('association_basis')
         with self.assertRaises(ValueError):validate_timer_trial(changed_cutin,0)
+        changed_progress=deepcopy(unassigned_progress)
+        changed_progress['trials'][0]['events'][1].pop('association_basis')
+        with self.assertRaises(ValueError):validate_timer_trial(changed_progress,0)
         self.assertEqual(report,before)
 
     def test_self_unittalk_manual_export_preserves_text_and_rejects_unsafe_profile_or_target(self):
@@ -199,6 +217,29 @@ class EventTimerExportTests(unittest.TestCase):
             with self.subTest(change=change),self.assertRaises(ValueError):
                 build_timer_candidate(changed,0,[100,1100],confirmed=True)
         self.assertEqual(report,before)
+
+    def test_unassigned_02f0_progressbar_enters_window_as_comment_only(self):
+        from reconstruction.event_trials import compare_event_trials
+        from tests.support.event_trials import observation
+        rows = [
+            observation(0),
+            observation(1, kind='progressbar', actor_id=None, target_observed=False,
+                        entity_kind='unresolved', npc={}, packet_id=0x2f0,
+                        fields={'seconds': 4, 'color': 0xabcdef}),
+            observation(10),
+            observation(11, kind='progressbar', actor_id=None, target_observed=False,
+                        entity_kind='unresolved', npc={}, packet_id=0x2f0,
+                        fields={'seconds': 4, 'color': 0xabcdef}),
+        ]
+        report = compare_event_trials(rows, [0, 2], window_ms=2000)
+        self.assertEqual([len(trial['events']) for trial in report['trials']], [2, 2])
+        self.assertEqual(report['trials'][0]['events'][1]['association_basis'],
+                         'selected_timer_window_same_flow')
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'seconds=4' in line and '0xABCDEF' in line
+                            for line in code.splitlines()))
+        self.assertFalse(any(line.strip().startswith(('progressbar ', 'sleep '))
+                             for line in code.splitlines()))
 
     def test_overhead_and_comment_timer_kinds_are_manually_adoptable(self):
         from pathlib import Path
