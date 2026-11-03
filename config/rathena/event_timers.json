@@ -15,6 +15,7 @@
   "colored_speech": "// 色付きユニット発言観測: color=0x{color_hex}, text={text}。unittalkへは変換しない。",
   "progressbar": "// progressbar観測: seconds={seconds}, color=0x{color_hex}。待機命令・OnTimer値へは変換しない。",
   "cutin": "// cutin観測: image={image}, position={position}。対象NPC起因は未確定のため実行命令は未生成。",
+  "mapcell": "// mapcell観測: map={map_name}, x={x}, y={y}, cell_type={cell_type}。setcell実行命令は未生成。",
   "classchange": "setnpcdisplay({target},{class_id});",
   "visibility_action": "{command};",
   "viewpoint": "viewpoint {kind},{x},{y},{marker_id},{color};",

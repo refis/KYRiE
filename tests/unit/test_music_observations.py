@@ -150,8 +150,11 @@ class MapCellObservationTests(unittest.TestCase):
         report=compare_event_trials(rows,[0,2],window_ms=2000)
         self.assertEqual([len(t['events']) for t in report['trials']],[2,2])
         self.assertEqual(rows,before)
-        with self.assertRaises(ValueError):
-            build_timer_candidate(report,0,[100,1100],confirmed=True)
+        code=build_timer_candidate(report,0,[100,1100],confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'mapcell観測' in line
+                            and 'test.gat' in line and 'x=100' in line and 'cell_type=1' in line
+                            for line in code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('setcell ') for line in code.splitlines()))
         for replacement in (dict(fields=dict(map_name='other.gat',x=100,y=200,cell_type=1)),
                             dict(map_context=None),dict(flow_id='other'),dict(capture_session=1),
                             dict(context='input_wait'),dict(context='close_wait'),
