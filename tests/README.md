@@ -73,7 +73,9 @@ GUIテストはoffscreenで動作し、メモリDBと一時ログディレクト
 Windows実機でのNpcap動作確認を代替するものではありません。
 offscreen QPA が出す `propagateSizeHints()` / `raise()` 非対応メッセージは、
 `tests/support/qt.py` で抑制する（失敗扱いではない）。`show_panel` も offscreen では
-raise_/activateWindow を呼ばない。
+raise_/activateWindow を呼ばない。候補 `generate()` 失敗の警告は
+`gui.qt_messages.warning` 経由で、offscreen ではモーダルを開かない（Actions #135 系ハング防止）。
+
 
 `support/` はパケット・会話生成の共通ヘルパーとGUI準備処理です。
 テストモジュール同士をimportせず、必要なヘルパーをここから明示的にimportします。

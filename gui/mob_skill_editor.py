@@ -7,6 +7,7 @@ from copy import deepcopy
 from pathlib import Path
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QFormLayout, QWidget,
     QScrollArea, QLineEdit, QComboBox, QCheckBox, QPushButton, QFileDialog, QMessageBox, QPlainTextEdit)
+from gui.qt_messages import warning as warn
 from reconstruction.mob_skill_export import (COLUMNS, MANUAL_CHOICES, configure_candidate,
     DEFAULT_PROFILE, STATUS_CONDITIONS, STATUS_VALUES, load_configured, MAX_CONFIGURED_BYTES,
     CONFIGURED_PROFILE, render_configured, format_observation_evidence)
@@ -94,8 +95,8 @@ class MobSkillEditor(QDialog):
         try:
             self.preview.setPlainText(render_configured(self.document()))
         except (ValueError, OSError) as exc:
-            self.clear_preview()
-            QMessageBox.warning(self, 'DB行を表示できません', str(exc))
+            self.preview.setPlainText(str(exc))
+            warn(self, 'DB行を表示できません', str(exc))
 
     def condition_changed(self):
         condition = self.fields['CONDITION'].currentData()

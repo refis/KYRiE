@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QTable
 from reconstruction.event_timer_export import (build_timer_candidate, DEFAULT_PROFILE, load_timer_candidate,
                                                 render_timer_text, MAX_CONFIGURED_BYTES, validate_timer_trial)
 from gui.event_trials import timer_event_label
+from gui.qt_messages import warning as warn
 
 
 class EventTimerEditor(QDialog):
@@ -113,8 +114,8 @@ class EventTimerEditor(QDialog):
         try:
             self.preview.setPlainText(self.document()['auriga'])
         except (ValueError, OSError) as exc:
-            self.preview.clear()
-            QMessageBox.warning(self, '候補を生成できません', str(exc))
+            self.preview.setPlainText(str(exc))
+            warn(self, '候補を生成できません', str(exc))
 
     def save(self, checked=False, *, as_text=False):
         temporary = None

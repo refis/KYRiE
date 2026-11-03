@@ -874,6 +874,31 @@ class RestorationGuiTests(WindowTestCase):
         self.assertEqual(w.world.records('NPC')[0].options, 0)
         dialog.close()
 
+    def test_generate_failures_stay_nonblocking_under_offscreen(self):
+        """ValueError on generate must not open a modal that hangs Actions offscreen."""
+        from copy import deepcopy
+        from gui.shops import ShopExportDialog
+        from gui.mob_skill_editor import MobSkillEditor
+        from reconstruction.mob_skill_export import build_candidates
+        from tests.unit.test_shop_export import observe_shop
+        from tests.support.skills import mob, damage
+        w = self.window
+        record, conversation = observe_shop(False)
+        dialog = ShopExportDialog(record, conversation, w.shop_panel)
+        dialog.confirm_ids.setChecked(False)
+        dialog.generate()
+        self.assertIsNone(dialog.result_text)
+        dialog.close()
+        w.add_packet(mob())
+        w.add_packet(damage(level=3))
+        snapshot = deepcopy(w.skills.snapshot())
+        candidate = build_candidates(snapshot, {177: 'スキル'})['candidates'][0]
+        editor = MobSkillEditor(candidate, {}, w)
+        editor.confirmed.setChecked(False)
+        editor.generate()
+        self.assertIn('確認', editor.preview.toPlainText())
+        editor.close()
+
     def test_npc_initial_hidden_state_remains_in_details_dialogue_and_bulk_export_after_state_change(self):
         from tests.unit.test_npc_initial_state import actor
         from tests.unit.test_actor_identity import connection
@@ -1892,7 +1917,7 @@ class RestorationGuiTests(WindowTestCase):
         from gui.shops import ShopExportDialog
         dialog = ShopExportDialog(w.shops.records[0], None, panel)
         try:
-            with patch('gui.shops.QMessageBox.warning') as warning:
+            with patch('gui.shops.warn') as warning:
                 dialog.generate()
             warning.assert_called_once()
             self.assertIsNone(dialog.result_text)
