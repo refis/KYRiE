@@ -377,7 +377,7 @@ class EventTimerExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_timer_candidate(invalid, 0, [100, 1100], confirmed=True)
 
-    def test_viewpoint_timer_emits_supported_command_and_rejects_out_of_range(self):
+    def test_viewpoint_timer_emits_supported_command_and_comments_out_of_range(self):
         from pathlib import Path
         import tempfile
         report = repeated_report('viewpoint')
@@ -397,16 +397,29 @@ class EventTimerExportTests(unittest.TestCase):
                 profile.write_text(json.dumps(templates), encoding='utf-8')
                 with self.subTest(template=bad), self.assertRaises(ValueError):
                     build_timer_candidate(report, 0, [100, 1100], confirmed=True, profile=profile)
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            templates['viewpoint_observation'] = 'viewpoint {kind},{x},{y},{marker_id},{color};'
+            profile.write_text(json.dumps(templates), encoding='utf-8')
+            unsupported_profile = deepcopy(report)
+            unsupported_profile['trials'][0]['events'][1]['observation']['fields'] = dict(
+                kind=3, x=100, y=200, marker_id=7, color=0xff123456)
+            with self.assertRaises(ValueError):
+                build_timer_candidate(unsupported_profile, 0, [100, 1100], confirmed=True, profile=profile)
         unsupported = deepcopy(report)
         unsupported['trials'][0]['events'][1]['observation']['fields'] = dict(
             kind=3, x=100, y=200, marker_id=7, color=0xff123456)
-        with self.assertRaises(ValueError):
-            build_timer_candidate(unsupported, 0, [100, 1100], confirmed=True)
+        unsupported_code = build_timer_candidate(unsupported, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and '未対応値を含むviewpoint観測' in line
+                            and 'type=3' in line
+                            for line in unsupported_code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('viewpoint ') for line in unsupported_code.splitlines()))
         oversized = deepcopy(report)
         oversized['trials'][0]['events'][1]['observation']['fields'] = dict(
             kind=1, x=2000, y=200, marker_id=7, color=0xff123456)
-        with self.assertRaises(ValueError):
-            build_timer_candidate(oversized, 0, [100, 1100], confirmed=True)
+        oversized_code = build_timer_candidate(oversized, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertTrue(any(line.lstrip().startswith('//') and 'x=2000' in line
+                            for line in oversized_code.splitlines()))
+        self.assertFalse(any(line.strip().startswith('viewpoint ') for line in oversized_code.splitlines()))
 
     def test_unittalk_audit_is_preliminary_bounded_and_keeps_source_reasons(self):
         from tools.audit_event_trial_review import review_unittalk

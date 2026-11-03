@@ -157,7 +157,7 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | `status_enter`（08FF／0984） | 構造化・コメント | sc_start 等なし。タイマー採用対象外 |
 | `mercenary`（029B） | 構造化・コメント | makemerc 実行命令・タイマーへ出さない |
 | `external_*` | 外部候補 | 既定はコメント。emotion／effect／解除／overhead／unittalk／event_marker は明示採用可。sound等は不可 |
-| `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 対象付き progressbar はタイマーコメント採用可（秒数≠OnTimer）。viewpoint対応範囲はタイマー実行命令可、範囲外は拒否 |
+| `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 対象付き progressbar はタイマーコメント採用可（秒数≠OnTimer）。viewpoint対応範囲はタイマー実行命令、未対応値はコメント採用 |
 
 ## 変更時の確認
 

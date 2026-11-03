@@ -17,8 +17,10 @@ TIMER_PRESENTATION_KINDS = frozenset((
     'visibility_action', 'viewpoint', 'npc_display_action', 'progressbar', 'cutin',
     'mapcell'))
 COMMENT_TIMER_KINDS = frozenset(
-    ('effect_value', 'hat_effect', 'colored_speech', 'progressbar', 'cutin', 'mapcell'))
+    ('effect_value', 'hat_effect', 'colored_speech', 'progressbar', 'cutin', 'mapcell',
+     'viewpoint_observation'))
 UNASSIGNED_TIMER_KINDS = frozenset(('announcement', 'cutin', 'mapcell'))
+VIEWPOINT_FIELD_KEYS = ('kind', 'x', 'y', 'marker_id', 'color')
 HIDE_TIMER_COMMANDS = frozenset(('hideonnpc', 'hideoffnpc'))
 CLOAK_TIMER_COMMANDS = frozenset(('cloakonnpc', 'cloakoffnpc'))
 VISIBILITY_TIMER_COMMANDS = HIDE_TIMER_COMMANDS | CLOAK_TIMER_COMMANDS
@@ -39,6 +41,7 @@ FIELDS = {'header': {'npc_name', 'map_name', 'trial'}, 'indent': set(), 'entry_e
           'classchange': {'target', 'class_id'},
           'visibility_action': {'command'},
           'viewpoint': {'kind', 'x', 'y', 'marker_id', 'color'},
+          'viewpoint_observation': {'kind', 'x', 'y', 'marker_id', 'color'},
           'npc_display_action': {'command'},
           'label_end': set()}
 ANNOUNCEMENT_FIELDS = {'announcement': {'text', 'flag'},
@@ -47,7 +50,7 @@ FIELDS.update(ANNOUNCEMENT_FIELDS)
 DEFAULT_FALLBACK_KEYS = (*ANNOUNCEMENT_FIELDS, 'effect_remove', 'unittalk', 'overhead',
                          'effect_value', 'event_marker', 'hat_effect', 'colored_speech', 'progressbar',
                          'cutin', 'mapcell', 'classchange', 'visibility_action', 'viewpoint',
-                         'npc_display_action')
+                         'viewpoint_observation', 'npc_display_action')
 
 
 def _timer_profile(path=None):
@@ -103,6 +106,13 @@ def render_timer_text(document, report, trial_index):
     if len(text.encode('utf-8')) > MAX_CONFIGURED_BYTES:
         raise ValueError('根拠付きタイマーテキストは32MiB以内にしてください。')
     return text
+
+
+def _viewpoint_supported(fields):
+    return (fields.get('kind') in (1, 2)
+            and all(type(fields.get(key)) is int and 0 <= fields[key] <= 1023 for key in ('x', 'y'))
+            and type(fields.get('marker_id')) is int and 0 <= fields['marker_id'] <= 255
+            and type(fields.get('color')) is int and 0 <= fields['color'] <= 0xffffffff)
 
 
 def _validate_observation_fields(row):
@@ -187,16 +197,13 @@ def _validate_observation_fields(row):
             raise ValueError('hideonnpc／hideoffnpc はインスタンスマップ上の観測のみタイマー採用できます。')
         return
     if kind == 'viewpoint':
-        # Same supported window as dialogue rendering: type 1/2, map coords, marker 0-255.
-        if (set(fields) != {'kind', 'x', 'y', 'marker_id', 'color'}
-                or fields.get('kind') not in (1, 2)
-                or any(type(fields.get(key)) is not int or not 0 <= fields[key] <= 1023
-                       for key in ('x', 'y'))
-                or type(fields.get('marker_id')) is not int or not 0 <= fields['marker_id'] <= 255
-                or type(fields.get('color')) is not int or not 0 <= fields['color'] <= 0xffffffff):
-            raise ValueError(
-                'viewpointの観測値が不正、またはタイマー採用可能な種別・座標範囲外です。'
-                '未対応値はコメント保持のまま比較のみとしてください。')
+        # Structural wire ranges only. Supported vs comment path is decided at emit time
+        # (same window as dialogue: type 1/2, coords 0-1023, marker 0-255).
+        if (set(fields) != set(VIEWPOINT_FIELD_KEYS)
+                or any(type(fields.get(key)) is not int for key in VIEWPOINT_FIELD_KEYS)
+                or any(not 0 <= fields[key] <= 0xffffffff for key in ('kind', 'x', 'y', 'color'))
+                or not 0 <= fields['marker_id'] <= 255):
+            raise ValueError('viewpointの観測値が不正です。')
         return
     if kind == 'npc_display_action':
         target = fields.get('target')
@@ -243,8 +250,9 @@ def validate_timer_trial(report, trial_index):
             '未対応演出: '+kinds+'。この試行は比較のみです。'
             '対象NPC自身のエモーション・エフェクト・解除・announce・unittalk・overhead、'
             'イベントアイコンの showevent、外見変更の setnpcdisplay（01B0／会話外09xx含む）、'
-            '表示状態の cloak（自身）、インスタンスマップ上の hide、対応範囲内の viewpoint、'
-            'およびコメント採用の値付きエフェクト・帽子／色付き発言・progressbar・cutin・mapcell に対応しています。'
+            '表示状態の cloak（自身）、インスタンスマップ上の hide、viewpoint（対応範囲は実行命令、'
+            '未対応値はコメント）、およびコメント採用の値付きエフェクト・帽子／色付き発言・'
+            'progressbar・cutin・mapcell に対応しています。'
             'sound／music／progress_action／会話レイアウトは未対応です。')
     identity = report['npc_identity']
     if not identity.get('name') or not identity.get('map_name'):
@@ -427,8 +435,13 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
                 emit('visibility_action', True, command=command)
         elif row['kind'] == 'viewpoint':
             fields = row['fields']
-            emit('viewpoint', True, kind=fields['kind'], x=fields['x'], y=fields['y'],
-                 marker_id=fields['marker_id'], color=f'0x{fields["color"] & 0xffffff:06X}')
+            values = {key: fields[key] for key in VIEWPOINT_FIELD_KEYS}
+            if _viewpoint_supported(fields):
+                values['color'] = f'0x{fields["color"] & 0xffffff:06X}'
+                emit('viewpoint', True, **values)
+            else:
+                # Keep raw observed values; never invent a supported command.
+                emit('viewpoint_observation', True, **values)
         elif row['kind'] == 'npc_display_action':
             target = row['fields'].get('target') or {}
             if (base_npc_name(target.get('name'), target.get('map_name'))
