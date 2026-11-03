@@ -21,8 +21,8 @@ FIELDS['initial_state_review'] = {'state', 'options'}
 FIELDS['review_unconfirmed'] = {'map_origin'}
 
 
-def shop_name_for(npc, items):
-    placement = AurigaRenderer.placement_values(npc)
+def shop_name_for(npc, items, *, actor_id=None):
+    placement = AurigaRenderer.placement_values(npc, actor_id=actor_id)
     name = f"{placement['map_name']}#callshop"
     if not isinstance(name, str) or len(name.encode('cp932', errors='strict')) > 23:
         raise ValueError('callshop用NPC名が候補出力の上限23バイトを超えています。')
@@ -106,7 +106,7 @@ class ShopRenderer:
             npc['map_name'] = map_name
         elif map_name is not None and map_name != npc['map_name']:
             raise ValueError('観測済みマップ名を上書きできません。')
-        placement = AurigaRenderer.placement_values(npc)
+        placement = AurigaRenderer.placement_values(npc, actor_id=record.get('actor_id'))
         if not record['items'] or len(record['items']) > 2048:
             raise ValueError('商品数が不正です。')
         products, seen = [], set()
@@ -132,7 +132,7 @@ class ShopRenderer:
                 warning = self.templates['initial_state_review'].format(state=state, options=npc['initial_options'])
                 result = warning + '\n' + '\n'.join('// ' + line for line in result.splitlines()) + '\n'
         else:
-            shop_name = shop_name_for(npc, record['items'])
+            shop_name = shop_name_for(npc, record['items'], actor_id=record.get('actor_id'))
             copied = deepcopy(conversation)
             copied.npc = npc
             body = AurigaRenderer().render_npc_file(copied, shop_call_name=shop_name)

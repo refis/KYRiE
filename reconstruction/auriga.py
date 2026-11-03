@@ -330,7 +330,10 @@ class AurigaRenderer:
                 raise ValueError('NPC名が候補出力の上限23バイトを超えています。')
         except UnicodeEncodeError as exc:
             raise ValueError('NPC名をcp932で表現できません。') from exc
-        aid = npc.get('actor_id', actor_id)
+        # Prefer npc['actor_id']; treat missing/None as the explicit fallback (shop/barter record id).
+        aid = npc.get('actor_id')
+        if aid is None:
+            aid = actor_id
         if type(aid) is not int or not 0 <= aid <= 0xffffffff:
             raise ValueError('NPC ActorIDが未観測または範囲外です。')
         return dict(map_name=base_map_name(map_name), npc_name=base_npc_name(name, map_name), x=npc['x'], y=npc['y'],
