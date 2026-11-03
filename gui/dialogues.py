@@ -176,7 +176,8 @@ class DialoguePanel(QWidget):
         quest_page = QWidget()
         quest_layout = QVBoxLayout(quest_page)
         quest_layout.addWidget(QLabel(
-            '会話中（close2判定中含む）の setquest／delquest の後に観測した showevent の関連付け。OnQuestInfo 候補の時系列です。'))
+            '会話中（close2判定中含む）の setquest／delquest の時系列。'
+            '直後の showevent がある行は OnQuestInfo 候補、無い行は「未関連」です。'))
         self.quest_flow = QTableWidget(0, 8)
         self.quest_flow.setHorizontalHeaderLabels([
             '順', 'クエスト命令', 'QuestID', 'showevent', '対象NPC', '座標', 'close2後', 'Packet'])
@@ -603,34 +604,41 @@ class DialoguePanel(QWidget):
         self.refresh_selected()
 
     def _fill_quest_flow(self, item, group=None):
-        from reconstruction.quest_info import collect_quest_info_links
+        from reconstruction.quest_info import quest_flow_rows
         from reconstruction.dialogue import Conversation
         if group is not None:
             conversations = [
                 Conversation(**row['conversation']) if isinstance(row['conversation'], dict)
                 else row['conversation'] for row in group['contributions']]
-            links = collect_quest_info_links(*conversations)
+            rows = quest_flow_rows(*conversations)
         else:
-            links = collect_quest_info_links(item)
-        self.quest_flow.setRowCount(len(links))
-        for index, link in enumerate(links):
-            command = 'setquest' if link.get('quest_kind') == 'quest_add' else 'delquest'
-            showevent = f"{link.get('state')}, {link.get('kind')}"
-            coords = f"{link.get('x')}, {link.get('y')}"
+            rows = quest_flow_rows(item)
+        self.quest_flow.setRowCount(len(rows))
+        for index, row in enumerate(rows):
+            command = 'setquest' if row.get('quest_kind') == 'quest_add' else 'delquest'
+            if row.get('linked'):
+                showevent = f"{row.get('state')}, {row.get('kind')}"
+                coords = f"{row.get('x')}, {row.get('y')}"
+                packets = f"Q={row.get('quest_packet_index')} / E={row.get('marker_packet_index')}"
+                jump = row.get('marker_packet_index') or row.get('quest_packet_index')
+            else:
+                showevent, coords = '未関連', ''
+                packets = f"Q={row.get('quest_packet_index')}"
+                jump = row.get('quest_packet_index')
             values = [
                 str(index + 1),
                 command,
-                quest_reference(self.names, link['quest_id']),
+                quest_reference(self.names, row['quest_id']),
                 showevent,
-                link.get('target_name') or '',
+                row.get('target_name') or '',
                 coords,
-                'はい' if link.get('after_close_reply') else '',
-                f"Q={link.get('quest_packet_index')} / E={link.get('marker_packet_index')}",
+                'はい' if row.get('after_close_reply') else '',
+                packets,
             ]
             for column, value in enumerate(values):
                 cell = QTableWidgetItem(value)
-                cell.setData(Qt.UserRole, link.get('marker_packet_index') or link.get('quest_packet_index'))
-                cell.setToolTip(json.dumps(link, ensure_ascii=False, sort_keys=True))
+                cell.setData(Qt.UserRole, jump)
+                cell.setToolTip(json.dumps(row, ensure_ascii=False, sort_keys=True))
                 self.quest_flow.setItem(index, column, cell)
 
     def jump_quest_link(self):
