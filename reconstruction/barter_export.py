@@ -49,8 +49,8 @@ def format_barter_items(items):
     return ','.join(products)
 
 
-def barter_name_for(npc, items):
-    placement = AurigaRenderer.placement_values(npc)
+def barter_name_for(npc, items, *, actor_id=None):
+    placement = AurigaRenderer.placement_values(npc, actor_id=actor_id)
     # items remain validated by callers; name is map-scoped per callbarter rule.
     format_barter_items(items)
     name = f"{placement['map_name']}#callbarter"
@@ -108,11 +108,11 @@ class BarterRenderer:
             npc['map_name'] = map_name
         elif map_name is not None and map_name != npc['map_name']:
             raise ValueError('観測済みマップ名を上書きできません。')
-        AurigaRenderer.placement_values(npc)
+        AurigaRenderer.placement_values(npc, actor_id=record.get('actor_id'))
         if not record['items'] or len(record['items']) > 2048:
             raise ValueError('商品数が不正です。')
         items = format_barter_items(record['items'])
-        shop_name = barter_name_for(npc, record['items'])
+        shop_name = barter_name_for(npc, record['items'], actor_id=record.get('actor_id'))
         review_key = 'review' if item_ids_confirmed else 'review_unconfirmed'
         review = self.templates[review_key].format_map(dict(map_origin='利用者入力' if manual_map else '観測'))
         hidden = self.templates['hidden_barter'].format_map(dict(shop_name=shop_name, items=items))

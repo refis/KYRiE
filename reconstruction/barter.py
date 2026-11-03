@@ -254,7 +254,7 @@ class BarterStore:
                     actor = conversation.actor_id
             entity = self.world.find_current(packet, session, actor, 'NPC') if self.world and actor else None
             npc = ({name: deepcopy(getattr(entity, name)) for name in
-                     ('name', 'map_name', 'class_id', 'x', 'y', 'direction', 'actor_type', 'speed', 'appearance', 'map_generation',
+                     ('actor_id', 'name', 'map_name', 'class_id', 'x', 'y', 'direction', 'actor_type', 'speed', 'appearance', 'map_generation',
                       'map_origin', 'map_evidence', 'server_endpoint', 'initial_options', 'initial_state_evidence',
                       'initial_display', 'appearance_data', 'display_changes', 'waitingrooms')}
                    if entity else {})

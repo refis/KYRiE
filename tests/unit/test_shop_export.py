@@ -184,3 +184,43 @@ class ShopExportTests(unittest.TestCase):
         self.assertIn('// 品名（資料）: 501=赤ポーション', callshop)
         self.assertIn('501:100', callshop)
         self.assertRegex(callshop, r'-\tshop\ttest\.gat#callshop\t-1,501:100')
+
+    def test_world_backed_hidden_shop_keeps_actor_id_without_manual_npc_inject(self):
+        """CI hang since Actions #135: generate raised ActorID missing → QMessageBox blocked offscreen."""
+        import struct
+        from dataclasses import replace
+        from reconstruction.world import WorldStore
+        from reconstruction.shop_export import ShopRenderer
+        from tests.unit.test_npc_initial_state import actor
+        from tests.unit.test_actor_identity import connection
+        from tests.support.world import packet, map_packet
+        from tests.support.display import variable
+
+        endpoint = connection()
+        world = WorldStore()
+        dialogues = DialogueStore(world=world)
+        shops = ShopStore(world=world, dialogues=dialogues)
+        events = (
+            map_packet(connection=endpoint),
+            actor(2, endpoint),
+            packet(0x229, struct.pack('<IHHIB', 42, 0, 0, 0, 0), connection=endpoint),
+            packet(0x90, struct.pack('<IB', 42, 1), connection=endpoint, direction='SEND'),
+            packet(0xc4, struct.pack('<I', 42), connection=endpoint),
+            packet(0xc5, struct.pack('<IB', 42, 0), connection=endpoint, direction='SEND'),
+            replace(variable(0xc6, struct.pack('<IIBI', 100, 76, 3, 501), endpoint), timestamp=1),
+        )
+        for index, event in enumerate(events):
+            world.apply(event)
+            dialogues.apply(event, packet_index=index)
+            shops.apply(event, packet_index=index)
+        record = shops.records[0]
+        conversation = dialogues.sessions[0]
+        self.assertEqual(record['actor_id'], 42)
+        self.assertEqual(record['npc'].get('actor_id'), 42)
+        self.assertEqual(record['npc'].get('initial_options'), 2)
+        before = deepcopy((record, conversation))
+        code = ShopRenderer().render(record, 'shop', item_ids_confirmed=True, conversation=conversation)
+        self.assertTrue(all(not line or line.startswith('//') for line in code.splitlines()))
+        self.assertIn('501:100', code)
+        self.assertIn('\tshop\t案内人\t45,501:100', code)
+        self.assertEqual((record, conversation), before)

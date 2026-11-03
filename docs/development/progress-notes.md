@@ -94,3 +94,10 @@ offscreen QPA の `propagateSizeHints()`/`raise()` をテスト側で抑制し�
 offscreen で raise_/activate しない。GUI 比較の 09D1 progressbar 期待を comment に更新（#103 後の取り残し）。
 `run_tests` の Targets を1モジュール1行にし、CI ログの途中切れを「colored_speech で停止」と
 誤認しないようにする（実ハングは GUI 側の offscreen 警告以降）。
+
+### CI hang since Actions #135（shop ActorID / QMessageBox）（2026-11-03）
+
+#89 の配置ヘッダ ActorID 必須化以降、World 由来の shop/会話 `npc` に `actor_id` が載らず
+`ShopExportDialog.generate` が ValueError → `QMessageBox.warning` で offscreen CI が
+30分タイムアウトしていた。entity→npc へ `actor_id` をコピーし、export は record 側を
+フォールバックに使う。
