@@ -15,6 +15,11 @@ KINDS = {'emotion': 'エモーション', 'effect': 'エフェクト', 'sound': 
          'overhead': '頭上メッセージ', 'unittalk': 'ユニット発言'}
 
 
+EXTERNAL_ADOPTION_HELP = (
+    '外部演出の命令採用（emotion／effect／解除／overhead／unittalk／event_marker）。'
+    '呼出し元は未確定のまま。未確認行はコメントのみ。sound等は採用不可。')
+
+
 class ExternalPresentationPanel(QWidget):
     def __init__(self, on_source, store=None, on_changed=None):
         super().__init__()
@@ -27,9 +32,7 @@ class ExternalPresentationPanel(QWidget):
         self.caption = QLabel()
         self.caption.setWordWrap(True)
         layout.addWidget(self.caption)
-        layout.addWidget(QLabel(
-            '外部演出の命令採用（emotion／effect／解除／overhead／unittalk／event_marker）。'
-            '呼出し元は未確定のまま。未確認行はコメントのみ。sound等は採用不可。'))
+        layout.addWidget(QLabel(EXTERNAL_ADOPTION_HELP))
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(
             ['採用', '取得 / 会話', '演出', '受信対象 / ID / 観測区間', '演出Packet', '直前会話Packet'])

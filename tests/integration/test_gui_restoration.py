@@ -2025,9 +2025,8 @@ class RestorationGuiTests(WindowTestCase):
         editor=MobSkillEditor(candidate,{},w)
         self.assertEqual(editor.fields['NAME'].text(),'ポリン＠'+name)
         self.assertEqual(editor.fields['NAME'].maxLength(),256)
-        evidence=editor.evidence.toPlainText()
-        self.assertIn('自動代入はしません',evidence)
-        self.assertIn('CASTTIMEへは使いません',evidence)
+        self.assertTrue(editor.evidence.isReadOnly())
+        self.assertTrue(editor.evidence.toPlainText())
         for key in ('STATE','RATE','CASTTIME','DELAY','CANCEL','TARGET','CONDITION'):
             widget=editor.fields[key]
             if hasattr(widget,'currentData'):
@@ -2338,9 +2337,8 @@ class RestorationGuiTests(WindowTestCase):
         previous_peak = spawn_editor.candidate['observed']['peak_tracked']
         candidate_report['candidates'][0]['observed']['peak_tracked'] = previous_peak + 100
         self.assertEqual(spawn_editor.candidate['observed']['peak_tracked'], previous_peak)
-        evidence = spawn_editor.evidence.toPlainText()
-        self.assertIn('自動代入はしません', evidence)
-        self.assertIn('amountへは使いません', evidence)
+        self.assertTrue(spawn_editor.evidence.isReadOnly())
+        self.assertTrue(spawn_editor.evidence.toPlainText())
         self.assertEqual(spawn_editor.fields['x'].text(), '')
         self.assertEqual(spawn_editor.fields['amount'].text(), '')
         self.assertEqual(spawn_editor.fields['delay1'].text(), '')

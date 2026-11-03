@@ -104,19 +104,6 @@ class MobSpawnTests(unittest.TestCase):
                 self.assertIn(key, candidate['requires_edit'])
         self.assertIsNone(report['candidates'][-1]['placement_fields']['map_name'])
         self.assertFalse(report['active_placements_generated'])
-        before_first = deepcopy(first)
-        evidence = format_observation_evidence(first)
-        self.assertEqual(first, before_first)
-        self.assertIn('自動代入はしません', evidence)
-        self.assertIn('amountへは使いません', evidence)
-        self.assertIn('delay1/delay2へは使いません', evidence)
-        self.assertIn('5000ms', evidence)
-        self.assertIn('(150,200)', evidence)
-        self.assertIn('要編集列:', evidence)
-        with self.assertRaises(ValueError):
-            format_observation_evidence({})
-        with self.assertRaises(ValueError):
-            format_observation_evidence(None)
         report['source_sessions'][0] = 'evil\nmonster\tdeclaration'
         text = render_candidates(report)
         self.assertTrue(all(line.startswith('//') for line in text.splitlines()))
@@ -142,6 +129,28 @@ class MobSpawnTests(unittest.TestCase):
         self.world.apply(event, session, self.index)
         self.store.apply(event, session, self.index)
         self.index += 1
+
+    def test_observation_evidence_text_is_advisory_and_does_not_mutate_candidate(self):
+        self.apply(map_packet(timestamp=0))
+        self.apply(mob(42, timestamp=1))
+        self.apply(packet(0x80, struct.pack('<IB', 42, 1), timestamp=2))
+        self.apply(mob(42, timestamp=7))
+        candidate = build_candidates(self.store.snapshot())['candidates'][0]
+        before = deepcopy(candidate)
+        evidence = format_observation_evidence(candidate)
+        self.assertEqual(candidate, before)
+        self.assertIn('自動代入はしません', evidence)
+        self.assertIn('amountへは使いません', evidence)
+        self.assertIn('delay1/delay2へは使いません', evidence)
+        self.assertIn('5000ms', evidence)
+        self.assertIn('(150,200)', evidence)
+        self.assertIn('要編集列:', evidence)
+        for key in ('x', 'y', 'amount', 'delay1', 'delay2'):
+            self.assertIsNone(candidate['placement_fields'][key])
+        with self.assertRaises(ValueError):
+            format_observation_evidence({})
+        with self.assertRaises(ValueError):
+            format_observation_evidence(None)
 
     def test_visibility_peak_and_reobservation_do_not_become_spawn_settings(self):
         self.apply(map_packet(timestamp=0))
