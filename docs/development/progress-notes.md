@@ -131,3 +131,12 @@ ActorID／offscreen CI対策・共有非同期保存までをソースZIPへ保�
 実使用ログ（約16MiB／約2.2万パケット）が既定のGUI再生上限（2万パケット）で開けない。
 設定→記録でパケット件数・RAW合計をローカル拡張できるようにし、CLI
 `python -m tools.analyze_session` でのJSON変換手順を再解析資料へ明示した。
+
+### トネリコ木会話とナビ 08E2（2026-11-03）
+
+`prt_fild05` の `小さなトネリコの木#c1p1`（class 10620／ActorID 6979）会話で、
+「一緒に行く」後に RECV `08E2`（27B）→ close → cutin解除 → `0092` warp（`ygg_edge`）を確認。
+フレーミング欠落・未知ID停止はなし（replay errors 0）。`08E2` は rAthena
+`navigateto`／`clif_navigateTo` と一致し、KYRiEは未decode。同セッションの
+`ナビエル` は `0144` viewpoint と mes の `<NAVI>` タグ（本文保持のみ）。
+詳細は[未対応通知](../npc/unsupported-notifications.md#クライアントナビ開始08e2)。
