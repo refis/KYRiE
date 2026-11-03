@@ -97,6 +97,66 @@ def collect_quest_info_links(*conversations):
     return rows
 
 
+def _conversation_resources(conversation):
+    if conversation is None:
+        return (), ()
+    if isinstance(conversation, dict):
+        return (conversation.get('resource_observations') or (),
+                conversation.get('quest_info_links') or ())
+    return (getattr(conversation, 'resource_observations', None) or (),
+            getattr(conversation, 'quest_info_links', None) or ())
+
+
+def quest_flow_rows(*conversations):
+    """Chronological setquest/delquest rows with optional linked showevent fields.
+
+    Includes unassociated quest add/delete so the Quest tab can show the full
+    observed quest flow, not only OnQuestInfo-ready pairs.
+    """
+    rows = []
+    seen = set()
+    for conversation in conversations:
+        resources, links = _conversation_resources(conversation)
+        by_quest = {link.get('quest_packet_index'): link for link in links
+                    if type(link.get('quest_packet_index')) is int}
+        for resource in resources:
+            if resource.get('kind') not in ('quest_add', 'quest_delete'):
+                continue
+            packet_index = resource.get('packet_index')
+            quest_id = resource.get('fields', {}).get('quest_id')
+            if type(packet_index) is not int or type(quest_id) is not int:
+                continue
+            key = (packet_index, quest_id, resource['kind'])
+            if key in seen:
+                continue
+            seen.add(key)
+            link = by_quest.get(packet_index)
+            row = dict(
+                quest_kind=resource['kind'],
+                quest_id=quest_id,
+                quest_packet_index=packet_index,
+                quest_timestamp=resource.get('timestamp'),
+                after_close_reply=bool(resource.get('after_close_reply')
+                                       or (link or {}).get('after_close_reply')),
+                linked=link is not None,
+            )
+            if link is not None:
+                row.update(
+                    state=link.get('state'), kind=link.get('kind'),
+                    x=link.get('x'), y=link.get('y'),
+                    target_name=link.get('target_name'),
+                    marker_packet_index=link.get('marker_packet_index'),
+                    marker_timestamp=link.get('marker_timestamp'),
+                )
+            rows.append(row)
+    rows.sort(key=lambda row: (
+        row.get('quest_timestamp') is None, row.get('quest_timestamp') or 0,
+        row.get('quest_packet_index') or 0,
+        row.get('marker_timestamp') is None, row.get('marker_timestamp') or 0,
+        row.get('marker_packet_index') or 0))
+    return rows
+
+
 def render_quest_info(links, templates, *, map_name=None):
     """Render an OnQuestInfo label with associated showevent lines."""
     links = list(links or ())

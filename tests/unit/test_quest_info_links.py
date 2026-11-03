@@ -7,7 +7,7 @@ from reconstruction.world import WorldStore
 from reconstruction.dialogue import DialogueStore
 from reconstruction.auriga import AurigaRenderer
 from reconstruction.branches import build_merged, conversation_path
-from reconstruction.quest_info import collect_quest_info_links, render_quest_info
+from reconstruction.quest_info import collect_quest_info_links, quest_flow_rows, render_quest_info
 from reconstruction.quests import ADD_LENGTHS
 from tests.support.world import map_packet, actor_packet
 from tests.support.dialogue import packet
@@ -156,6 +156,22 @@ class QuestInfoLinkTests(unittest.TestCase):
             render_quest_info(
                 [dict(quest_id=1, state=0, kind=1, x=1, y=2, target_name='A')],
                 dict(onquestinfo='OnInit:', showevent_quest='x', end='end;', indent='\t'))
+
+    def test_quest_flow_rows_include_unlinked_then_linked_in_order(self):
+        item = self._talk_then([
+            addition(100),
+            addition(200),
+            marker(42, 1, 2, 0, 1),
+            talk(0xb6, struct.pack('<I', 42)),
+        ])
+        # Latest unmatched quest (200) consumes the showevent; 100 stays unlinked.
+        self.assertEqual(len(item.quest_info_links), 1)
+        self.assertEqual(item.quest_info_links[0]['quest_id'], 200)
+        rows = quest_flow_rows(item)
+        self.assertEqual([row['quest_id'] for row in rows], [100, 200])
+        self.assertFalse(rows[0]['linked'])
+        self.assertTrue(rows[1]['linked'])
+        self.assertEqual((rows[1]['state'], rows[1]['kind'], rows[1]['x'], rows[1]['y']), (0, 1, 1, 2))
 
 
 if __name__ == '__main__':

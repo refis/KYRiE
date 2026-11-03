@@ -31,7 +31,8 @@
 `showevent {state}, {kind}, "{NPC名}";	// {quest_id}: {x}, {y}` を追加する（Auriga）。
 単一会話・統合本文・配置付き一括出力のいずれでも、OnInitの後へ付与する。
 関連付け済みの event_marker は会話本文・外部コメントへは出さない。
-GUIの会話詳細「クエスト」タブで関連付けの時系列を確認できる。
+GUIの会話詳細「クエスト」タブで setquest／delquest の時系列を確認できる。
+showevent 関連がある行は OnQuestInfo 候補、無い行は「未関連」と表示する。
 
 全376テスト通過。20261028-012526-0abe69d9で追加8件・削除6件を会話関連観測として保持し、
 会話90件・統合34群・会話解析問題0件を維持した。別レポートsession-analysis-quests-review.jsonへ保存済み。

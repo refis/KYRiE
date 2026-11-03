@@ -758,6 +758,42 @@ class RestorationGuiTests(WindowTestCase):
         panel.timeline.selectRow(index)
         panel.jump()
         self.assertEqual(w.table.currentRow(), 2)
+        # Quest tab lists chronological setquest/delquest; neither row is showevent-linked here.
+        self.assertEqual(panel.quest_flow.rowCount(), 2)
+        self.assertEqual([panel.quest_flow.item(i, 1).text() for i in range(2)], ['setquest', 'delquest'])
+        self.assertEqual([panel.quest_flow.item(i, 3).text() for i in range(2)], ['未関連', '未関連'])
+
+    def test_quest_showevent_emits_onquestinfo_and_marks_quest_tab_linked(self):
+        from reconstruction.quests import ADD_LENGTHS
+        from tests.support.dialogue import packet
+        w = self.window
+        name = 'レイジー#ep20_end01'
+        addition = packet(
+            0xb0c, struct.pack('<IBIIH', 3593, 1, 0, 999, 2) + bytes(ADD_LENGTHS[0xb0c] - 17),
+            connection='flow-a', flow='')
+        for item in (
+                map_packet(), actor_packet(name=name),
+                packet(0x90, struct.pack('<IB', 42, 1), 'SEND', connection='flow-a', flow=''),
+                packet(0xb4, struct.pack('<I', 42) + b'hello\0', connection='flow-a', flow=''),
+                addition,
+                packet(0x446, struct.pack('<IHHHH', 42, 368, 222, 0, 1), connection='flow-a', flow=''),
+                packet(0xb6, struct.pack('<I', 42), connection='flow-a', flow='')):
+            w.add_packet(item)
+        w.refresh_entity_views()
+        panel = w.dialogue_panel
+        code = panel.code.toPlainText()
+        self.assertIn('OnQuestInfo:', code)
+        self.assertIn('showevent 0, 1, "レイジー#ep20_end01";', code)
+        self.assertIn('// 3593: 368, 222', code)
+        self.assertIn('クエスト', [panel.details_tabs.tabText(i) for i in range(panel.details_tabs.count())])
+        self.assertEqual(panel.quest_flow.rowCount(), 1)
+        self.assertEqual(panel.quest_flow.item(0, 1).text(), 'setquest')
+        self.assertEqual(panel.quest_flow.item(0, 3).text(), '0, 1')
+        self.assertEqual(panel.quest_flow.item(0, 4).text(), name)
+        self.assertEqual(panel.quest_flow.item(0, 5).text(), '368, 222')
+        panel.quest_flow.selectRow(0)
+        panel.jump_quest_link()
+        self.assertGreaterEqual(w.table.currentRow(), 0)
 
     def test_quest_counter_has_external_display_and_related_timeline_without_generated_condition(self):
         from tests.unit.test_quest_observations import counter
