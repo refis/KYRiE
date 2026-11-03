@@ -119,3 +119,9 @@ spawn は `records` 件数で凍結判定（`events` なし）。
 
 `ShopPanel.save` も同じ共有 `export_report` スロットへ揃える（ダイアログ前に snapshot 凍結）。
 候補テキスト出力と amount／delay 補完は対象外。失敗は `gui.qt_messages.warning`。
+
+## v0.0.8保存到達点（2026-11-03）
+
+詳細は[保存記録](../releases/v0.0.8.md)。手動タイマー境界・クエスト年表・MOB編集根拠・
+ActorID／offscreen CI対策・共有非同期保存までをソースZIPへ保存。v0.0.4–v0.0.7 ZIPは変更しない。
+次の着手は「次の着手単位」を正とする（実機確認、視覚エフェクト出典待ち）。

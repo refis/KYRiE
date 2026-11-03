@@ -542,14 +542,12 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-03時点（[v0.0.7](../releases/v0.0.7.md) 保存後、P1-B #97–#107・MOB根拠 #109/#110・CI #113–#119 反映後）。
-#45–#66・#71–#83・#93–#119 相当は完了または main 反映済み
-（display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、スナップショット #83、
+2026-11-03時点（[v0.0.8](../releases/v0.0.8.md) 保存直後）。
+#45–#66・#71–#120 相当は完了または main 反映済み
+（display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、
 OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント境界 #96–#107、
-MOB skill/spawn 編集根拠表示 #109/#110、offscreen Qt／Targets ログ #113、
-shop／bundle／render_npc_file ActorID フォールバック #114–#116、
-bundle 並び #117、offscreen generate 警告 #118、MOB配置の共有非同期保存 #119 含む）。
-ShopPanel.save の共有非同期保存は #120（候補テキストは同期のまま）。
+MOB skill/spawn 編集根拠 #109/#110、ActorID／offscreen CI #113–#118、
+共有非同期保存 #119/#120、スナップショット v0.0.8 含む）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
