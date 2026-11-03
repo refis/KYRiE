@@ -2338,8 +2338,13 @@ class RestorationGuiTests(WindowTestCase):
         previous_peak = spawn_editor.candidate['observed']['peak_tracked']
         candidate_report['candidates'][0]['observed']['peak_tracked'] = previous_peak + 100
         self.assertEqual(spawn_editor.candidate['observed']['peak_tracked'], previous_peak)
+        evidence = spawn_editor.evidence.toPlainText()
+        self.assertIn('自動代入はしません', evidence)
+        self.assertIn('amountへは使いません', evidence)
         self.assertEqual(spawn_editor.fields['x'].text(), '')
         self.assertEqual(spawn_editor.fields['amount'].text(), '')
+        self.assertEqual(spawn_editor.fields['delay1'].text(), '')
+        self.assertEqual(spawn_editor.fields['delay2'].text(), '')
         with self.assertRaises(ValueError):
             spawn_editor.document()
         manual = dict(map_name='prontera', x='150', y='200', xs='0', ys='0', mob_name='test_only',

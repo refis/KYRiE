@@ -8,7 +8,8 @@ from pathlib import Path
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QLabel, QLineEdit,
     QCheckBox, QPushButton, QFileDialog, QMessageBox, QPlainTextEdit, QScrollArea, QWidget)
 from reconstruction.mob_spawn_export import (PLACEMENT_FIELDS, DEFAULT_PROFILE,
-    CONFIGURED_PROFILE, configure_candidate, load_configured, render_configured)
+    CONFIGURED_PROFILE, configure_candidate, load_configured, render_configured,
+    format_observation_evidence)
 
 
 class MobSpawnEditor(QDialog):
@@ -16,7 +17,7 @@ class MobSpawnEditor(QDialog):
         super().__init__(parent)
         self.candidate, self.sources = deepcopy(candidate), deepcopy(sources)
         self.setWindowTitle('Auriga MOB配置の手動設定')
-        self.resize(720, 720)
+        self.resize(720, 800)
         layout = QVBoxLayout(self)
         note = QLabel('初回座標・追跡数・観測間隔を設定へ自動代入しません。\n'
                       '位置・範囲は0〜1023、湧き数は1〜1000、時間はms。\n'
@@ -24,6 +25,12 @@ class MobSpawnEditor(QDialog):
                       '根拠は画面を開いた時点で固定します。追加観測を使う場合は開き直してください。')
         note.setWordWrap(True)
         layout.addWidget(note)
+        self.evidence = QPlainTextEdit()
+        self.evidence.setReadOnly(True)
+        self.evidence.setPlainText(format_observation_evidence(self.candidate))
+        self.evidence.setMinimumHeight(140)
+        self.evidence.setMaximumHeight(220)
+        layout.addWidget(self.evidence)
         form_content = QWidget()
         form = QFormLayout(form_content)
         self.fields = {}
