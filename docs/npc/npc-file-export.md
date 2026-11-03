@@ -54,6 +54,7 @@ OnQuestInfo:
 （`OnQuestInfo:` は会話中の setquest／delquest 直後に showevent を関連付けた場合のみ。）
 
 実際の区切りはタブ。宣言先頭へ観測ActorIDを`{/* … */}`で挿入する。
+`npc.actor_id` が欠落または null のときは会話／統合寄与の ActorID を使う（未観測のまま埋め込まない）。
 宣言・コメント・閉じ括弧は`config/auriga/dialogue.json` の `npc_file_header` / `npc_file_footer` で変更できる。
 古いプロファイルにこのキーがない場合は同梱の既定値を補う。
 本文のインデントは既存indentを1段追加するが、`OnInit:` / `OnQuestInfo:` / `OnTouch:` ラベル行はインデントしない。

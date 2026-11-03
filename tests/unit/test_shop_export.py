@@ -224,3 +224,18 @@ class ShopExportTests(unittest.TestCase):
         self.assertIn('501:100', code)
         self.assertIn('\tshop\t案内人\t45,501:100', code)
         self.assertEqual((record, conversation), before)
+
+    def test_callshop_and_npc_file_accept_null_npc_actor_id_via_conversation(self):
+        from reconstruction.auriga import AurigaRenderer
+        record, conversation = observe_shop(True)
+        conversation.npc = dict(conversation.npc, actor_id=None)
+        record['npc'] = dict(record['npc'], actor_id=None)
+        self.assertIsNone(conversation.npc['actor_id'])
+        self.assertEqual(conversation.actor_id, 42)
+        before = deepcopy((record, conversation))
+        callshop = ShopRenderer().render(record, 'callshop', item_ids_confirmed=True, conversation=conversation)
+        self.assertIn('callshop "test.gat#callshop"', callshop)
+        self.assertIn('{/* 42 */', callshop)
+        file_code = AurigaRenderer().render_npc_file(conversation)
+        self.assertIn('{/* 42 */', file_code)
+        self.assertEqual((record, conversation), before)

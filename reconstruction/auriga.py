@@ -364,13 +364,20 @@ class AurigaRenderer:
                        if is_touch(row['conversation'].get('npc', {}))]
             if touches:
                 npc = dict(npc, touch=merge_contexts(touches))
-        if group is None and type(getattr(conversation, 'actor_id', None)) is int:
-            npc = dict(npc, actor_id=npc.get('actor_id', conversation.actor_id))
-        elif group is not None:
-            aid = next((row['conversation'].get('actor_id') for row in group['contributions']
-                        if type(row['conversation'].get('actor_id')) is int), npc.get('actor_id'))
+        # Explicit None on npc['actor_id'] must not block conversation/contribution fallback (#114/#115).
+        if group is None:
+            aid = npc.get('actor_id')
+            if type(aid) is not int:
+                aid = getattr(conversation, 'actor_id', None)
             if type(aid) is int:
-                npc = dict(npc, actor_id=npc.get('actor_id', aid))
+                npc = dict(npc, actor_id=aid)
+        else:
+            aid = npc.get('actor_id')
+            if type(aid) is not int:
+                aid = next((row['conversation'].get('actor_id') for row in group['contributions']
+                            if type(row['conversation'].get('actor_id')) is int), None)
+            if type(aid) is int:
+                npc = dict(npc, actor_id=aid)
         body = self.render_merged(group) if group is not None else self.render(conversation, presentation_check, shop_call_name)
         return self._wrap_npc(npc, body)
 

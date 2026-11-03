@@ -101,4 +101,5 @@ offscreen で raise_/activate しない。GUI 比較の 09D1 progressbar 期待�
 `ShopExportDialog.generate` が ValueError → `QMessageBox.warning` で offscreen CI が
 30分タイムアウトしていた。entity→npc へ `actor_id` をコピーし、export は record 側を
 フォールバックに使う（#114）。bundle の `shop_name_for`／barter `hidden_definition` も
-同フォールバックへ揃え、欠落時は除外記録へ回す。
+同フォールバックへ揃え、欠落時は除外記録へ回す。`render_npc_file` は `npc.actor_id is None`
+でも会話／寄与の ActorID へ落とす（`.get` の default では None を置換できない）。
