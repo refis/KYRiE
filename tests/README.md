@@ -69,6 +69,9 @@ python -m unittest discover -s tests/integration -t . -q
 
 GUIテストはoffscreenで動作し、メモリDBと一時ログディレクトリを使用します。
 Windows実機でのNpcap動作確認を代替するものではありません。
+offscreen QPA が出す `propagateSizeHints()` / `raise()` 非対応メッセージは、
+`tests/support/qt.py` で抑制する（失敗扱いではない）。`show_panel` も offscreen では
+raise_/activateWindow を呼ばない。
 
 `support/` はパケット・会話生成の共通ヘルパーとGUI準備処理です。
 テストモジュール同士をimportせず、必要なヘルパーをここから明示的にimportします。

@@ -4,6 +4,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+from tests.support.qt import install_offscreen_qt_message_filter
+install_offscreen_qt_message_filter()
 from tests.support.display import event
 from tests.support.world import actor_packet, map_packet, name_packet
 import struct
