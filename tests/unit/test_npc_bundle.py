@@ -314,3 +314,17 @@ class NpcBundleTests(unittest.TestCase):
             self.assertEqual([e['npc']['name'] for e in report['entries']],['Zulu','Gamma','Beta','Alpha'])
             positions=[report['auriga'].index('\tscript\t'+name+'\t') for name in ('Zulu','Gamma','Beta','Alpha')]
             self.assertEqual(positions,sorted(positions))
+
+    def test_callshop_name_uses_record_actor_id_when_conversation_npc_omits_it(self):
+        """#114 leftover: bundle shop_name_for must not abort when npc lacks actor_id."""
+        from tests.unit.test_shop_export import observe_shop
+        record, conversation = observe_shop(True)
+        conversation.npc = {key: value for key, value in conversation.npc.items() if key != 'actor_id'}
+        record['npc'] = {key: value for key, value in record['npc'].items() if key != 'actor_id'}
+        self.assertNotIn('actor_id', conversation.npc)
+        self.assertEqual(record['actor_id'], 42)
+        before = deepcopy((record, conversation))
+        report = build_npc_bundle([], [conversation], shops=[record])
+        self.assertFalse(report['excluded'])
+        self.assertIn('callshop "test.gat#callshop"', report['auriga'])
+        self.assertEqual((record, conversation), before)

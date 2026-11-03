@@ -127,5 +127,5 @@ class BarterRenderer:
 
     def hidden_definition(self, record, npc):
         items = format_barter_items(record['items'])
-        name = barter_name_for(npc, record['items'])
+        name = barter_name_for(npc, record['items'], actor_id=record.get('actor_id'))
         return name, self.templates['hidden_barter'].format_map(dict(shop_name=name, items=items))

@@ -73,7 +73,11 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             continue
         entry = dict(record=record, mode=mode, item_ids_confirmed=False)
         if dialogue:
-            name = shop_name_for(npc, record['items'])
+            try:
+                name = shop_name_for(npc, record['items'], actor_id=record.get('actor_id'))
+            except (ValueError, OSError) as exc:
+                excluded.append(dict(kind='shop', record=record, reason=str(exc)))
+                continue
             products = ','.join(f'{item["client_item_id"]}:{item["price"]}' for item in record['items'])
             entry.update(name=name, definition=shop_renderer.templates['hidden_shop'].format(shop_name=name, items=products))
             for item in bucket['conversations']:
