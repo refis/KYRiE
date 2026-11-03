@@ -113,6 +113,15 @@ class ExternalPresentationTests(unittest.TestCase):
                             for line in text.splitlines()))
         self.assertEqual(item, before)
 
+    def test_external_adoption_help_lists_adoptable_kinds_including_event_marker(self):
+        from gui.external_presentations import EXTERNAL_ADOPTION_HELP
+        from reconstruction.dialogue import DialogueStore
+        self.assertIn('event_marker', EXTERNAL_ADOPTION_HELP)
+        self.assertIn('sound等は採用不可', EXTERNAL_ADOPTION_HELP)
+        for kind in DialogueStore.ADOPTABLE_EXTERNAL_KINDS:
+            token = {'effect_remove': '解除'}.get(kind, kind)
+            self.assertIn(token, EXTERNAL_ADOPTION_HELP)
+
     def test_confirmed_external_candidates_emit_commands_while_cause_stays_false(self):
         store, consume = self.setup_store()
         consume(packet(0x90, struct.pack('<IB', 42, 1), direction='SEND'))

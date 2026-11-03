@@ -380,6 +380,7 @@ class EventTrialTests(unittest.TestCase):
     def test_timer_event_label_covers_adopted_kinds_without_requiring_value(self):
         from gui.event_trials import timer_event_label
         self.assertEqual(timer_event_label(dict(kind='emotion', fields=dict(value=7))), 'エモーション 7')
+        self.assertEqual(timer_event_label(dict(kind='effect', fields=dict(value=8))), 'エフェクト 8')
         self.assertEqual(timer_event_label(dict(kind='effect_remove', fields=dict(value=9))), 'エフェクト解除 9')
         self.assertEqual(timer_event_label(dict(kind='announcement', fields=dict(text='告知'))), 'announce 告知')
         self.assertEqual(timer_event_label(dict(kind='unittalk', fields=dict(text='hi'))), 'unittalk hi')
@@ -393,6 +394,24 @@ class EventTrialTests(unittest.TestCase):
             timer_event_label(dict(kind='overhead', fields=dict(text='head'))),
             '頭上メッセージ head')
         self.assertEqual(
+            timer_event_label(dict(kind='colored_speech', fields=dict(text='c', color=1))),
+            '色付き発言 c')
+        self.assertEqual(
+            timer_event_label(dict(kind='effect_value', fields=dict(effect_id=10, value=2))),
+            '値付きエフェクト 10/2')
+        self.assertEqual(
+            timer_event_label(dict(kind='hat_effect', fields=dict(enabled=1, effect_id=7))),
+            '帽子エフェクト enabled=1 id=7')
+        self.assertEqual(
+            timer_event_label(dict(kind='cutin', fields=dict(image='a.bmp', position=1))),
+            'カットイン a.bmp pos=1')
+        self.assertEqual(
+            timer_event_label(dict(kind='mapcell', fields=dict(x=1, y=2, cell_type=3))),
+            'マップセル変更 (1,2) type=3')
+        self.assertEqual(
+            timer_event_label(dict(kind='classchange', fields=dict(class_id=1005))),
+            '外見変更 class=1005')
+        self.assertEqual(
             timer_event_label(dict(kind='visibility_action',
                                   fields=dict(commands=['cloakonnpc', 'cloakoffnpc']))),
             'NPC表示状態 cloakonnpc,cloakoffnpc')
@@ -403,4 +422,7 @@ class EventTrialTests(unittest.TestCase):
         self.assertEqual(
             timer_event_label(dict(kind='viewpoint', fields=dict(kind=1, x=10, y=20))),
             'マップマーカー type=1 (10,20)')
+        self.assertEqual(
+            timer_event_label(dict(kind='viewpoint_observation', fields=dict(kind=99, x=0, y=0))),
+            'マップマーカー（未対応値） type=99 (0,0)')
         self.assertEqual(timer_event_label(dict(kind='unknown_kind', fields={})), 'unknown_kind')
