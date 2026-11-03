@@ -388,6 +388,39 @@ class TimingComparisonGuiTests(WindowTestCase):
         self.assertIn('delmisceffect 9;', editor.preview.toPlainText())
         editor.close()
 
+    def test_timer_editor_labels_extended_kinds_without_value_field(self):
+        from tests.support.event_trials import repeated_report
+        from gui.event_timer_editor import EventTimerEditor
+        import gui.external_presentations as external_module
+        cases = (
+            ('event_marker', dict(x=1, y=2, state=3, kind=4), 'イベントアイコン state=3 kind=4',
+             'showevent 3, 4;'),
+            ('progressbar', dict(seconds=5, color=0x112233), 'プログレスバー 5s',
+             'progressbar'),
+            ('overhead', dict(text='head'), '頭上メッセージ head', 'showmessage'),
+        )
+        for kind, fields, label, snippet in cases:
+            report = repeated_report('effect')
+            for trial in report['trials']:
+                event = trial['events'][1]
+                event['association_basis'] = 'selected_timer_window_same_flow'
+                event['observation'].update(kind=kind, fields=dict(fields))
+                if kind == 'progressbar':
+                    event['observation'].update(actor_id=None, target_observed=False,
+                                                entity_kind='unresolved', npc={})
+            editor = EventTimerEditor(report, 0, self.window)
+            self.assertEqual(editor.table.item(1, 0).text(), label)
+            self.assertTrue(all(not field.text() for field in editor.times))
+            editor.times[0].setText('100')
+            editor.times[1].setText('1100')
+            editor.confirmed.setChecked(True)
+            editor.generate()
+            self.assertIn(snippet, editor.preview.toPlainText())
+            editor.close()
+        source = Path(external_module.__file__).read_text(encoding='utf-8')
+        self.assertIn('event_marker', source)
+        self.assertIn('emotion／effect／解除／overhead／unittalk／event_marker', source)
+
     def test_self_unittalk_timer_editor_requires_manual_times_and_roundtrips_evidence(self):
         from copy import deepcopy
         from tests.support.event_trials import repeated_report

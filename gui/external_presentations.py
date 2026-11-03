@@ -28,7 +28,7 @@ class ExternalPresentationPanel(QWidget):
         self.caption.setWordWrap(True)
         layout.addWidget(self.caption)
         layout.addWidget(QLabel(
-            '外部演出の命令採用（emotion／effect／解除／overhead／unittalk）。'
+            '外部演出の命令採用（emotion／effect／解除／overhead／unittalk／event_marker）。'
             '呼出し元は未確定のまま。未確認行はコメントのみ。sound等は採用不可。'))
         self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(
