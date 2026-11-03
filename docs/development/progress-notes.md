@@ -92,3 +92,5 @@ roadmap の MARiA 差分表・P1-B・次の着手単位を現行コードに再�
 
 offscreen QPA の `propagateSizeHints()`/`raise()` をテスト側で抑制し、`show_panel` は
 offscreen で raise_/activate しない。GUI 比較の 09D1 progressbar 期待を comment に更新（#103 後の取り残し）。
+`run_tests` の Targets を1モジュール1行にし、CI ログの途中切れを「colored_speech で停止」と
+誤認しないようにする（実ハングは GUI 側の offscreen 警告以降）。

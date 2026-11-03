@@ -107,6 +107,15 @@ def selected_suite(names, loader=None):
     return unittest.TestSuite(unique.values())
 
 
+def format_target_listing(names, case_count):
+    """One module per line so CI logs do not truncate mid-name on a long Targets row."""
+    return (
+        [f'Targets ({len(names)} modules):']
+        + list(names)
+        + [f'Running {case_count} cases...']
+    )
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('targets', nargs='*', help='Feature group or dotted unittest module/class/method')
@@ -135,7 +144,8 @@ def main(argv=None):
             return 1
         print('Selected: ' + str(suite.countTestCases()))
         return 0
-    print('Targets: ' + ', '.join(names), flush=True)
+    for line in format_target_listing(names, suite.countTestCases()):
+        print(line, flush=True)
     result = unittest.TextTestRunner(verbosity=2 if args.verbose else 1).run(suite)
     return 0 if result.wasSuccessful() else 1
 
