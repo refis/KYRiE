@@ -40,10 +40,11 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | announcement | announce（関連候補・起因未確定の注記付き） |
 | effect_value / event_marker / hat_effect / colored_speech | **全行コメント**。実行命令へ落とさない |
 | classchange | 実行命令 `setnpcdisplay {NPC名},{class_id};`（対象NPC自身・会話外の手動採用時）。kind は根拠のみ |
+| visibility_action | 実行命令 `hideonnpc;`／`hideoffnpc;`／`cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし）。他NPC向け target 付きは拒否 |
 
 未対応のまま拒否する種別（比較列には載せられるがタイマー採用不可）:
 sound、music、viewpoint、progressbar／progress_action、mapcell、会話レイアウト、
-status_action、script_command、visibility_action、npc_display_action など。
+status_action、script_command、npc_display_action など。
 効果音・BGMはプレイヤー紐付けが必要で、NPCタイマー本文へ置いても同動作を再現できない。
 未対応演出を含む試行は、黙って省略せず拒否する。
 

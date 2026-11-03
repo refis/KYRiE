@@ -480,22 +480,31 @@ class DialogueStore:
                     if len(self.visibility_states) >= 8192 and identity not in self.visibility_states:
                         self.visibility_states.pop(next(iter(self.visibility_states)))
                     self.visibility_states[identity] = entity.options
-                    if packet.packet_id == 0x229 and conversation:
+                    if packet.packet_id == 0x229:
                         if len(packet.raw) != 15:
                             raise ObservationError('Invalid visibility notification length')
-                        origin = self.world.find_current(packet, session, conversation.actor_id, kind='NPC')
-                        if (origin and origin.appearance == conversation.npc.get('appearance')
-                                and entity.map_name == conversation.npc.get('map_name')
-                                and entity.map_generation == conversation.npc.get('map_generation')):
-                            changes = []
-                            for bit, on, off in ((2, 'hideonnpc', 'hideoffnpc'), (4, 'cloakonnpc', 'cloakoffnpc')):
-                                if (previous is not None and (previous & bit) != (entity.options & bit)
-                                        or previous is None and entity.options & bit):
-                                    changes.append(on if entity.options & bit else off)
-                            if changes:
-                                target = None if actor == conversation.actor_id else dict(name=entity.name, map_name=entity.map_name)
+                        changes = []
+                        for bit, on, off in ((2, 'hideonnpc', 'hideoffnpc'), (4, 'cloakonnpc', 'cloakoffnpc')):
+                            if (previous is not None and (previous & bit) != (entity.options & bit)
+                                    or previous is None and entity.options & bit):
+                                changes.append(on if entity.options & bit else off)
+                        if changes and conversation:
+                            origin = self.world.find_current(packet, session, conversation.actor_id, kind='NPC')
+                            if (origin and origin.appearance == conversation.npc.get('appearance')
+                                    and entity.map_name == conversation.npc.get('map_name')
+                                    and entity.map_generation == conversation.npc.get('map_generation')):
+                                target = None if actor == conversation.actor_id else dict(
+                                    name=entity.name, map_name=entity.map_name)
                                 self._retain_action(packet, session, index, conversation, 'visibility_action',
-                                    dict(commands=changes, target=target, options=entity.options, previous_options=previous))
+                                    dict(commands=changes, target=target, options=entity.options,
+                                         previous_options=previous))
+                        elif changes and not conversation:
+                            # Outside dialogue: keep as presentation for manual timer hide/cloak.
+                            self._retain_presentation(
+                                packet, session, index, actor, 'outside_dialogue',
+                                decoded=('visibility_action', actor,
+                                         dict(commands=changes, target=None, options=entity.options,
+                                              previous_options=previous)))
             except ObservationError as exc:
                 invalid(exc)
             return packet.packet_id == 0x229

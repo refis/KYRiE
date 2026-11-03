@@ -14,6 +14,7 @@
   "hat_effect": "// 帽子エフェクト観測: enabled={enabled}, effect={effect_id}。hateffect等は未生成。",
   "colored_speech": "// 色付きユニット発言観測: color=0x{color_hex}, text={text}。unittalkへは変換しない。",
   "classchange": "setnpcdisplay({target},{class_id});",
+  "visibility_action": "{command};",
   "emotion": "emotion {value};",
   "effect": "specialeffect {value};",
   "label_end": "end;"

@@ -124,7 +124,7 @@ class EventTimerExportTests(unittest.TestCase):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation'].update(fields)
             with self.subTest(fields=fields),self.assertRaises(ValueError):validate_timer_trial(changed,0)
         for kind in ('music','sound','viewpoint','progressbar','progress_action','status_action',
-                     'script_command','visibility_action','npc_display_action','mapcell','dialogue_size'):
+                     'script_command','npc_display_action','mapcell','dialogue_size'):
             changed=deepcopy(report);changed['trials'][0]['events'][1]['observation']['kind']=kind
             with self.subTest(kind=kind),self.assertRaises(ValueError):validate_timer_trial(changed,0)
         announcement=deepcopy(report);event=announcement['trials'][0]['events'][1]
@@ -213,6 +213,38 @@ class EventTimerExportTests(unittest.TestCase):
         oversized['trials'][0]['events'][1]['observation']['fields'] = {'class_id': 70000, 'kind': 1}
         with self.assertRaises(ValueError):
             build_timer_candidate(oversized, 0, [100, 1100], confirmed=True)
+
+    def test_visibility_action_timer_emits_self_hide_cloak_commands(self):
+        from pathlib import Path
+        import tempfile
+        report = repeated_report('visibility_action')
+        fields = dict(commands=['hideonnpc', 'cloakoffnpc'], target=None, options=2, previous_options=4)
+        for trial in report['trials']:
+            trial['events'][1]['observation']['fields'] = deepcopy(fields)
+        code = build_timer_candidate(report, 0, [100, 1100], confirmed=True)['auriga']
+        self.assertIn('hideonnpc;', code)
+        self.assertIn('cloakoffnpc;', code)
+        self.assertFalse(any(line.lstrip().startswith('//') and 'hideonnpc' in line
+                             for line in code.splitlines()))
+        with tempfile.TemporaryDirectory() as folder:
+            profile = Path(folder) / 'event_timers.json'
+            templates = json.loads(Path('config/auriga/event_timers.json').read_text(encoding='utf-8'))
+            for bad in ('hideonnpc "Other";', '// {command};', 'emotion 1;'):
+                templates['visibility_action'] = bad
+                profile.write_text(json.dumps(templates), encoding='utf-8')
+                with self.subTest(template=bad), self.assertRaises(ValueError):
+                    build_timer_candidate(report, 0, [100, 1100], confirmed=True, profile=profile)
+        targeted = deepcopy(report)
+        targeted['trials'][0]['events'][1]['observation']['fields'] = dict(
+            commands=['hideonnpc'], target=dict(name='Other', map_name='test.gat'),
+            options=2, previous_options=0)
+        with self.assertRaises(ValueError):
+            build_timer_candidate(targeted, 0, [100, 1100], confirmed=True)
+        invalid = deepcopy(report)
+        invalid['trials'][0]['events'][1]['observation']['fields'] = dict(
+            commands=['viewpoint'], target=None, options=0, previous_options=None)
+        with self.assertRaises(ValueError):
+            build_timer_candidate(invalid, 0, [100, 1100], confirmed=True)
 
     def test_unittalk_audit_is_preliminary_bounded_and_keeps_source_reasons(self):
         from tools.audit_event_trial_review import review_unittalk

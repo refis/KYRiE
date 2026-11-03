@@ -66,6 +66,25 @@ class ConversationActionTests(unittest.TestCase):
         self.assertEqual(len(item.actions), len(before.actions))
         self.assertFalse(build_merged([('', before)])['excluded'])
 
+    def test_outside_visibility_is_retained_as_presentation_not_dialogue_action(self):
+        store, consume = self.opened()
+        consume(packet(0xb6, struct.pack('<I', 42)))
+        consume(packet(0x146, struct.pack('<I', 42), direction='SEND'))
+        before_presentations = len(store.presentation_observations)
+        self.visibility(consume, 42, 2)
+        self.visibility(consume, 42, 6)
+        rows = [row for row in store.presentation_observations[before_presentations:]
+                if row['kind'] == 'visibility_action']
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]['context'], 'outside_dialogue')
+        self.assertEqual(rows[0]['actor_id'], 42)
+        self.assertEqual(rows[0]['fields']['commands'], ['hideonnpc'])
+        self.assertIsNone(rows[0]['fields']['target'])
+        self.assertEqual(rows[1]['fields']['commands'], ['cloakonnpc'])
+        self.assertTrue(all(row['entity_kind'] == 'NPC' and row['target_observed'] for row in rows))
+        self.assertFalse(any(row['kind'] == 'visibility_action' for row in store.sessions[0].actions
+                             if row['packet_index'] >= rows[0]['packet_index']))
+
     def test_progress_wait_notification_preserves_reply_link_and_is_deferred_with_comment(self):
         store, consume = self.opened()
         consume(packet(0xb5, struct.pack('<I', 42)))
