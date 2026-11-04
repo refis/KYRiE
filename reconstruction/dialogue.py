@@ -39,7 +39,8 @@ def decode_dialogue(packet):
                  0x446: 'event_marker', 0xa3b: 'hat_effect', 0xa24: 'achievement',
                  0xab9: 'item_preview', 0xb13: 'item_preview',
                  0x1d6: 'map_property', 0x99b: 'map_property', 0x2e7: 'map_property',
-                 0x8ff: 'status_enter', 0x984: 'status_enter', 0x29b: 'mercenary'}
+                 0x8ff: 'status_enter', 0x984: 'status_enter', 0x29b: 'mercenary',
+                 0x8e2: 'navigation_active'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
         expected = 3 if pid == 0xba1 else 10
@@ -86,6 +87,14 @@ def decode_dialogue(packet):
         if not 0 <= index <= 65533:
             raise ObservationError('Item preview index is out of supported range')
         return kind, None, dict(index=index)
+    if kind == 'navigation_active':
+        # PACKET_ZC_NAVIGATION_ACTIVE / PacketLength 27. No actor; client Navigation UI only.
+        if len(packet.raw) != 27:
+            raise ObservationError('Navigation-active length does not match supported layout')
+        return kind, None, dict(
+            type=r.number(2, 'B'), set_type=r.number(3, 'B'), hide=r.number(4, 'B'),
+            map_name=r.text(5, 16), x=r.number(21, 'h'), y=r.number(23, 'h'),
+            spr_index=r.number(25, 'h'))
     if kind == 'map_property':
         # 01D6=4 type / 099B=8 type+flags / 02E7=-1 PACKET_ZC_MAPPROPERTY sample len 33.
         # No actor; map属性のみ。NPC本文命令へは出さない。
@@ -511,6 +520,23 @@ class DialogueStore:
                                 decoded=('visibility_action', actor,
                                          dict(commands=changes, target=None, options=entity.options,
                                               previous_options=previous)))
+                    elif (type(entity.initial_options) is int
+                            and (entity.initial_options & 6) != (entity.options & 6)
+                            and not conversation):
+                        # Re-sight appearance differs from first-seen hide/cloak bits. Evidence for
+                        # client-side view overrides (e.g. cloakoff list) without claiming the cause.
+                        # Extra field `basis` keeps this out of timer cloak/hide adoption.
+                        changes = []
+                        for bit, on, off in ((2, 'hideonnpc', 'hideoffnpc'), (4, 'cloakonnpc', 'cloakoffnpc')):
+                            if (entity.initial_options & bit) != (entity.options & bit):
+                                changes.append(on if entity.options & bit else off)
+                        if changes:
+                            self._retain_presentation(
+                                packet, session, index, actor, 'outside_dialogue',
+                                decoded=('visibility_action', actor,
+                                         dict(commands=changes, target=None, options=entity.options,
+                                              previous_options=entity.initial_options,
+                                              basis='appearance_vs_initial')))
             except ObservationError as exc:
                 invalid(exc)
             return packet.packet_id == 0x229
@@ -518,6 +544,15 @@ class DialogueStore:
             try:
                 _, _, fields = decode_dialogue(packet)
                 self._retain_action(packet, session, index, conversation, 'progress_action', fields)
+            except ObservationError as exc:
+                invalid(exc)
+            return True
+        if packet.packet_id == 0x8e2 and conversation:
+            # Player Navigation UI (PACKET_ZC_NAVIGATION_ACTIVE). Link to the active
+            # dialogue as an action; do not invent ownership beyond same-flow timing.
+            try:
+                _, _, fields = decode_dialogue(packet)
+                self._retain_action(packet, session, index, conversation, 'navigation_action', fields)
             except ObservationError as exc:
                 invalid(exc)
             return True
@@ -732,7 +767,8 @@ class DialogueStore:
                 return
             self._retain_presentation(packet, session, index, None, 'during_dialogue')
         elif packet.direction == 'RECV' and packet.packet_id in (
-                0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13, 0x1d6, 0x99b, 0x2e7):
+                0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13, 0x1d6, 0x99b, 0x2e7,
+                0x8e2):
             # No actor ID: never assign this notification to the active NPC.
             context = 'during_dialogue' if conversation else 'outside_dialogue'
             if key in self.close_pending:

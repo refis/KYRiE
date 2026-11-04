@@ -142,6 +142,7 @@
   "cloakoffnpc_target": "cloakoffnpc {target};",
   "unittalk_target": "npctalk {text},{target};",
   "progress_action": "progressbar \"{color}\",{seconds};",
+  "navigation_action": "// navigateto 観測: map={map_name}, x={x}, y={y}, type={type}, set={set_type}, hide={hide}, spr={spr_index}。実行命令は未生成。",
   "status_start": "sc_start {symbol},{duration},{value};",
   "status_end": "sc_end {symbol};",
   "status_review": "// 状態異常のIDまたは引数は未対応。元観測: {evidence}",

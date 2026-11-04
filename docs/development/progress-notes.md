@@ -136,7 +136,17 @@ ActorID／offscreen CI対策・共有非同期保存までをソースZIPへ保�
 
 `prt_fild05` の `小さなトネリコの木#c1p1`（class 10620／ActorID 6979）会話で、
 「一緒に行く」後に RECV `08E2`（27B）→ close → cutin解除 → `0092` warp（`ygg_edge`）を確認。
-フレーミング欠落・未知ID停止はなし（replay errors 0）。`08E2` は rAthena
-`navigateto`／`clif_navigateTo` と一致し、KYRiEは未decode。同セッションの
-`ナビエル` は `0144` viewpoint と mes の `<NAVI>` タグ（本文保持のみ）。
+フレーミング欠落・未知ID停止はなし（replay errors 0）。公式
+`PACKET_ZC_NAVIGATION_ACTIVE` と rAthena `navigateto`／`clif_navigateTo` に合わせ構造化。
+会話中は `navigation_action` として会話へ紐付け（コメントのみ）。会話外は
+`navigation_active`。続き採取（ygg_fruit／ygg_roots）でも同様。
+同セッションの `ナビエル` は `0144` viewpoint と mes の `<NAVI>` タグ（本文保持のみ）。
 詳細は[未対応通知](../npc/unsupported-notifications.md#クライアントナビ開始08e2)。
+
+### 視界外 cloak／出現options（2026-11-04）
+
+作業仮説（クライアント cloakoff リストは MAP 滞在限定・移動で消失、再シードは到着付近
+OnTouch 等）を対話復元メモへ記載。再出現で `initial_options` の hide/cloak と今回
+options が食い違う場合は `visibility_action`（`basis=appearance_vs_initial`）として
+会話外観測のみ残し、タイマー cloak 命令には出さない。調査地点#ch01_1 は初回 cloaked→
+0229 off、同MAP再出現は出現時点で非cloak。OnTouch→リスト命令生成は未実装。

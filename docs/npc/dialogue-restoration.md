@@ -224,11 +224,15 @@ NPC演出の非表示リストには連動せず、非表示にする場合はPa
 
 ### クライアントナビ08E2（2026-11-03）
 
-固定長27バイト。rAthenaの`navigateto` → `clif_navigateTo`（PacketID `08E2`）と照合できる。
+固定長27バイトの`PACKET_ZC_NAVIGATION_ACTIVE`。公式レイアウトは
+Type／SetType／Hide／MapName[16]／xPos／yPos／sprIndex。
+rAthenaの`navigateto` → `clif_navigateTo` と対応する。
 ミニマップマーカーの`viewpoint`（0144）や mes 内 `<NAVI>` クリックリンクとは別経路。
-KYRiEは長さ定義のみ把握し、表示decode・会話ステップ・命令生成は未接続
+会話中の受信は`navigation_action`として同一フローの会話へ時間紐付けし、
+本文には`// navigateto 観測: ...`コメントのみ出す（実行命令・起因確定はしない）。
+会話外・close待ちは`navigation_active`演出観測として保持する
 （[未対応通知](unsupported-notifications.md#クライアントナビ開始08e2)）。
-実測例は `小さなトネリコの木#c1p1` の同行選択直後。起因条件は生成しない。
+実測例は `小さなトネリコの木#c1p1` の同行選択直後、および ygg 系会話のナビ。
 
 ### マップマーカー0144（2026-10-28）
 
@@ -326,6 +330,19 @@ NPC用通知をプレイヤー用待機命令へ置き換えない。
 会話外の0x0229差分は演出観測（visibility_action）として保持し、手動タイマー候補では
 自身向け cloak（受信が本人限定）と、インスタンスMAP上の自身向け hide のみ採用する
 （[タイマー候補](event-timer-candidates.md)）。通常MAPの hide は採用しない。
+
+### 視界外 cloak と出現パケット（検討メモ）
+
+作業仮説: クライアントはMAP滞在中に限り cloakoff 対象リストを持ち、cloaked NPCが
+視界に入ったときの出現パケット（09FF系）の options に反映する。リストはMAP移動で消えるため、
+再シードは到着地点付近の OnTouch、または対象NPC／近傍NPCの OnTouch による、と見る。
+リストに無い cloaked NPC は OnTouch しない（`can_trigger` は現在 options の hide/cloak を除外）。
+配置宣言用の `initial_options`（初回出現）は後続の hideoff/cloakoff で上書きしない。
+
+実測（ygg_roots 調査地点#ch01_1 など）: 初回は cloaked 出現→直後 0229 cloakoff。同MAP再出現は
+出現時点で options が非cloak（`initial_options` は cloaked のまま）。`appearance_vs_initial` として
+会話外観測に残し、タイマーの cloak 実行命令へは出さない。サーバー恒久 cloakoff とクライアント
+リストの切り分け、OnTouch→リスト追加の命令生成は未確定のため未実装。
 
 会話内の追加アクションはConversation.actionsに受信Packetの根拠とともに保存する。
 プログレスバー、表示状態、状態異常を入力応答のstepsへ挿入しないため、next/input等の返信対応は維持される。

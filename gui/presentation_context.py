@@ -22,6 +22,10 @@ def presentation_context(row):
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='アイテムプレビューは対象ActorID未記録。所持Indexの観測メモでありgetitemへは出しません。',
             summary='0x0AB9（47バイト）／0x0B13（48バイト）は表示定義どおり index@2（生値-2）だけを保持します。他バイトは未解釈です。会話中に届いてもNPCの発生元とせず、getitem／itempreview 実行命令やタイマーへ変換しません。')
+    elif kind=='navigation_active':
+        result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
+            short='クライアントNavigation開始。対象ActorID未記録。会話外観測のみ。viewpoint／warpと混同しません。',
+            summary='0x08E2（PACKET_ZC_NAVIGATION_ACTIVE、27バイト）は Type／SetType／Hide／MapName／xPos／yPos／sprIndex を保持します。会話中は navigation_action として同一フローの会話へ時間紐付けし、ここ（navigation_active）は会話外・close待ちの観測です。viewpoint（0144）や0092 warpと同一視せず、navigateto 実行命令やタイマーへは変換しません。')
     elif kind=='map_property':
         result.update(actor_role='map_property',observed_actor_id=None,player_context_required=True,
             short='マップ属性通知です。対象ActorIDは未記録で、NPC本文命令へは出しません。',
@@ -42,6 +46,16 @@ def presentation_context(row):
     elif kind=='progressbar' and packet==0x9d1:
         result.update(actor_role='progress_target',short='対象ID付き進捗通知。対象IDは発生元NPCを示すとは限りません。',
             summary='0x09D1のActorIDは進捗対象の根拠です。発生元やプレイヤーの紐付け・実行命令を確定したものではありません。既存の観測・比較を維持し、未確認の命令やNPCタイマーへ変換しません。')
+    elif kind=='visibility_action':
+        basis=(row.get('fields') or {}).get('basis')
+        if basis=='appearance_vs_initial':
+            result.update(actor_role='visibility_target',player_context_required=True,
+                short='出現optionsが初回hide/cloakと不一致。クライアント側表示上書きの候補で、スクリプトcloak命令とは限りません。',
+                summary='09FF系の再出現で、保持中の初回initial_optionsのhide/cloakビットと今回のoptionsが食い違います。MAP滞在中のcloakoffリスト等が出現パケットへ反映された可能性の観測であり、起因NPC・OnTouch・サーバー恒久cloakoffの確定ではありません。タイマーのcloak/hide実行命令へは出しません。')
+        else:
+            result.update(actor_role='visibility_target',player_context_required=True,
+                short='0x0229のhide/cloak差分です。会話外は演出観測、会話中は対象付きアクションになります。',
+                summary='0x0229のビット差分からhideonnpc／cloakonnpc等を保持します。会話中は同一MAP世代の対象NPCへ紐付け、会話外は手動タイマー候補（自身cloak／インスタンス自身hide）です。出現パケットと初回状態の食い違い（appearance_vs_initial）とは別経路です。')
     elif kind=='viewpoint':
         result.update(actor_role='marker_npc',player_context_required=True,
             short='マーカー通知のNPC IDです。表示を受けるプレイヤーのIDとは区別します。',
