@@ -151,3 +151,16 @@ options が食い違う場合は `visibility_action`（`basis=appearance_vs_init
 会話外観測のみ残し、タイマー cloak 命令には出さない。調査地点#ch01_1 は初回 cloaked→
 0229 off、同MAP再出現は出現時点で非cloak。同セルの `#ch1evt_*`（class 139）を
 `colocated_touch_npcs` として併記。OnTouch→リスト命令生成は未実装。
+
+### actorコメント／ignorepacket flag／showevent・status抑制（2026-11-04）
+
+観測ログの `// {actor_id}` 系を名称取得時 `名称(actor_id), x, y` へ。ignorepacket は
+PacketID ごとの flag（&1 ログ、&2 SQLite 非保存）とパケット詳細からの追加 UI。
+showevent（0446）は `showevent_flag` 変化時のみログ、9999 は spawn 無しなら観測ログのみ。
+update_status（00B0系）は HP/SP 等を抑制し Zeny／EXP を残す（#126）。
+
+## v0.0.9保存到達点（2026-11-04）
+
+詳細は[保存記録](../releases/v0.0.9.md)。ナビ08E2・cloak併記・actorコメント／ignore flag・
+showeventflag・update_status抑制・大容量再生上限までをソースZIPへ保存。v0.0.4–v0.0.8 ZIPは変更しない。
+次の着手は「次の着手単位」を正とする（実機確認、視覚エフェクト出典待ち）。

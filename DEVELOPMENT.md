@@ -2369,3 +2369,14 @@ Selected verification: release+catalog+commands+npc+player+presentation+events+m
 and gui-restoration+gui-display+offline+storage (170); total 681. Not full discover.
 Artifacts: dist/KYRiE-v0.0.8-source.zip (+.sha256, verification.json; gitignored).
 See docs/releases/v0.0.8.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.
+
+### 2026-11-04: v0.0.9 source snapshot
+
+Advanced version.py to 0.0.9 / 2026-11-04. Captures post-v0.0.8 large-capture budgets (#122),
+08E2 navigation observe and cloak/colocated notes (#123–#125), actor comment enrichment,
+ignorepacket per-ID flags, showeventflag, and update_status log suppress (#126).
+Frozen v0.0.4/v0.0.5/v0.0.6/v0.0.7/v0.0.8 ZIPs unchanged.
+Selected verification: release+catalog+commands+npc+player+presentation+events+mob+display+dialogue+shop (521)
+and gui-restoration+gui-display+offline+storage (173); total 694. Not full discover.
+Artifacts: dist/KYRiE-v0.0.9-source.zip (+.sha256, verification.json; gitignored).
+See docs/releases/v0.0.9.md. Runtime/Npcap/Auriga/clean-environment checks remain deferred.

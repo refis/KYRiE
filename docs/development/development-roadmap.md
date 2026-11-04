@@ -542,12 +542,14 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-03時点（[v0.0.8](../releases/v0.0.8.md) 保存直後）。
-#45–#66・#71–#120 相当は完了または main 反映済み
+2026-11-04時点（[v0.0.9](../releases/v0.0.9.md) 保存直後）。
+#45–#66・#71–#126 相当は完了または main 反映済み
 （display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、
 OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント境界 #96–#107、
 MOB skill/spawn 編集根拠 #109/#110、ActorID／offscreen CI #113–#118、
-共有非同期保存 #119/#120、スナップショット v0.0.8 含む）。
+共有非同期保存 #119/#120、大容量再生上限 #122、ナビ08E2／cloak併記 #123–#125、
+actorコメント／ignorepacket flag／showevent・status抑制 #126、
+スナップショット v0.0.9 含む）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
@@ -564,6 +566,8 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
    P1-C の根拠表示・確認チェックは #109/#110 まで到達。amount／delay／CASTTIME 等の
    観測自動補完はしない。次のコード着手は採取で必要になった非対称、または
    既存 export／bundle の観測一貫性修正から。
+5. **navigateto 実行命令化**・**OnTouch→cloakoff リスト命令**は未実装（観測のみ）。
+   他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。
