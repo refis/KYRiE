@@ -20,7 +20,25 @@ from reconstruction.quests import decode_quest
 ACTOR_FIELDS = dict(actor_id=0, actor_type=0, class_id=0, speed=0, options=0,
                     actor_name='', x=0, y=0, destination_x=0, destination_y=0, facing=0,
                     first_seen=False, name_valid=True, map_name='不明', reobserved=False, has_changes=False,
-                    actor_kind='', changes_text='', walk_wait_extra=50, walk_wait_ms=0)
+                    actor_kind='', changes_text='', walk_wait_extra=50, walk_wait_ms=0, actor_comment=0)
+
+
+def format_actor_comment(actor_id, *, name='', x=None, y=None, coords_fallback=False):
+    """Same-line comment label: name(actor_id), x, y when an NPC name is known."""
+    if isinstance(actor_id, str):
+        return actor_id
+    if type(actor_id) is not int:
+        return actor_id
+    if name and type(x) is int and type(y) is int:
+        return f'{name}({actor_id}), {x}, {y}'
+    if name:
+        return f'{name}({actor_id})'
+    if coords_fallback and type(x) is int and type(y) is int:
+        return f'{actor_id}: {x}, {y}'
+    return actor_id
+
+# showevent (0x0446) keeps ": x, y" in the comment even when the NPC name is unknown.
+_ACTOR_COMMENT_COORD_PACKETS = frozenset({0x446})
 QUEST_COUNTER_FIELDS = dict(quest_layout='', quest_objective_kind='', quest_entry_count=0, quest_entries='[]')
 SCRIPT_FIELDS = dict(command_text='', command_kind='')
 STATUS_CONVERT_FIELDS = dict(status_script_id=0, status_symbol='', status_mapped=False)
@@ -139,7 +157,8 @@ class DisplayProfile:
             if not re.fullmatch(r'ctx_[A-Za-z][A-Za-z0-9_]*', key) or type(value) not in (str, int, bool):
                 raise ProfileError('State defaults need ctx_ names and scalar values')
         samples = dict(packet_id=1, length=2, direction='RECV', source='NPCAP',
-                       connection='test', time='00:00:00.000', name='test', error='test', **self.defaults)
+                       connection='test', time='00:00:00.000', name='test', error='test',
+                       actor_comment=0, **self.defaults)
         self.fallback = document['fallback']
         self.error_template = document['error']
         self.timestamp = document['timestamp']
@@ -295,6 +314,29 @@ class ReceiveDisplay:
                 skill_names=self.skill_names)
             fields[name + '_index'] = label
 
+    def _attach_actor_comment(self, values, fields, event):
+        """Fill actor_comment from the current NPC when a same-line // comment needs it."""
+        actor_id = values.get('actor_id')
+        if type(actor_id) is not int:
+            return
+        name = values.get('actor_name') or ''
+        x = values.get('x') if type(values.get('x')) is int else None
+        y = values.get('y') if type(values.get('y')) is int else None
+        coords_fallback = event.packet_id in _ACTOR_COMMENT_COORD_PACKETS
+        # Prefer live NPC identity over packet-local marker coordinates for the comment.
+        entity = self.world.find_current(event, 0, actor_id, kind='NPC', active_only=False)
+        if entity and entity.name:
+            name = entity.name
+            if type(entity.x) is int and type(entity.y) is int:
+                x, y = entity.x, entity.y
+        elif not coords_fallback:
+            # Without a known NPC name, keep a bare actor_id (except showevent fallback).
+            x = y = None
+        comment = format_actor_comment(
+            actor_id, name=name, x=x, y=y, coords_fallback=coords_fallback)
+        values['actor_comment'] = comment
+        fields['actor_comment'] = comment
+
     def _changes_text(self, changes):
         parts=[]
         for name,pair in changes.items():
@@ -429,6 +471,7 @@ class ReceiveDisplay:
                 fields[name] = value
                 values[name] = value
             self._annotate_indexes(rule, fields, event)
+            self._attach_actor_comment(values, fields, event)
             if decoder == 'skill_unit':
                 if event.packet_id != 0x9ca or len(event.raw) != 23 or struct.unpack_from('<H',event.raw,2)[0] != 23:
                     raise ValueError('Unsupported skill unit packet layout')
@@ -492,6 +535,30 @@ class ReceiveDisplay:
             player_state = self.players.states.get((0, event.flow_id or event.connection))
             identity = identity_from_player(player_state)
             render_values = apply_to_display_values(values, identity)
+            if 'actor_id' in render_values:
+                # Rebuild after protection so self stays "self" and NPC names stay literal.
+                name = ''
+                x = values['x'] if type(values.get('x')) is int else None
+                y = values['y'] if type(values.get('y')) is int else None
+                coords_fallback = event.packet_id in _ACTOR_COMMENT_COORD_PACKETS
+                raw_id = values.get('actor_id')
+                if type(raw_id) is int and render_values.get('actor_id') == raw_id:
+                    entity = self.world.find_current(event, 0, raw_id, kind='NPC', active_only=False)
+                    if entity and entity.name:
+                        name = entity.name
+                        if type(entity.x) is int and type(entity.y) is int:
+                            x, y = entity.x, entity.y
+                    elif values.get('actor_name'):
+                        name = values['actor_name']
+                    elif not coords_fallback:
+                        x = y = None
+                else:
+                    name = ''
+                    x = y = None
+                    coords_fallback = False
+                render_values['actor_comment'] = format_actor_comment(
+                    render_values.get('actor_id'), name=name, x=x, y=y,
+                    coords_fallback=coords_fallback)
             text = prefix + _render(template, render_values)
             if (walk_npc_speed and profile.walk_npc_speed_template
                     and values.get('has_changes') and 'setnpcspeed' not in text):

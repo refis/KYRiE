@@ -220,6 +220,28 @@ class DisplayTests(unittest.TestCase):
             self.assertEqual(result.fields['effect_id'], icon)
             self.assertFalse(result.fields['status_mapped'])
 
+    def test_actor_comment_uses_npc_name_and_coordinates_when_known(self):
+        from tests.support.world import actor_packet, map_packet
+        from parser.display import format_actor_comment
+        self.assertEqual(format_actor_comment(42, name='案内人', x=150, y=200),
+                         '案内人(42), 150, 200')
+        self.assertEqual(format_actor_comment(42), 42)
+        self.assertEqual(format_actor_comment('self', name='案内人', x=1, y=2), 'self')
+        self.display.decode(map_packet())
+        self.display.decode(actor_packet(name='案内人', x=150, y=200))
+        emotion = self.display.decode(event(0xc0, struct.pack('<IB', 42, 3), connection='flow-a'))
+        self.assertEqual(emotion.text, '@emotion 3;\t// 案内人(42), 150, 200')
+        self.assertEqual(emotion.fields['actor_comment'], '案内人(42), 150, 200')
+        self.assertEqual(emotion.fields['actor_id'], 42)
+        unknown = self.display.decode(event(0xc0, struct.pack('<IB', 99, 1), connection='flow-a'))
+        self.assertEqual(unknown.text, '@emotion 1;\t// 99')
+        showevent = self.display.decode(event(
+            0x446, struct.pack('<IHHHH', 42, 10, 20, 3, 4), connection='flow-a'))
+        self.assertEqual(showevent.text, '@showevent 3, 4;\t// 案内人(42), 150, 200')
+        bare = self.display.decode(event(
+            0x446, struct.pack('<IHHHH', 77, 10, 20, 1, 2), connection='flow-a'))
+        self.assertEqual(bare.text, '@showevent 1, 2;\t// 77: 10, 20')
+
     def test_send_crypto_keying_packets_display_without_claiming_decrypt(self):
         from parser.definitions import load_lengths
         lengths = load_lengths(Path(__file__).resolve().parents[2] / 'PacketLength.txt')

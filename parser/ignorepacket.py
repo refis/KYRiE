@@ -1,4 +1,4 @@
-"""Display-only exclusions, independent of packet decoding and reconstruction."""
+"""Display and optional save exclusions, independent of packet decoding and reconstruction."""
 import json
 import re
 import os
@@ -13,6 +13,10 @@ from reconstruction.decoder import ObservationError
 
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / 'config' / 'ignorepacket.json'
 
+# Per-packet bit flags. Combinable.
+HIDE_LOG = 1   # flag&1: omit from observation log / exported log text
+SKIP_SAVE = 2  # flag&2: skip SQLite insert (analysis still runs)
+
 
 def packet_ids(text):
     tokens = [value for value in re.split(r'[\s,;]+', text.strip()) if value]
@@ -21,20 +25,61 @@ def packet_ids(text):
     return frozenset(int(value, 16) for value in tokens)
 
 
+def packet_flag_entries(text):
+    """Parse PacketID lines. Bare ID means flag=1; ID:flags uses the numeric flag."""
+    entries = {}
+    tokens = [value for value in re.split(r'[\s,;]+', text.strip()) if value]
+    if len(tokens) > 65536:
+        raise ValueError('PacketIDは65536件以下にしてください。')
+    for token in tokens:
+        if ':' in token:
+            pid_text, flag_text = token.split(':', 1)
+            if not re.fullmatch(r'(?:0[xX])?[0-9a-fA-F]{1,4}', pid_text):
+                raise ValueError('PacketIDは0000〜FFFFの16進数を空白・改行・カンマで区切ってください。')
+            if not re.fullmatch(r'[0-9]{1,2}', flag_text):
+                raise ValueError('Packet flagは0〜3の整数で指定してください（1=ログ非表示, 2=保存しない, 3=両方）。')
+            flag = int(flag_text)
+            if flag not in (HIDE_LOG, SKIP_SAVE, HIDE_LOG | SKIP_SAVE):
+                raise ValueError('Packet flagは1・2・3のいずれかを指定してください（0は削除）。')
+            entries[int(pid_text, 16)] = flag
+        else:
+            if not re.fullmatch(r'(?:0[xX])?[0-9a-fA-F]{1,4}', token):
+                raise ValueError('PacketIDは0000〜FFFFの16進数を空白・改行・カンマで区切ってください。')
+            entries[int(token, 16)] = HIDE_LOG
+    return entries
+
+
+def _split_flags(flags_by_id):
+    ids = frozenset(pid for pid, flag in flags_by_id.items() if flag & HIDE_LOG)
+    skip_save = frozenset(pid for pid, flag in flags_by_id.items() if flag & SKIP_SAVE)
+    return ids, skip_save
+
+
 @dataclass(frozen=True)
 class IgnorePacket:
     ids: frozenset = frozenset()
+    skip_save: frozenset = frozenset()
     mob_combat: bool = False
     npc_actors: frozenset = frozenset()
     npc_names: frozenset = frozenset()
 
+    def packet_flag(self, packet_id):
+        return ((HIDE_LOG if packet_id in self.ids else 0)
+                | (SKIP_SAVE if packet_id in self.skip_save else 0))
+
     def hides(self, event, tags):
-        return (tags.get('npc_waitingroom', False) or event.packet_id in self.ids or self.mob_combat and tags.get('mob_combat', False)
+        return (tags.get('npc_waitingroom', False) or event.packet_id in self.ids
+                or self.mob_combat and tags.get('mob_combat', False)
                 or tags.get('npc_presentation', False) and (
                     tags.get('actor_id') in self.npc_actors or tags.get('npc_name') in self.npc_names))
 
+    def skips_save(self, packet_id):
+        return packet_id in self.skip_save
+
     def document(self):
-        return dict(version=1, packet_ids=[f'{value:04X}' for value in sorted(self.ids)],
+        flags = {pid: self.packet_flag(pid) for pid in sorted(self.ids | self.skip_save)}
+        return dict(version=2,
+                    packet_flags={f'{pid:04X}': flag for pid, flag in flags.items()},
                     mob_combat=self.mob_combat, npc_actor_ids=sorted(self.npc_actors),
                     npc_names=sorted(self.npc_names))
 
@@ -44,15 +89,38 @@ class IgnorePacket:
         if path.stat().st_size > 65536:
             raise ValueError('ignorepacket設定は64 KiB以下にしてください。')
         doc = json.loads(path.read_text(encoding='utf-8'))
-        if (not isinstance(doc, dict) or set(doc) != {'version', 'packet_ids', 'mob_combat', 'npc_actor_ids', 'npc_names'}
-                or type(doc['version']) is not int or doc['version'] != 1 or type(doc['mob_combat']) is not bool
-                or not isinstance(doc['packet_ids'], list) or not all(isinstance(v, str) for v in doc['packet_ids'])
+        if not isinstance(doc, dict) or type(doc.get('version')) is not int:
+            raise ValueError('ignorepacket設定の形式が不正です。')
+        version = doc['version']
+        if version == 1:
+            if (set(doc) != {'version', 'packet_ids', 'mob_combat', 'npc_actor_ids', 'npc_names'}
+                    or type(doc['mob_combat']) is not bool
+                    or not isinstance(doc['packet_ids'], list) or not all(isinstance(v, str) for v in doc['packet_ids'])
+                    or not isinstance(doc['npc_actor_ids'], list) or len(doc['npc_actor_ids']) > 1000
+                    or not all(type(v) is int and 0 <= v <= 0xffffffff for v in doc['npc_actor_ids'])
+                    or not isinstance(doc['npc_names'], list) or len(doc['npc_names']) > 1000
+                    or not all(isinstance(v, str) and 0 < len(v) <= 256 for v in doc['npc_names'])):
+                raise ValueError('ignorepacket設定の形式が不正です。')
+            return cls(packet_ids(' '.join(doc['packet_ids'])), frozenset(), doc['mob_combat'],
+                       frozenset(doc['npc_actor_ids']), frozenset(doc['npc_names']))
+        if version != 2:
+            raise ValueError('ignorepacket設定の形式が不正です。')
+        if (set(doc) != {'version', 'packet_flags', 'mob_combat', 'npc_actor_ids', 'npc_names'}
+                or type(doc['mob_combat']) is not bool
+                or not isinstance(doc['packet_flags'], dict) or len(doc['packet_flags']) > 65536
                 or not isinstance(doc['npc_actor_ids'], list) or len(doc['npc_actor_ids']) > 1000
                 or not all(type(v) is int and 0 <= v <= 0xffffffff for v in doc['npc_actor_ids'])
                 or not isinstance(doc['npc_names'], list) or len(doc['npc_names']) > 1000
                 or not all(isinstance(v, str) and 0 < len(v) <= 256 for v in doc['npc_names'])):
             raise ValueError('ignorepacket設定の形式が不正です。')
-        return cls(packet_ids(' '.join(doc['packet_ids'])), doc['mob_combat'],
+        flags_by_id = {}
+        for key, flag in doc['packet_flags'].items():
+            if (not isinstance(key, str) or not re.fullmatch(r'(?:0[xX])?[0-9a-fA-F]{1,4}', key)
+                    or type(flag) is not int or flag not in (HIDE_LOG, SKIP_SAVE, HIDE_LOG | SKIP_SAVE)):
+                raise ValueError('ignorepacket設定の形式が不正です。')
+            flags_by_id[int(key, 16)] = flag
+        ids, skip_save = _split_flags(flags_by_id)
+        return cls(ids, skip_save, doc['mob_combat'],
                    frozenset(doc['npc_actor_ids']), frozenset(doc['npc_names']))
 
     def save(self, path=DEFAULT_PATH):

@@ -66,6 +66,13 @@ GUI基本データの仕様は[基本データガイド](../observations/player-
 | status_icon | reference_names status_icon |
 | visual_effect | reference_names visual_effect |
 
+### 同一行の actor コメント
+
+`// {actor_comment}` を使うテンプレートは、名称が取れた NPC について
+`名称(actor_id), x, y` 形式へ展開する（WorldStore の同一接続・MAP世代）。
+名称未取得時は従来どおり ActorID のみ（showevent は従来どおり `id: x, y`）。
+実行引数側の `{actor_id}` はそのまま数値／保護置換（`self`）を使う。
+
 セッション開始時は適用後の長さを `PacketLength.used.txt` に残し、オーバーレイ利用時は
 `PacketOverlay.used.json` と `session_start.overlay_sha256` も残す。
 

@@ -67,7 +67,7 @@ python -m venv .venv
 - `config/player_classes.json`: 職業外見class一覧。変更後は再起動・再解析。
 - `config/auriga/status_ids.json`: 状態異常ID変換。未確認の引数は自動補完しません。
 - `config/auriga/script_commands.json`: 命令候補の条件。床アイテムの総寿命は60000ms。
-- `config/ignorepacket.json`: 観測ログ非表示。パケット保存・意味解析・コード生成は継続します。
+- `config/ignorepacket.json`: 観測ログ非表示（flag&1）と任意のSQLite保存スキップ（flag&2）。意味解析・コード生成は継続します。
 - `config/user_settings.json`: 設定画面などのGUI設定（ローカル専用。Git/スナップショット対象外）。
 
 表示書式はGUIから再読込できます。低優先のrAthena書式は`config/rathena/`に分離しています。

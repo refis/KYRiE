@@ -127,7 +127,9 @@ class MainWindow(QMainWindow):
         self.ignore_mob.toggled.connect(self.toggle_ignore_mob)
         self.ignore_settings.clicked.connect(self.edit_ignorepacket)
         self.ignore_packet_selection.toggled.connect(self.toggle_selected_packet_ignore)
+        self.ignore_packet_save.toggled.connect(self.toggle_selected_packet_skip_save)
         self.ignore_npc_selection.toggled.connect(self.toggle_selected_npc_ignore)
+        self.table.customContextMenuRequested.connect(self.packet_table_context_menu)
         self.overlay_edit.clicked.connect(self.edit_overlay_structure)
         self.overlay_diff.clicked.connect(self.diff_same_id_instances)
         self.overlay_export.clicked.connect(self.export_confirmed_overlay)
@@ -225,6 +227,7 @@ class MainWindow(QMainWindow):
         self.npc_metadata_export.setEnabled(actor_id is not None)
         for button, value, excluded in (
                 (self.ignore_packet_selection, packet_id, self.ignorepacket.ids),
+                (self.ignore_packet_save, packet_id, self.ignorepacket.skip_save),
                 (self.ignore_npc_selection, actor_id, self.ignorepacket.npc_actors)):
             button.blockSignals(True)
             button.setEnabled(value is not None)
@@ -242,11 +245,42 @@ class MainWindow(QMainWindow):
         if row is not None:
             self.set_ignore_member('ids', self.retained_event(row).packet_id, checked)
 
+    def toggle_selected_packet_skip_save(self, checked):
+        row = self.selected_packet_index()
+        if row is not None:
+            self.set_ignore_member('skip_save', self.retained_event(row).packet_id, checked)
+
     def toggle_selected_npc_ignore(self, checked):
         index = self.npc_panel.table.currentIndex()
         rows = self.npc_panel.model.rows
         if index.isValid() and 0 <= index.row() < len(rows):
             self.set_ignore_member('npc_actors', rows[index.row()].actor_id, checked)
+
+    def packet_table_context_menu(self, pos):
+        from PySide6.QtWidgets import QMenu
+        row = self.selected_packet_index()
+        if row is None:
+            item = self.table.itemAt(pos)
+            if item is not None:
+                self.table.selectRow(item.row())
+                row = self.selected_packet_index()
+        if row is None:
+            return
+        packet_id = self.retained_event(row).packet_id
+        menu = QMenu(self)
+        hide = menu.addAction('観測ログ非表示に追加' if packet_id not in self.ignorepacket.ids
+                              else '観測ログ非表示を解除')
+        skip = menu.addAction('SQLite保存しないに追加' if packet_id not in self.ignorepacket.skip_save
+                              else 'SQLite保存スキップを解除')
+        both = menu.addAction('ログ非表示＋保存しない（flag=3）')
+        chosen = menu.exec(self.table.viewport().mapToGlobal(pos))
+        if chosen is hide:
+            self.set_ignore_member('ids', packet_id, packet_id not in self.ignorepacket.ids)
+        elif chosen is skip:
+            self.set_ignore_member('skip_save', packet_id, packet_id not in self.ignorepacket.skip_save)
+        elif chosen is both:
+            self.set_ignore_member('ids', packet_id, True)
+            self.set_ignore_member('skip_save', packet_id, True)
 
     def set_ignore_member(self, field, value, checked):
         from dataclasses import replace
@@ -865,8 +899,9 @@ class MainWindow(QMainWindow):
                 (result.status != 'unmapped' or self.display_unmapped.isChecked()))
 
     def rebuild_display_log(self):
-        self.ignore_summary.setText(f'除外ID {len(self.ignorepacket.ids)}件 / NPC '
-                                    f'{len(self.ignorepacket.npc_actors) + len(self.ignorepacket.npc_names)}件')
+        self.ignore_summary.setText(
+            f'除外ID {len(self.ignorepacket.ids)}件 / 保存スキップ {len(self.ignorepacket.skip_save)}件 / NPC '
+            f'{len(self.ignorepacket.npc_actors) + len(self.ignorepacket.npc_names)}件')
         self.schedule_history_view()
 
     def schedule_history_view(self,*,immediate=False):
@@ -1185,7 +1220,11 @@ class MainWindow(QMainWindow):
             session,event=event
         self.packet_gui_received+=1
         rowid=None
-        if self.database_failed:
+        if self.ignorepacket.skips_save(event.packet_id):
+            # Intentional skip (flag&2): analysis continues; treat as confirmed non-persist for eviction.
+            rowid=0
+            self.packet_db_confirmed+=1
+        elif self.database_failed:
             self.packet_db_unconfirmed+=1
         else:
             try:
@@ -1284,7 +1323,8 @@ class MainWindow(QMainWindow):
             rowid=self.packet_rowids[offset]
             if rowid is None:
                 return
-            self.evicted_rowids[self.event_origin+offset]=rowid
+            if rowid:  # positive SQLite id; 0 means flag&2 intentionally not persisted
+                self.evicted_rowids[self.event_origin+offset]=rowid
         trim_parallel(
             (self.events,self.display_results,self.display_sessions,self.observation_tags,self.packet_rowids),
             drop)
@@ -1299,7 +1339,9 @@ class MainWindow(QMainWindow):
     def _show_evicted_packet(self, logical):
         rowid=self.evicted_rowids.get(logical)
         if rowid is None:
-            self.show_capture_status(f'Packet #{logical} はメモリ退避済みですが DB 行を特定できません。')
+            self.show_capture_status(
+                f'Packet #{logical} はメモリ退避済みですが DB 行を特定できません'
+                f'（保存スキップ設定の可能性があります）。')
             return
         try:
             event=self.db.get(rowid)
