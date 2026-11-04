@@ -515,11 +515,16 @@ class DialogueStore:
                                          previous_options=previous))
                         elif changes and not conversation:
                             # Outside dialogue: keep as presentation for manual timer hide/cloak.
+                            fields = dict(commands=changes, target=None, options=entity.options,
+                                          previous_options=previous)
+                            if any(command.startswith('cloak') for command in changes):
+                                from reconstruction.touch import colocated_touch_npcs
+                                companions = colocated_touch_npcs(self.world, packet, session, entity)
+                                if companions:
+                                    fields['colocated_touch_npcs'] = companions
                             self._retain_presentation(
                                 packet, session, index, actor, 'outside_dialogue',
-                                decoded=('visibility_action', actor,
-                                         dict(commands=changes, target=None, options=entity.options,
-                                              previous_options=previous)))
+                                decoded=('visibility_action', actor, fields))
                     elif (type(entity.initial_options) is int
                             and (entity.initial_options & 6) != (entity.options & 6)
                             and not conversation):
@@ -531,12 +536,17 @@ class DialogueStore:
                             if (entity.initial_options & bit) != (entity.options & bit):
                                 changes.append(on if entity.options & bit else off)
                         if changes:
+                            fields = dict(commands=changes, target=None, options=entity.options,
+                                          previous_options=entity.initial_options,
+                                          basis='appearance_vs_initial')
+                            if any(command.startswith('cloak') for command in changes):
+                                from reconstruction.touch import colocated_touch_npcs
+                                companions = colocated_touch_npcs(self.world, packet, session, entity)
+                                if companions:
+                                    fields['colocated_touch_npcs'] = companions
                             self._retain_presentation(
                                 packet, session, index, actor, 'outside_dialogue',
-                                decoded=('visibility_action', actor,
-                                         dict(commands=changes, target=None, options=entity.options,
-                                              previous_options=entity.initial_options,
-                                              basis='appearance_vs_initial')))
+                                decoded=('visibility_action', actor, fields))
             except ObservationError as exc:
                 invalid(exc)
             return packet.packet_id == 0x229

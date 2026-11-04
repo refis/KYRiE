@@ -339,10 +339,14 @@ NPC用通知をプレイヤー用待機命令へ置き換えない。
 リストに無い cloaked NPC は OnTouch しない（`can_trigger` は現在 options の hide/cloak を除外）。
 配置宣言用の `initial_options`（初回出現）は後続の hideoff/cloakoff で上書きしない。
 
-実測（ygg_roots 調査地点#ch01_1 など）: 初回は cloaked 出現→直後 0229 cloakoff。同MAP再出現は
-出現時点で options が非cloak（`initial_options` は cloaked のまま）。`appearance_vs_initial` として
-会話外観測に残し、タイマーの cloak 実行命令へは出さない。サーバー恒久 cloakoff とクライアント
-リストの切り分け、OnTouch→リスト追加の命令生成は未確定のため未実装。
+実測（ygg_roots）:
+- `調査地点#ch01_1/2/3`（class 10429）は初回 cloaked。同セルに接触候補 `#ch1evt_01/02/03`
+  （class 139）が非cloakで並ぶ。到着 `ygg_roots` 325,147 の直後、#1 は cloaked 出現→0229 cloakoff。
+- 同MAP再出現は出現時点で非cloak（`appearance_vs_initial`）。MAP世代が変わると再び cloaked 出現
+  （リストが持ち越されない観察と整合）。
+- 会話外の cloak 0229／`appearance_vs_initial` に、同セル接触候補があれば
+  `colocated_touch_npcs` を併記する。OnTouch 本文・リスト追加の実行命令は未生成。
+  タイマーの cloak 実行命令へも出さない。
 
 会話内の追加アクションはConversation.actionsに受信Packetの根拠とともに保存する。
 プログレスバー、表示状態、状態異常を入力応答のstepsへ挿入しないため、next/input等の返信対応は維持される。
