@@ -54,6 +54,10 @@ class Entity:
     server_endpoint: dict | None = None
     initial_options: int | None = None
     initial_state_evidence: dict = field(default_factory=dict)
+    # showevent (0x0446) state; -1 = never observed. 9999 is a label/sentinel used for NPC判定.
+    showevent_flag: int = -1
+    showevent_kind: int = -1
+    showevent_label: bool = False
 
     @property
     def key(self):
@@ -89,6 +93,10 @@ class WorldStore:
         self.npc_initial_states = {}
         self.actor_history = OrderedDict()
         self.last_actor_observation = None
+        self.last_showevent = None
+        # Per MAP-generation actor showevent state for actors without an Entity spawn.
+        self.showevent_state = OrderedDict()
+        self.max_showevent_state = 20000
         self.display_observations = []
         self.display_dropped = 0
 
@@ -98,6 +106,8 @@ class WorldStore:
         self.current_capture = session
         self.player_maps.begin_capture(session)
         self.map_context.clear()
+        self.showevent_state.clear()
+        self.last_showevent = None
         for entity in self.entities.values():
             if entity.active and entity.capture_session != session:
                 entity.active = False
@@ -204,6 +214,8 @@ class WorldStore:
             except ObservationError as exc:
                 self._issue(packet, session, index, str(exc))
             return False
+        if packet.direction == 'RECV' and packet.packet_id == 0x446:
+            return self._apply_showevent(packet, session, index)
         try:
             observation = decode_world_event(packet)
         except ObservationError as exc:
@@ -352,6 +364,50 @@ class WorldStore:
         return sorted((entity for entity in self.entities.values()
                        if (kind is None or entity.kind == kind) and (not active_only or entity.active)),
                       key=actor_sort_key)
+
+    def _apply_showevent(self, packet, session, index):
+        """Track 0x0446 showevent_flag per actor. Does not invent spawn Entities."""
+        self.last_showevent = None
+        try:
+            if len(packet.raw) != 14:
+                raise ObservationError('Invalid showevent packet length')
+            r = Reader(packet.raw)
+            actor = r.number(2, 'I')
+            x = r.number(6, 'H')
+            y = r.number(8, 'H')
+            state = r.number(10, 'H')
+            kind = r.number(12, 'H')
+        except ObservationError as exc:
+            self._issue(packet, session, index, str(exc))
+            return False
+        scope = (session, packet.connection)
+        scene = self.scenes.setdefault(scope, Scene())
+        identity = (*scope, scene.generation, actor)
+        previous = self.showevent_state.get(identity, (-1, -1))
+        current = (state, kind)
+        changed = previous != current
+        self.showevent_state[identity] = current
+        self.showevent_state.move_to_end(identity)
+        while len(self.showevent_state) > self.max_showevent_state:
+            self.showevent_state.popitem(last=False)
+        entity = self.find_current(packet, session, actor, kind='NPC', active_only=False)
+        has_spawn = entity is not None
+        name = entity.name if entity and entity.name else ''
+        if entity is not None:
+            entity.showevent_flag = state
+            entity.showevent_kind = kind
+            if state == 9999:
+                entity.showevent_label = True
+            evidence = self._evidence(packet, session, index)
+            if changed:
+                self._touch(entity, WorldEvent('showevent', packet, actor,
+                                               {'state': state, 'kind': kind, 'x': x, 'y': y}), evidence)
+        # 9999 without spawn: observation-log label only — never create a placement Entity.
+        self.last_showevent = dict(
+            actor_id=actor, state=state, kind=kind, x=x, y=y, changed=changed,
+            has_spawn=has_spawn, npc_name=name, label=(state == 9999))
+        self.revision += 1
+        return True
 
     def find_current(self, packet, session, actor_id, kind=None, active_only=True):
         scope = (session, packet.connection)

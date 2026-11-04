@@ -24,6 +24,8 @@
 | PacketID | `0446`（14バイト固定） |
 | 表示名 | NPC event marker / `@showevent {state}, {kind}` |
 | フィールド | actor_id@2 u32, x@6 u16, y@8 u16, state@10 u16, kind@12 u16 |
+| NPCデータ | `showevent_flag`（既定 `-1`）／`showevent_kind`。`state=9999` でラベル（spawn無しは観測ログのみ） |
+| 観測ログ | flag/kind 変化時のみ。名称取得済みは `名称(actor_id), x, y`。同一値の再送は抑制 |
 | 状態 | `observed` + （単独時）`not_adopted` / （クエスト関連時）OnQuestInfo |
 | 観測 kind | `event_marker` |
 | 生成 | 会話本文の単独はコメントのみ（`event_marker`）。会話中（close2判定中含む）の `setquest`／`delquest` 直後に続いた場合は該当NPCの `OnQuestInfo:` へ `showevent {state}, {kind}, "{name}"; // {quest_id}: {x}, {y}` を追加 |

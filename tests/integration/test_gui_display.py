@@ -603,6 +603,21 @@ class DisplayGuiTests(WindowTestCase):
         w.rebuild_display_log()
         self.assertEqual(w.display_log.toPlainText(), original)
 
+    def test_ignorepacket_skip_save_keeps_analysis_without_sqlite_row(self):
+        from parser.ignorepacket import IgnorePacket
+        from tests.support.dialogue import packet
+        w = self.window
+        w.ignorepacket = IgnorePacket(skip_save=frozenset({0xb4}))
+        before = self.db.db.execute('SELECT COUNT(*) FROM packets').fetchone()[0]
+        w.add_packet(packet(0xb4, struct.pack('<I', 42) + b'skip\0'))
+        w.add_packet(packet(0xb6, struct.pack('<I', 42)))
+        self.assertEqual(self.db.db.execute('SELECT COUNT(*) FROM packets').fetchone()[0], before + 1)
+        self.assertEqual(w.packet_rowids[-2], 0)
+        self.assertIn('mes "skip";', w.display_log.toPlainText())
+        self.assertIn('close;', w.display_log.toPlainText())
+        w.dialogue_panel.refresh()
+        self.assertIn('mes "skip";', w.dialogue_panel.code.toPlainText())
+
     def test_mob_checkbox_and_npc_list_hide_live_and_existing_lines(self):
         from parser.ignorepacket import IgnorePacket
         from gui.ignorepacket import IgnorePacketDialog

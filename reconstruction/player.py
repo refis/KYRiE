@@ -15,7 +15,7 @@ CHARACTER_STRIDES = {0x99d: (155, 88, 118), 0xb72: (175, 108, 138)}
 PLAYER_IDS = {0x179, 0x71, 0x91, 0x92, 0x87, 0x88, 0x283, 0x2eb, 0xa18, *CHARACTER_STRIDES,
               0xb0, 0xb1, 0xacb, 0xb08, 0xb0b, 0xa37, 0xb41, 0xaf, 0x7fa, *LIST_STRIDES}
 DISPLAY_DEFAULTS = dict(event_kind='', map_name='不明', x=-1, y=-1, destination_x=-1, destination_y=-1,
-                        zeny=0, delta=0, delta_known=False, item_id=0, amount=0, index=0,
+                        zeny=0, delta=0, delta_known=False, experience=0, item_id=0, amount=0, index=0,
                         result=0, inventory_type=0, entries=0, slots=0, total_amount=0,
                         inventory_complete=False, value=0, status_type=0, actor_id=0)
 DISPLAY_DEFAULTS.update(plain_item=False, identified=0, refine=0, grade=0, expires=0, bound=0,
@@ -313,6 +313,10 @@ class PlayerStore:
                 attr = {1: 'base_exp', 2: 'job_exp', 5: 'hp', 6: 'max_hp', 7: 'sp', 8: 'max_sp'}.get(stat)
                 if attr:
                     setattr(state, attr, value)
+                if stat == 1:
+                    values.update(event_kind='base_exp', experience=value)
+                elif stat == 2:
+                    values.update(event_kind='job_exp', experience=value)
                 character = self.characters.get((state.actor_id, state.character_id))
                 if (character is not None and self.active_characters.get((state.actor_id, state.character_id)) == key
                         and (stat == 20 or attr in ('base_exp', 'job_exp'))):

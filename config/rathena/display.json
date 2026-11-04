@@ -355,7 +355,7 @@
           "mask": 16777215
         }
       },
-      "template": "viewpoint {kind}, {x}, {y}, {marker_id}, 0x{color:06X};\t// {actor_id}"
+      "template": "viewpoint {kind}, {x}, {y}, {marker_id}, 0x{color:06X};\t// {actor_comment}"
     },
     {
       "ids": [
@@ -414,7 +414,7 @@
           "type": "string"
         }
       },
-      "template": "waitingroom {text:q}, 0;\t// {actor_id}",
+      "template": "waitingroom {text:q}, 0;\t// {actor_comment}",
       "min_length": 18
     },
     {
@@ -467,7 +467,7 @@
           "type": "u32"
         }
       },
-      "template": "soundeffect {sound:q}, {kind}, {interval};\t// {actor_id}"
+      "template": "soundeffect {sound:q}, {kind}, {interval};\t// {actor_comment}"
     },
     {
       "ids": [
@@ -575,7 +575,7 @@
           "type": "string"
         }
       },
-      "template": "@unittalk {text:q};\t// {actor_id}",
+      "template": "@unittalk {text:q};\t// {actor_comment}",
       "min_length": 9
     },
     {
@@ -629,7 +629,7 @@
           "type": "string"
         }
       },
-      "template": "@showmessage {text:q};\t// {actor_id}",
+      "template": "@showmessage {text:q};\t// {actor_comment}",
       "min_length": 9
     },
     {
@@ -770,7 +770,7 @@
           "type": "u16"
         }
       },
-      "template": "@showevent {state}, {kind};\t// {actor_id}: {x}, {y}"
+      "template": "@showevent {state}, {kind};\t// {actor_comment}"
     },
     {
       "ids": [
@@ -791,13 +791,13 @@
           "type": "u16"
         }
       },
-      "template": "@hat_effect {effect_id};\t// {actor_id}",
+      "template": "@hat_effect {effect_id};\t// {actor_comment}",
       "variants": [
         {
           "when": {
             "enabled": 0
           },
-          "template": "@hat_effect_end {effect_id};\t// {actor_id}"
+          "template": "@hat_effect_end {effect_id};\t// {actor_comment}"
         }
       ]
     },
@@ -821,7 +821,7 @@
           "type": "u32"
         }
       },
-      "template": "@makemerc time: {duration}\t// {actor_name}({actor_id})"
+      "template": "@makemerc time: {duration}\t// {actor_comment}"
     },
     {
       "ids": [
@@ -838,7 +838,7 @@
           "type": "u32"
         }
       },
-      "template": "@delmisceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
+      "template": "@delmisceffect {effect_id};\t// {actor_comment} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "visual_effect_name",
       "min_length": 10
     },
@@ -905,7 +905,7 @@
           "type": "u8"
         }
       },
-      "template": "@emotion {kind};\t// {actor_id}"
+      "template": "@emotion {kind};\t// {actor_comment}"
     },
     {
       "ids": [
@@ -923,7 +923,7 @@
           "type": "u32"
         }
       },
-      "template": "@misceffect {effect_id};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
+      "template": "@misceffect {effect_id};\t// {actor_comment} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "visual_effect_name",
       "min_length": 10
     },
@@ -946,7 +946,7 @@
           "type": "u32"
         }
       },
-      "template": "@misceffect_value {effect_id},{value};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
+      "template": "@misceffect_value {effect_id},{value};\t// {actor_comment} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "visual_effect_name",
       "min_length": 14
     },
@@ -1464,7 +1464,7 @@
       ],
       "name": "Status value",
       "fields": {},
-      "template": "@update_status(type: {status_type}, value: {value})",
+      "template": "",
       "decoder": "player",
       "variants": [
         {
@@ -1480,6 +1480,18 @@
             "delta_known": false
           },
           "template": "@Zeny {zeny:,d}; // 初回観測・差分不明"
+        },
+        {
+          "when": {
+            "event_kind": "base_exp"
+          },
+          "template": "@BaseExp {experience:,d};"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp"
+          },
+          "template": "@JobExp {experience:,d};"
         }
       ]
     },
@@ -1489,7 +1501,7 @@
       ],
       "name": "Status value 64",
       "fields": {},
-      "template": "@update_status(type: {status_type}, value: {value})",
+      "template": "",
       "decoder": "player",
       "variants": [
         {
@@ -1505,6 +1517,18 @@
             "delta_known": false
           },
           "template": "@Zeny {zeny:,d}; // 初回観測・差分不明"
+        },
+        {
+          "when": {
+            "event_kind": "base_exp"
+          },
+          "template": "@BaseExp {experience:,d};"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp"
+          },
+          "template": "@JobExp {experience:,d};"
         }
       ]
     },
@@ -1547,7 +1571,7 @@
           "type": "u32"
         }
       },
-      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
+      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_comment} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "status_icon_name",
       "min_length": 29
     },
@@ -1586,7 +1610,7 @@
           "type": "u32"
         }
       },
-      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_id} [{reference_namespace}: {reference_symbols} / {reference_description}]",
+      "template": "@sc_start3 {effect_id},{value1},{value2},{value3},0,{remaining_ms},{flag};\t// {actor_comment} [{reference_namespace}: {reference_symbols} / {reference_description}]",
       "decoder": "status_icon_name",
       "min_length": 25
     },
@@ -1621,7 +1645,7 @@
           "type": "u32"
         }
       },
-      "template": "@effect_enter {effect_id},{value1},{value2},{value3},0,{remaining_ms};\t// {actor_id}"
+      "template": "@effect_enter {effect_id},{value1},{value2},{value3},0,{remaining_ms};\t// {actor_comment}"
     },
     {
       "ids": [
@@ -1658,7 +1682,7 @@
           "type": "u32"
         }
       },
-      "template": "@effect_enter {effect_id},{value1},{value2},{value3},0,{remaining_ms};\t// {actor_id}"
+      "template": "@effect_enter {effect_id},{value1},{value2},{value3},0,{remaining_ms};\t// {actor_comment}"
     },
     {
       "ids": [
@@ -1770,27 +1794,27 @@
             "first_seen": true,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12,
             "first_seen": true
           },
-          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
+          "template": "@NPC(歩行型) 初回観測/出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment}"
         },
         {
           "when": {
             "actor_type": 12,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12
           },
-          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
+          "template": "@NPC(歩行型) 出現 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment}"
         }
       ]
     },
@@ -1865,27 +1889,27 @@
             "first_seen": true,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x} // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12,
             "first_seen": true
           },
-          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
+          "template": "@NPC(歩行型) 初回観測/待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // speed={speed}, option={options:#x}\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment}"
         },
         {
           "when": {
             "actor_type": 12,
             "name_valid": false
           },
-          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id} // 名前解読不可・数値項目のみ保持"
+          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y}); // 名前解読不可・数値項目のみ保持\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12
           },
-          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});\nsetnpcspeed {speed},{actor_name:q};\t// {actor_id}"
+          "template": "@NPC(歩行型) 待機 ID={actor_id}, class={class_id}, name={actor_name:q}, map={map_name:q}, XY=({x},{y});\nsetnpcspeed {speed},{actor_name:q};\t// {actor_comment}"
         }
       ]
     },
@@ -1974,13 +1998,13 @@
             "actor_type": 12,
             "name_valid": false
           },
-          "template": "npcwalkto {destination_x},{destination_y},{actor_name:q};\t// {actor_id}: speed:{speed} // 名前解読不可・数値項目のみ保持"
+          "template": "npcwalkto {destination_x},{destination_y},{actor_name:q};\t// {actor_comment}: speed:{speed} // 名前解読不可・数値項目のみ保持"
         },
         {
           "when": {
             "actor_type": 12
           },
-          "template": "npcwalkto {destination_x},{destination_y},{actor_name:q};\t// {actor_id}: speed:{speed}"
+          "template": "npcwalkto {destination_x},{destination_y},{actor_name:q};\t// {actor_comment}: speed:{speed}"
         }
       ]
     },
@@ -2041,7 +2065,21 @@
       "name": "Basic status",
       "decoder": "player",
       "min_length": 8,
-      "template": "@update_status(type: {status_type}, value: {value});"
+      "template": "",
+      "variants": [
+        {
+          "when": {
+            "event_kind": "base_exp"
+          },
+          "template": "@BaseExp {experience:,d};"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp"
+          },
+          "template": "@JobExp {experience:,d};"
+        }
+      ]
     },
     {
       "ids": [
@@ -2251,6 +2289,6 @@
       "min_length": 10
     }
   ],
-  "walk_npc_speed_template": "setnpcspeed {speed},{actor_name:q};\t// {actor_id}",
-  "walk_npc_wait_template": "// sleep2({walk_wait_ms});\t// {actor_id}: npcwalkwait相当の歩行待ち候補。rAthenaにnpcwalkwaitなし。会話継続のsleep2相当"
+  "walk_npc_speed_template": "setnpcspeed {speed},{actor_name:q};\t// {actor_comment}",
+  "walk_npc_wait_template": "// sleep2({walk_wait_ms});\t// {actor_comment}: npcwalkwait相当の歩行待ち候補。rAthenaにnpcwalkwaitなし。会話継続のsleep2相当"
 }

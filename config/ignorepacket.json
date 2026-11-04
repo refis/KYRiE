@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "packet_ids": [],
+  "version": 2,
+  "packet_flags": {},
   "mob_combat": false,
   "npc_actor_ids": [],
   "npc_names": []

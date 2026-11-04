@@ -14,7 +14,7 @@ ROOT_FILES = ('main.py','events.py','version.py','README.md','DEVELOPMENT.md','C
               'requirements.txt','requirements-lock.txt','PacketLength.txt','.gitignore','LICENSE','NOTICE',
               '.cursor/rules/project.mdc','client/README.md','.github/CODEOWNERS')
 SUFFIXES = {'.py','.md','.json','.txt','.yml','.yaml'}
-DEFAULT_IGNORE = dict(version=1,packet_ids=[],mob_combat=False,npc_actor_ids=[],npc_names=[])
+DEFAULT_IGNORE = dict(version=2,packet_flags={},mob_combat=False,npc_actor_ids=[],npc_names=[])
 
 
 def require_versioned_readme(root):

@@ -301,7 +301,7 @@ class PlayerTests(unittest.TestCase):
         moved = walk.decode(actor_packet(actor_type=12, pid=0x9fd, name='歩行NPC',
                                          x=160, y=210, destination=(301, 402), timestamp=2.0))
         self.assertIn('npcwalkto 301,402,"歩行NPC";', moved.text)
-        self.assertIn('// 42: speed:150', moved.text)
+        self.assertIn('// 歩行NPC(42), 160, 210: speed:150', moved.text)
         self.assertIn('npcwalkwait 50,"歩行NPC";', moved.text)
         self.assertIn('walk≈37310ms', moved.text)
         self.assertLess(moved.text.index('npcwalkto'), moved.text.index('npcwalkwait'))
@@ -310,9 +310,12 @@ class PlayerTests(unittest.TestCase):
         self.assertIn('setnpcspeed 150,"歩行NPC";', appear.text)
         idle = speed.decode(actor_packet(actor_type=12, pid=0x9ff, name='歩行NPC', timestamp=2.0))
         self.assertIn('setnpcspeed 150,"歩行NPC";', idle.text)
-        self.assertIn('// 42', idle.text)
+        self.assertIn('歩行NPC(42)', idle.text)
         self.assertIn('差分不明', display.decode(packet(0xb1, struct.pack('<HI', 20, 1000))).text)
         self.assertIn('Zeny -200', display.decode(packet(0xb1, struct.pack('<HI', 20, 800))).text)
+        # HP/SP etc. update_status lines are suppressed; Zeny/EXP remain.
+        self.assertEqual(display.decode(packet(0xb0, struct.pack('<HI', 5, 200))).text, '')
+        self.assertIn('@BaseExp', display.decode(packet(0xb0, struct.pack('<HI', 1, 12345))).text)
         self.assertIn('getitem 501,3;', display.decode(pickup()).text)
         self.assertIn('delitem 501,2;', display.decode(packet(0xaf, struct.pack('<HH', 2, 2))).text)
         self.assertNotIn('getitem 501', display.decode(pickup(result=255)).text)

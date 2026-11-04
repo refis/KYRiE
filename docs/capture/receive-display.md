@@ -66,6 +66,25 @@ GUI基本データの仕様は[基本データガイド](../observations/player-
 | status_icon | reference_names status_icon |
 | visual_effect | reference_names visual_effect |
 
+### 同一行の actor コメント
+
+`// {actor_comment}` を使うテンプレートは、名称が取れた NPC について
+`名称(actor_id), x, y` 形式へ展開する（WorldStore の同一接続・MAP世代）。
+名称未取得時は従来どおり ActorID のみ。実行引数側の `{actor_id}` はそのまま数値／保護置換（`self`）を使う。
+
+### showevent（0446）のログ抑制
+
+NPC Entity に `showevent_flag`（既定 `-1`）と `showevent_kind` を保持する。
+観測ログへ出すのは **flag/kind が変化したときだけ**。名称が取れた NPC は
+`名称(actor_id), x, y` をコメントに付ける。`state=9999` は NPC 判定用ラベルで、
+出現（spawn）が無い Actor は配置 Entity を作らず観測ログのみ（`showeventflag=9999 NPC判定`）。
+解析・会話復元の `event_marker` 保持は従来どおり全件行う。
+
+### update_status（00B0／00B1／0ACB）
+
+HP/SP/重量など多発する `@update_status` 行は観測ログから抑制する。
+Zeny（type 20）と Base/Job Exp（type 1/2）は表示を残す。PlayerStore の数値更新は継続する。
+
 セッション開始時は適用後の長さを `PacketLength.used.txt` に残し、オーバーレイ利用時は
 `PacketOverlay.used.json` と `session_start.overlay_sha256` も残す。
 
