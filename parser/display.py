@@ -472,6 +472,35 @@ class ReceiveDisplay:
                 values[name] = value
             self._annotate_indexes(rule, fields, event)
             self._attach_actor_comment(values, fields, event)
+            if event.packet_id == 0x446:
+                show = self.world.last_showevent
+                if not isinstance(show, dict) or show.get('actor_id') != values.get('actor_id'):
+                    # World apply should have recorded this packet; fail open without inventing.
+                    return DisplayResult(rule['name'], '', 'decoded', fields)
+                # Only emit when flag/kind changed. Prefer named NPC lines; 9999 labels
+                # without spawn stay observation-log only (no placement Entity).
+                if not show.get('changed'):
+                    return DisplayResult(rule['name'], '', 'decoded', fields)
+                name = show.get('npc_name') or ''
+                if not name and not show.get('label'):
+                    return DisplayResult(rule['name'], '', 'decoded', fields)
+                fields['showevent_changed'] = True
+                fields['showevent_label'] = bool(show.get('label'))
+                fields['showevent_has_spawn'] = bool(show.get('has_spawn'))
+                values.update({key: fields[key] for key in (
+                    'showevent_changed', 'showevent_label', 'showevent_has_spawn')})
+                if name:
+                    comment = format_actor_comment(
+                        values['actor_id'], name=name, x=show.get('x'), y=show.get('y'))
+                    values['actor_comment'] = comment
+                    fields['actor_comment'] = comment
+                elif show.get('label'):
+                    comment = format_actor_comment(
+                        values['actor_id'], x=show.get('x'), y=show.get('y'),
+                        coords_fallback=True)
+                    label = f'{comment} // showeventflag=9999 NPC判定（spawn未観測・観測ログのみ）'
+                    values['actor_comment'] = label
+                    fields['actor_comment'] = label
             if decoder == 'skill_unit':
                 if event.packet_id != 0x9ca or len(event.raw) != 23 or struct.unpack_from('<H',event.raw,2)[0] != 23:
                     raise ValueError('Unsupported skill unit packet layout')
@@ -535,8 +564,9 @@ class ReceiveDisplay:
             player_state = self.players.states.get((0, event.flow_id or event.connection))
             identity = identity_from_player(player_state)
             render_values = apply_to_display_values(values, identity)
-            if 'actor_id' in render_values:
+            if 'actor_id' in render_values and event.packet_id != 0x446:
                 # Rebuild after protection so self stays "self" and NPC names stay literal.
+                # showevent keeps the comment built from packet coords / 9999 label above.
                 name = ''
                 x = values['x'] if type(values.get('x')) is int else None
                 y = values['y'] if type(values.get('y')) is int else None
@@ -559,6 +589,8 @@ class ReceiveDisplay:
                 render_values['actor_comment'] = format_actor_comment(
                     render_values.get('actor_id'), name=name, x=x, y=y,
                     coords_fallback=coords_fallback)
+            elif event.packet_id == 0x446 and 'actor_comment' in values:
+                render_values['actor_comment'] = values['actor_comment']
             text = prefix + _render(template, render_values)
             if (walk_npc_speed and profile.walk_npc_speed_template
                     and values.get('has_changes') and 'setnpcspeed' not in text):

@@ -235,12 +235,42 @@ class DisplayTests(unittest.TestCase):
         self.assertEqual(emotion.fields['actor_id'], 42)
         unknown = self.display.decode(event(0xc0, struct.pack('<IB', 99, 1), connection='flow-a'))
         self.assertEqual(unknown.text, '@emotion 1;\t// 99')
-        showevent = self.display.decode(event(
+
+    def test_showevent_logs_named_flag_changes_and_9999_without_spawn(self):
+        from tests.support.world import actor_packet, map_packet
+        self.display.decode(map_packet())
+        self.display.decode(actor_packet(name='案内人', x=150, y=200))
+        first = self.display.decode(event(
             0x446, struct.pack('<IHHHH', 42, 10, 20, 3, 4), connection='flow-a'))
-        self.assertEqual(showevent.text, '@showevent 3, 4;\t// 案内人(42), 150, 200')
+        self.assertEqual(first.text, '@showevent 3, 4;\t// 案内人(42), 10, 20')
+        entity = self.display.world.find_current(
+            event(0x446, struct.pack('<IHHHH', 42, 10, 20, 3, 4), connection='flow-a'),
+            0, 42, kind='NPC', active_only=False)
+        self.assertEqual(entity.showevent_flag, 3)
+        self.assertEqual(entity.showevent_kind, 4)
+        # Unchanged flag/kind: suppress observation log.
+        repeat = self.display.decode(event(
+            0x446, struct.pack('<IHHHH', 42, 10, 20, 3, 4), connection='flow-a'))
+        self.assertEqual(repeat.text, '')
+        # Unknown actor without 9999: suppress (no name, not a label sentinel).
         bare = self.display.decode(event(
             0x446, struct.pack('<IHHHH', 77, 10, 20, 1, 2), connection='flow-a'))
-        self.assertEqual(bare.text, '@showevent 1, 2;\t// 77: 10, 20')
+        self.assertEqual(bare.text, '')
+        # 9999 without spawn: observation-log label only.
+        label = self.display.decode(event(
+            0x446, struct.pack('<IHHHH', 88, 1, 2, 9999, 0), connection='flow-a'))
+        self.assertIn('9999', label.text)
+        self.assertIn('NPC判定', label.text)
+        self.assertIn('88: 1, 2', label.text)
+        self.assertIsNone(self.display.world.find_current(
+            event(0x446, struct.pack('<IHHHH', 88, 1, 2, 9999, 0), connection='flow-a'),
+            0, 88, kind='NPC', active_only=False))
+        # Named NPC receiving 9999 still shows the name and sets the label bit.
+        named_label = self.display.decode(event(
+            0x446, struct.pack('<IHHHH', 42, 5, 6, 9999, 0), connection='flow-a'))
+        self.assertEqual(named_label.text, '@showevent 9999, 0;\t// 案内人(42), 5, 6')
+        self.assertTrue(entity.showevent_label)
+        self.assertEqual(entity.showevent_flag, 9999)
 
     def test_send_crypto_keying_packets_display_without_claiming_decrypt(self):
         from parser.definitions import load_lengths

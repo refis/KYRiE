@@ -195,6 +195,12 @@ class EntityPanel(QWidget):
                      + ' / 現在 ' + value(entity.class_id))
         if entity.kind == 'NPC':
             lines.insert(-1, '配置class: ' + value(declaration_class(vars(entity))))
+            flag = entity.showevent_flag
+            kind_flag = entity.showevent_kind
+            flag_text = '未観測(-1)' if flag < 0 else str(flag)
+            kind_text = '未観測(-1)' if kind_flag < 0 else str(kind_flag)
+            label = ' / ラベル(9999)' if entity.showevent_label else ''
+            lines.insert(-1, f'showeventflag: {flag_text} / kind: {kind_text}{label}')
         first_visual = initial.get('appearance_data') or {}
         current_visual = entity.appearance_data
         if first_visual or current_visual:

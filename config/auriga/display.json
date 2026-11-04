@@ -1446,7 +1446,7 @@
       ],
       "name": "Status value",
       "fields": {},
-      "template": "@update_status(type: {status_type}, value: {value})",
+      "template": "",
       "decoder": "player",
       "variants": [
         {
@@ -1462,6 +1462,18 @@
             "delta_known": false
           },
           "template": "@Zeny {zeny:,d}; // 初回観測・差分不明"
+        },
+        {
+          "when": {
+            "event_kind": "base_exp"
+          },
+          "template": "@BaseExp {experience:,d};"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp"
+          },
+          "template": "@JobExp {experience:,d};"
         }
       ]
     },
@@ -1471,7 +1483,7 @@
       ],
       "name": "Status value 64",
       "fields": {},
-      "template": "@update_status(type: {status_type}, value: {value})",
+      "template": "",
       "decoder": "player",
       "variants": [
         {
@@ -1487,6 +1499,18 @@
             "delta_known": false
           },
           "template": "@Zeny {zeny:,d}; // 初回観測・差分不明"
+        },
+        {
+          "when": {
+            "event_kind": "base_exp"
+          },
+          "template": "@BaseExp {experience:,d};"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp"
+          },
+          "template": "@JobExp {experience:,d};"
         }
       ]
     },
@@ -2015,7 +2039,21 @@
       "name": "Basic status",
       "decoder": "player",
       "min_length": 8,
-      "template": "@update_status(type: {status_type}, value: {value});"
+      "template": "",
+      "variants": [
+        {
+          "when": {
+            "event_kind": "base_exp"
+          },
+          "template": "@BaseExp {experience:,d};"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp"
+          },
+          "template": "@JobExp {experience:,d};"
+        }
+      ]
     },
     {
       "ids": [
