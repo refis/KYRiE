@@ -1,6 +1,6 @@
 """Contact candidates and independently observed axes; never infer walk completion."""
 
-from reconstruction.actor_appearance import declaration_class
+from reconstruction.actor_appearance import declaration_class, player_class
 
 TOUCH_CLASSES = (139, 111, 844, 45)
 MAX_TOUCH_RADIUS = 15
@@ -22,6 +22,44 @@ def can_trigger(npc):
     if options is None:
         options = npc.get('initial_options')
     return options is None or type(options) is int and not options & 6
+
+
+def colocated_touch_npcs(world, packet, session, entity, *, max_matches=8):
+    """Same-cell contact-class NPCs beside a cloak/hide subject. Evidence only; never invent OnTouch bodies."""
+    if world is None or entity is None or entity.kind != 'NPC':
+        return []
+    if not all(type(getattr(entity, name)) is int for name in ('x', 'y', 'map_generation')):
+        return []
+    if not isinstance(entity.map_name, str) or not entity.map_name:
+        return []
+    matches = []
+    seen = set()
+    flow = packet.flow_id or packet.connection
+    # Prefer currently visible entities, then historical same-cell records.
+    candidates = list(world.records('NPC', active_only=True)) + list(world.records('NPC', active_only=False))
+    for other in candidates:
+        if (other.capture_session != session or other.flow_id != flow
+                or other.actor_id == entity.actor_id or other.map_name != entity.map_name
+                or other.map_generation != entity.map_generation
+                or other.x != entity.x or other.y != entity.y):
+            continue
+        class_id = other.class_id if type(other.class_id) is int else None
+        initial = getattr(other, 'initial_display', None) or {}
+        initial_class = initial.get('class_id') if isinstance(initial, dict) else None
+        observed = initial_class if type(initial_class) is int else class_id
+        touch_class = 844 if player_class(observed) else observed
+        if touch_class not in TOUCH_CLASSES:
+            continue
+        identity = (other.actor_id, other.name, other.x, other.y)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        matches.append(dict(name=other.name, actor_id=other.actor_id, class_id=class_id,
+                            options=other.options, initial_options=other.initial_options,
+                            x=other.x, y=other.y))
+        if len(matches) >= max_matches:
+            break
+    return matches
 
 
 def signed_offsets(npc, position):

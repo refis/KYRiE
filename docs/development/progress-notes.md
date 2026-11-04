@@ -149,4 +149,5 @@ ActorID／offscreen CI対策・共有非同期保存までをソースZIPへ保�
 OnTouch 等）を対話復元メモへ記載。再出現で `initial_options` の hide/cloak と今回
 options が食い違う場合は `visibility_action`（`basis=appearance_vs_initial`）として
 会話外観測のみ残し、タイマー cloak 命令には出さない。調査地点#ch01_1 は初回 cloaked→
-0229 off、同MAP再出現は出現時点で非cloak。OnTouch→リスト命令生成は未実装。
+0229 off、同MAP再出現は出現時点で非cloak。同セルの `#ch1evt_*`（class 139）を
+`colocated_touch_npcs` として併記。OnTouch→リスト命令生成は未実装。

@@ -30,6 +30,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
                   'tests.unit.test_item_preview_observations',
                   'tests.unit.test_navigation_active_observations',
                   'tests.unit.test_cloak_appearance_vs_initial',
+                  'tests.unit.test_cloak_colocated_touch',
                   'tests.unit.test_map_property_observations',
                   'tests.unit.test_maptype_property_catalog',
                   'tests.unit.test_zc_mapproperty_review',

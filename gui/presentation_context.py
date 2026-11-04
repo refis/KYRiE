@@ -48,14 +48,23 @@ def presentation_context(row):
             summary='0x09D1のActorIDは進捗対象の根拠です。発生元やプレイヤーの紐付け・実行命令を確定したものではありません。既存の観測・比較を維持し、未確認の命令やNPCタイマーへ変換しません。')
     elif kind=='visibility_action':
         basis=(row.get('fields') or {}).get('basis')
+        companions=(row.get('fields') or {}).get('colocated_touch_npcs') or []
+        colocated=('同セルの接触候補NPC（'
+                   + ','.join(item.get('name') or '?' for item in companions[:3])
+                   + '）を併記。OnTouch本文やリスト追加命令は未生成。') if companions else ''
         if basis=='appearance_vs_initial':
             result.update(actor_role='visibility_target',player_context_required=True,
                 short='出現optionsが初回hide/cloakと不一致。クライアント側表示上書きの候補で、スクリプトcloak命令とは限りません。',
-                summary='09FF系の再出現で、保持中の初回initial_optionsのhide/cloakビットと今回のoptionsが食い違います。MAP滞在中のcloakoffリスト等が出現パケットへ反映された可能性の観測であり、起因NPC・OnTouch・サーバー恒久cloakoffの確定ではありません。タイマーのcloak/hide実行命令へは出しません。')
+                summary=('09FF系の再出現で、保持中の初回initial_optionsのhide/cloakビットと今回のoptionsが食い違います。'
+                         'MAP滞在中のcloakoffリスト等が出現パケットへ反映された可能性の観測であり、'
+                         '起因NPC・OnTouch・サーバー恒久cloakoffの確定ではありません。'
+                         + colocated + 'タイマーのcloak/hide実行命令へは出しません。'))
         else:
             result.update(actor_role='visibility_target',player_context_required=True,
                 short='0x0229のhide/cloak差分です。会話外は演出観測、会話中は対象付きアクションになります。',
-                summary='0x0229のビット差分からhideonnpc／cloakonnpc等を保持します。会話中は同一MAP世代の対象NPCへ紐付け、会話外は手動タイマー候補（自身cloak／インスタンス自身hide）です。出現パケットと初回状態の食い違い（appearance_vs_initial）とは別経路です。')
+                summary=('0x0229のビット差分からhideonnpc／cloakonnpc等を保持します。会話中は同一MAP世代の対象NPCへ紐付け、'
+                         '会話外は手動タイマー候補（自身cloak／インスタンス自身hide）です。'
+                         + colocated + '出現パケットと初回状態の食い違い（appearance_vs_initial）とは別経路です。'))
     elif kind=='viewpoint':
         result.update(actor_role='marker_npc',player_context_required=True,
             short='マーカー通知のNPC IDです。表示を受けるプレイヤーのIDとは区別します。',
