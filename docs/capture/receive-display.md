@@ -132,6 +132,7 @@ offset=0がPacketID、可変長のoffset=2が総パケット長であり、本�
 オフセットではない。
 
 - 整数: u8/u16/u32/u64、i8/i16/i32/i64。すべてLittle Endian。
+- 浮動小数: f32（IEEE754 little endian）。mask／scale／add／length／encodingは付けない。
 - string: length指定時は固定バイト数、未指定時は末尾まで。最初のNULまでを
   encodingで厳密に復号する。フィールドごとにencodingを上書きできる。
 - bytes: 同じlength指定でHEX文字列を得る。

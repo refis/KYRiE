@@ -175,7 +175,8 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | `external_*` | 外部候補 | 既定はコメント。emotion／effect／解除／overhead／unittalk／event_marker は明示採用可。sound等は不可 |
 | `progressbar`（09D1／窓内02F0） | 構造化 | 会話元への 09D1 は Auriga `progressbar_npc`。02F0 会話内は `progressbar`。タイマーはコメント採用のみ（秒数≠OnTimer） |
 | `navigation_action`／`navigation_active`（08E2） | 構造化 | 会話中は Auriga `navigateto`。会話外観測は保持のみ・タイマーへ出さない。viewpoint／warp と分離 |
-| `viewpointmap`／`camerainfo` | （未観測専用経路） | Auriga #97 で命令追加。0144 単体観測から viewpointmap は区別できない。0x0A78 カメラは未decode。生成しない |
+| `viewpointmap` | （未観測専用経路） | Auriga #97 で命令追加。0144 単体観測から viewpoint と区別できないため未生成 |
+| `camerainfo`（0A78） | 観測ログのみ | Auriga #97。show@2／range@3 f32／rotation@7 f32／latitude@11 f32（15B）。`@camerainfo ...` 表示。NPC本文・タイマーへは未生成。スクリプト引数は wire float×100 |
 
 ## 変更時の確認
 

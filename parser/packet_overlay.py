@@ -12,7 +12,7 @@ import re
 from copy import deepcopy
 from pathlib import Path
 
-from parser.display import TYPES, _unique_object
+from parser.display import TYPES, FLOAT_TYPES, _unique_object
 from reconstruction.client_names import item_name, map_label, quest_label
 from reconstruction.reference_names import reference_labels
 from reconstruction.skills import load_skill_names
@@ -68,6 +68,9 @@ def _validate_field(name, spec, encoding='cp932'):
             _integer(spec['length'], name + '.length', 0, 65535)
         if set(spec) & {'scale', 'add', 'mask'}:
             raise OverlayError(f'{name}: numeric transforms require an integer field')
+    elif kind in FLOAT_TYPES:
+        if set(spec) & {'length', 'encoding', 'scale', 'add', 'mask'}:
+            raise OverlayError(f'{name}: float fields cannot specify length/encoding/transforms')
     else:
         if 'length' in spec or 'encoding' in spec:
             raise OverlayError(f'{name}: integer fields cannot specify length/encoding')

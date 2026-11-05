@@ -568,7 +568,8 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
    既存 export／bundle の観測一貫性修正から。
 5. **OnTouch→cloakoff リスト命令**は未実装（観測のみ）。
    Auriga [auriga/auriga#97](https://github.com/auriga/auriga/pull/97) により会話内
-   `navigateto`／`progressbar_npc` は生成可能。`viewpointmap`／`camerainfo` は観測経路未整備のため未生成。
+   `navigateto`／`progressbar_npc` は生成可能。0A78 camerainfo は観測ログのみ（本文未生成）。
+   `viewpointmap` は 0144 と区別できないため未生成。
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。

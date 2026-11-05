@@ -169,5 +169,5 @@ showeventflag・update_status抑制・大容量再生上限までをソースZIP
 
 Auriga に `navigateto`／`progressbar_npc`／`viewpointmap`／`camerainfo` が追加された。
 KYRiE は会話内 08E2→`navigateto`、会話元 09D1→`progressbar_npc` を生成する。
-タイマーの progressbar コメント採用と秒数≠OnTimer は維持。viewpointmap／camerainfo は
-単体観測から区別・decodeできないため未生成。
+タイマーの progressbar コメント採用と秒数≠OnTimer は維持。viewpointmap は 0144 と区別できないため未生成。
+0A78 camerainfo は観測ログへ暫定追加（`@camerainfo`、f32 3値）。本文命令化はしない。
