@@ -107,7 +107,8 @@ class DialogueFormatTests(unittest.TestCase):
                   (packet(0x1b0, struct.pack('<IBI', 42, 1, 1005)),
                    packet(0x1b0, struct.pack('<IBI', 42, 1, 1006)), 'setnpcdisplay "案内人",1005;'),
                   (packet(0x9d1, struct.pack('<III', 42, 0xabcdef, 3)),
-                   packet(0x9d1, struct.pack('<III', 42, 0xabcdef, 4)), '秒数=3')]
+                   packet(0x9d1, struct.pack('<III', 42, 0xabcdef, 4)),
+                   'progressbar_npc "0xABCDEF",3;')]
         events.extend([
             (packet(0xba2, struct.pack('<II',180,280)), packet(0xba2, struct.pack('<II',200,320)), 'messize 180,280;'),
             (packet(0xba3, struct.pack('<II',10,20)), packet(0xba3, struct.pack('<II',30,40)), 'mespos 10,20;'),

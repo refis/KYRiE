@@ -100,7 +100,7 @@ def validate_actions(conversation):
         elif kind == 'progress_action':
             valid = row['packet_id'] == 0x2f0 and set(fields) == {'seconds', 'color'} and all(uint(v) for v in fields.values())
         elif kind == 'navigation_action':
-            # PACKET_ZC_NAVIGATION_ACTIVE fields; navigateto executable form stays comment-only.
+            # PACKET_ZC_NAVIGATION_ACTIVE → Auriga navigateto (auriga/auriga#97).
             valid = (row['packet_id'] == 0x8e2
                      and set(fields) == {'type', 'set_type', 'hide', 'map_name', 'x', 'y', 'spr_index'}
                      and all(type(fields[key]) is int and 0 <= fields[key] <= 255

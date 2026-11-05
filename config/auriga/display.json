@@ -303,7 +303,7 @@
           "type": "u32"
         }
       },
-      "template": "progressbar {seconds};\t//color={color:#08x}, aid={actor_id}"
+      "template": "progressbar_npc \"{color:#08x}\",{seconds};\t// aid={actor_id}"
     },
     {
       "ids": [
@@ -375,7 +375,7 @@
           "type": "i16"
         }
       },
-      "template": "@navigation map: {map:q}, type: {type}, set: {set_type}, hide: {hide}, x: {x}, y: {y}, spr: {spr_index}"
+      "template": "navigateto {map:q},{x},{y},{set_type},{hide},{spr_index};"
     },
     {
       "ids": [
