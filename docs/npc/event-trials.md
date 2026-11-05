@@ -367,7 +367,7 @@ MAP情報がない既存観測は従来どおり比較範囲の候補とし、�
 （showmessage）・外見変更（01B0 classchange／会話外09xx npc_display_action の setnpcdisplay）・
 表示状態（cloak*は自身、hideはインスタンスMAPのみ）・対応範囲内のviewpoint・
 イベントアイコン（showevent）に対応する。
-値付きエフェクト・帽子エフェクト・色付き発言・progressbar（09D1／窓内02F0）・窓内関連 cutin／mapcell はコメント採用のみ。
+値付きエフェクト・帽子エフェクト・色付き発言・progressbar（09D1／窓内02F0）・窓内関連 cutin／mapcell はタイマーではコメント採用のみ（会話本文の 09D1→progressbar_npc とは別）。
 BGM、効果音、progress_action、会話レイアウト、状態変化、script_command などは
 比較列には載せられるがタイマー採用は拒否する。詳細は[タイマー候補](event-timer-candidates.md)。
 プレイヤーや別NPC向けの処理を、指定なしの自己対象命令へ変換しない。
