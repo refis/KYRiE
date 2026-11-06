@@ -176,13 +176,17 @@ class ScriptCommandTests(unittest.TestCase):
             self.assertEqual(lines.count('skill 28,5;'),0 if requested else 1)
             self.assertFalse(any('skill 28' in line and '888' in line for line in lines))
         display=ReceiveDisplay(DisplayProfile.load())
-        # Other / unresolved player-looking skill lines stay comments, not @skillattack.
+        # Confirmed player skill lines stay comments, not @skillattack.
         player=actor_packet(actor_id=9002,name='Caster')
         raw=bytearray(player.raw);raw[4]=0
+        body=bytearray(31)
+        struct.pack_into('<HII',body,0,28,9002,0)
+        struct.pack_into('<H',body,26,5)
+        shown=replace(raw_packet(0x1de,body),connection='flow-a',flow_id='flow-a')
         text=''
-        for event in (map_packet(),replace(player,raw=bytes(raw)),damage(9002)):
+        for event in (map_packet(),replace(player,raw=bytes(raw)),shown):
             text=display.decode(event).text or text
-        self.assertIn('スキル通知（非NPC/非MOB）',text)
+        self.assertIn('スキル通知（プレイヤー）',text)
         self.assertNotIn('@skillattack',text)
 
     def test_dropitem_excludes_mob_death_and_manual_drop_and_does_not_invent_lifetime(self):
