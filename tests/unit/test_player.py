@@ -319,16 +319,19 @@ class PlayerTests(unittest.TestCase):
         self.assertIn('歩行NPC(42)', idle.text)
         self.assertIn('差分不明', display.decode(packet(0xb1, struct.pack('<HI', 20, 1000))).text)
         self.assertIn('set Zeny,Zeny-200;', display.decode(packet(0xb1, struct.pack('<HI', 20, 800))).text)
-        # HP/SP etc. update_status lines are suppressed; Zeny/EXP remain.
+        # HP/SP etc. update_status lines are suppressed; Zeny remains.
+        # Known EXP gains stay out of the observation log (combat flood); NPC-tied
+        # getexp is emitted only via resource adoption.
         self.assertEqual(display.decode(packet(0xb0, struct.pack('<HI', 5, 200))).text, '')
         first_exp = display.decode(packet(0xb0, struct.pack('<HI', 1, 12345))).text
         self.assertIn('@BaseExp', first_exp)
         self.assertIn('初回観測', first_exp)
-        self.assertIn('getexp 55,0,0;', display.decode(packet(0xb0, struct.pack('<HI', 1, 12400))).text)
+        self.assertEqual(display.decode(packet(0xb0, struct.pack('<HI', 1, 12400))).text, '')
         first_job = display.decode(packet(0xb0, struct.pack('<HI', 2, 7))).text
         self.assertIn('@JobExp', first_job)
         self.assertIn('初回観測', first_job)
-        self.assertIn('getexp 0,3,0;', display.decode(packet(0xb0, struct.pack('<HI', 2, 10))).text)
+        self.assertEqual(display.decode(packet(0xb0, struct.pack('<HI', 2, 10))).text, '')
+        self.assertNotIn('getexp', display.decode(packet(0xb0, struct.pack('<HI', 1, 12500))).text)
         self.assertIn('getitem 501,3;', display.decode(pickup()).text)
         self.assertIn('delitem 501,2;', display.decode(packet(0xaf, struct.pack('<HH', 2, 2))).text)
         self.assertNotIn('getitem 501', display.decode(pickup(result=255)).text)

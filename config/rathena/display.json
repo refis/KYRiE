@@ -1513,7 +1513,7 @@
             "delta_known": true,
             "delta_positive": true
           },
-          "template": "getexp {delta},0,0; // 現在 BaseExp {experience:,d}"
+          "template": ""
         },
         {
           "when": {
@@ -1536,7 +1536,7 @@
             "delta_known": true,
             "delta_positive": true
           },
-          "template": "getexp 0,{delta},0; // 現在 JobExp {experience:,d}"
+          "template": ""
         },
         {
           "when": {
@@ -1584,7 +1584,7 @@
             "delta_known": true,
             "delta_positive": true
           },
-          "template": "getexp {delta},0,0; // 現在 BaseExp {experience:,d}"
+          "template": ""
         },
         {
           "when": {
@@ -1607,7 +1607,7 @@
             "delta_known": true,
             "delta_positive": true
           },
-          "template": "getexp 0,{delta},0; // 現在 JobExp {experience:,d}"
+          "template": ""
         },
         {
           "when": {
@@ -2167,7 +2167,7 @@
             "delta_known": true,
             "delta_positive": true
           },
-          "template": "getexp {delta},0,0; // 現在 BaseExp {experience:,d}"
+          "template": ""
         },
         {
           "when": {
@@ -2190,7 +2190,7 @@
             "delta_known": true,
             "delta_positive": true
           },
-          "template": "getexp 0,{delta},0; // 現在 JobExp {experience:,d}"
+          "template": ""
         },
         {
           "when": {

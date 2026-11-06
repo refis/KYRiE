@@ -321,7 +321,8 @@ class PlayerStore:
                     setattr(state, attr + '_delta', delta)
                     # Login/character-list seeds and the first absolute status read stay
                     # observation-only. Known zero reaffirmations are suppressed. Positive
-                    # deltas become getexp candidates; negative stay commented.
+                    # deltas feed NPC-tied resource adoption (getexp), not the live log;
+                    # negative stay commented in the observation log.
                     if delta is None:
                         values.update(event_kind=attr, experience=value, delta=0,
                                       delta_known=False, delta_positive=False)
