@@ -61,6 +61,8 @@ required_count/current_countは受信値を保持し、大小関係から値を�
 
 - Zeny通知: 直前残高がある場合は差分、ない場合は現在残高と差分不明を保持する。
   差分が既知で0の通知は追加しない。
+- BaseExp／JobExp通知: ログイン／キャラ一覧の初回値は差分不明のまま残し、
+  その後の増加だけ差分を保持する。差分0は追加しない。減少はメモのみ（getexp化しない）。
 - アイテム増加: 成功した取得通知のID・数量・所持品Indexを保持する。
 - アイテム減少: PlayerStoreで確認済みのIndexからIDと数量を解決できた場合のみ保持する。
   未観測Indexや数量不足、一覧受信中の矛盾は正常な消費として採用しない。
@@ -90,12 +92,14 @@ GUIの時間経過タブ「資源変化の命令採用」で切替できる。ca
 
 確認済みのときだけ本文へ出す候補:
 
-- Zeny（差分既知）: `set Zeny, Zeny {delta:+d};`
+- Zeny（差分既知）: `set Zeny,Zeny{delta:+d};`
+- BaseExp／JobExp（増加のみ）: `getexp {delta},0,0;`／`getexp 0,{delta},0;`
 - マップ（非インスタンス名）: `warp`。`@` を含むMAPは実行せず確認用コメント
 - アイテム増減: 同一Packetの script_command が無い場合のみ getitem／delitem。ある場合は重複させない
 
-未確認行・差分不明Zenyは従来どおりコメント／未生成。起因・報酬条件式は生成しない。
-書式は dialogue.json の `zeny_set`／`map_warp`／`map_warp_review`／`resource_adoption_review`。
+未確認行・差分不明Zeny／初回EXP／減少EXPは従来どおりコメント／未生成。起因・報酬条件式は生成しない。
+書式は dialogue.json の `zeny_set`／`base_exp_set`／`job_exp_set`／`map_warp`／
+`map_warp_review`／`resource_adoption_review`。
 
 複数選択肢の本文が同一でも、関連する増減観測や位置が異なる場合は応答同一と断定せずswitchを維持する。
 全観測が一致し本文も完全に一致する場合は従来どおりラベルなしmenuへまとめられる。

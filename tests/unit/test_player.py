@@ -74,9 +74,15 @@ class PlayerTests(unittest.TestCase):
                 self.assertEqual((state.character_name, state.zeny, state.base_exp, state.job_exp),
                                  ('hero', 1000, 2**40, 2**41))
                 store.apply(packet(0xb1, struct.pack('<HI', 20, 1200)), packet_index=3)
-                store.apply(packet(0xacb, struct.pack('<HQ', 1, 2**42)), packet_index=4)
-                store.apply(packet(0xacb, struct.pack('<HQ', 2, 2**43)), packet_index=5)
+                base = store.apply(packet(0xacb, struct.pack('<HQ', 1, 2**42)), packet_index=4)
+                job = store.apply(packet(0xacb, struct.pack('<HQ', 2, 2**43)), packet_index=5)
                 self.assertEqual(state.zeny_delta, 200)
+                self.assertEqual(base['delta'], 2**42 - 2**40)
+                self.assertTrue(base['delta_known'] and base['delta_positive'])
+                self.assertEqual(job['delta'], 2**43 - 2**41)
+                self.assertTrue(job['delta_known'] and job['delta_positive'])
+                self.assertEqual(state.base_exp_delta, 2**42 - 2**40)
+                self.assertEqual(state.job_exp_delta, 2**43 - 2**41)
                 saved = store.snapshot()['characters'][0]
                 self.assertEqual((saved['zeny'], saved['base_exp'], saved['job_exp']), (1200, 2**42, 2**43))
                 self.assertEqual(saved['evidence']['zeny']['packet_index'], 3)
@@ -312,10 +318,17 @@ class PlayerTests(unittest.TestCase):
         self.assertIn('setnpcspeed 150,"歩行NPC";', idle.text)
         self.assertIn('歩行NPC(42)', idle.text)
         self.assertIn('差分不明', display.decode(packet(0xb1, struct.pack('<HI', 20, 1000))).text)
-        self.assertIn('Zeny -200', display.decode(packet(0xb1, struct.pack('<HI', 20, 800))).text)
+        self.assertIn('set Zeny,Zeny-200;', display.decode(packet(0xb1, struct.pack('<HI', 20, 800))).text)
         # HP/SP etc. update_status lines are suppressed; Zeny/EXP remain.
         self.assertEqual(display.decode(packet(0xb0, struct.pack('<HI', 5, 200))).text, '')
-        self.assertIn('@BaseExp', display.decode(packet(0xb0, struct.pack('<HI', 1, 12345))).text)
+        first_exp = display.decode(packet(0xb0, struct.pack('<HI', 1, 12345))).text
+        self.assertIn('@BaseExp', first_exp)
+        self.assertIn('初回観測', first_exp)
+        self.assertIn('getexp 55,0,0;', display.decode(packet(0xb0, struct.pack('<HI', 1, 12400))).text)
+        first_job = display.decode(packet(0xb0, struct.pack('<HI', 2, 7))).text
+        self.assertIn('@JobExp', first_job)
+        self.assertIn('初回観測', first_job)
+        self.assertIn('getexp 0,3,0;', display.decode(packet(0xb0, struct.pack('<HI', 2, 10))).text)
         self.assertIn('getitem 501,3;', display.decode(pickup()).text)
         self.assertIn('delitem 501,2;', display.decode(packet(0xaf, struct.pack('<HH', 2, 2))).text)
         self.assertNotIn('getitem 501', display.decode(pickup(result=255)).text)

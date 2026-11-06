@@ -36,7 +36,8 @@ KIND_LABELS = {'dialogue_size':'会話サイズ', 'dialogue_position':'会話位
                'effect_value': '値付きエフェクト',
                'late_continue': '終了後のnext応答候補', 'late_choice': '終了後の選択応答候補',
                'late_number_reply': '終了後の数値応答候補', 'late_text_reply': '終了後の文字応答候補',
-               'resource_zeny': 'Zeny観測', 'resource_item_gain': '所持品増加', 'resource_item_loss': '所持品減少',
+               'resource_zeny': 'Zeny観測', 'resource_base_exp': 'BaseExp観測', 'resource_job_exp': 'JobExp観測',
+               'resource_item_gain': '所持品増加', 'resource_item_loss': '所持品減少',
                'resource_quest_add': 'クエスト追加観測', 'resource_quest_delete': 'クエスト削除観測',
                'resource_quest_state': 'クエスト状態観測',
                'resource_quest_count': 'クエスト目標数観測',
@@ -559,7 +560,8 @@ class DialoguePanel(QWidget):
             QMessageBox.critical(self, '統合観測を保存できません', str(exc))
 
     def _fill_resource_adoption(self, item):
-        labels = {'zeny': 'Zeny', 'item_gain': '所持品増加', 'item_loss': '所持品減少', 'map': 'マップ移動'}
+        labels = {'zeny': 'Zeny', 'base_exp': 'BaseExp', 'job_exp': 'JobExp',
+                  'item_gain': '所持品増加', 'item_loss': '所持品減少', 'map': 'マップ移動'}
         rows = [row for row in item.resource_observations if row['kind'] in labels]
         self.resource_adoption.blockSignals(True)
         self.resource_adoption.setRowCount(len(rows))
@@ -568,6 +570,13 @@ class DialoguePanel(QWidget):
             if row['kind'] == 'zeny':
                 summary = (f"残高 {fields['value']} / 差分 {fields['delta']}" if fields['delta_known']
                            else f"残高 {fields['value']} / 差分不明（命令化不可）")
+            elif row['kind'] in ('base_exp', 'job_exp'):
+                if not fields.get('delta_known'):
+                    summary = f"現在 {fields['value']} / 差分不明（命令化不可）"
+                elif not fields.get('delta_positive'):
+                    summary = f"現在 {fields['value']} / 差分 {fields['delta']}（減少は getexp 化しない）"
+                else:
+                    summary = f"現在 {fields['value']} / 差分 {fields['delta']}"
             elif row['kind'] == 'map':
                 summary = f"{fields['map_name']} ({fields['x']},{fields['y']})"
             else:
@@ -579,6 +588,10 @@ class DialoguePanel(QWidget):
             if row['kind'] == 'zeny' and not fields.get('delta_known'):
                 check.setFlags(Qt.ItemIsSelectable)
                 check.setToolTip('差分不明のZenyは命令候補へ採用できません。')
+            if row['kind'] in ('base_exp', 'job_exp') and (
+                    not fields.get('delta_known') or not fields.get('delta_positive')):
+                check.setFlags(Qt.ItemIsSelectable)
+                check.setToolTip('初回読み込み・差分不明・減少は getexp 命令候補へ採用できません。')
             self.resource_adoption.setItem(index, 0, check)
             self.resource_adoption.setItem(index, 1, QTableWidgetItem(labels[row['kind']]))
             self.resource_adoption.setItem(index, 2, QTableWidgetItem(summary))

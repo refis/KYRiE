@@ -110,11 +110,17 @@ RESOURCE_FIELDS = {'resource_header': set(),
     'resource_trial': {'capture_session', 'conversation_id', 'source_ref'},
     'resource_zeny': {'packet_index', 'value', 'delta'},
     'resource_zeny_unknown': {'packet_index', 'value'},
+    'resource_base_exp': {'packet_index', 'value', 'delta'},
+    'resource_base_exp_unknown': {'packet_index', 'value'},
+    'resource_job_exp': {'packet_index', 'value', 'delta'},
+    'resource_job_exp_unknown': {'packet_index', 'value'},
     'resource_item_gain': {'packet_index', 'item_id', 'amount', 'index'},
     'resource_item_loss': {'packet_index', 'item_id', 'amount', 'index'},
     'resource_map': {'packet_index', 'map_name', 'x', 'y'},
     'resource_adoption_review': set(),
     'zeny_set': {'delta_signed'},
+    'base_exp_set': {'delta'},
+    'job_exp_set': {'delta'},
     'map_warp': {'map_name', 'x', 'y'},
     'map_warp_review': {'map_name', 'x', 'y'}}
 OPTIONAL_FIELDS = {'observed_gap': {'duration_ms'},
@@ -302,6 +308,12 @@ class AurigaRenderer:
                     if not known:
                         fields.pop('delta')
                     key = 'resource_zeny' if known else 'resource_zeny_unknown'
+                elif row['kind'] in ('base_exp', 'job_exp'):
+                    known = fields.pop('delta_known')
+                    fields.pop('delta_positive', None)
+                    if not known:
+                        fields.pop('delta')
+                    key = ('resource_' + row['kind']) if known else ('resource_' + row['kind'] + '_unknown')
                 else:
                     key = 'resource_' + row['kind']
                     if row['kind'] == 'quest_count':
@@ -636,6 +648,8 @@ class AurigaRenderer:
                 emit(kind, depth)
             elif kind == 'zeny_set':
                 emit(kind, depth, delta_signed=fields['delta_signed'])
+            elif kind in ('base_exp_set', 'job_exp_set'):
+                emit(kind, depth, delta=fields['delta'])
             elif kind in ('map_warp', 'map_warp_review'):
                 emit(kind, depth, map_name=_quote(base_map_name(fields['map_name'])),
                      x=fields['x'], y=fields['y'])

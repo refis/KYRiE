@@ -1498,7 +1498,7 @@
             "event_kind": "zeny",
             "delta_known": true
           },
-          "template": "set Zeny, Zeny {delta:+d}; // 現在 {zeny:,d}"
+          "template": "set Zeny,Zeny{delta:+d}; // 現在 {zeny:,d}"
         },
         {
           "when": {
@@ -1509,15 +1509,49 @@
         },
         {
           "when": {
-            "event_kind": "base_exp"
+            "event_kind": "base_exp",
+            "delta_known": true,
+            "delta_positive": true
           },
-          "template": "@BaseExp {experience:,d};"
+          "template": "getexp {delta},0,0; // 現在 BaseExp {experience:,d}"
         },
         {
           "when": {
-            "event_kind": "job_exp"
+            "event_kind": "base_exp",
+            "delta_known": true,
+            "delta_positive": false
           },
-          "template": "@JobExp {experience:,d};"
+          "template": "@BaseExp {experience:,d}; // 差分 {delta:+d}"
+        },
+        {
+          "when": {
+            "event_kind": "base_exp",
+            "delta_known": false
+          },
+          "template": "@BaseExp {experience:,d}; // 初回観測・差分不明"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": true,
+            "delta_positive": true
+          },
+          "template": "getexp 0,{delta},0; // 現在 JobExp {experience:,d}"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": true,
+            "delta_positive": false
+          },
+          "template": "@JobExp {experience:,d}; // 差分 {delta:+d}"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": false
+          },
+          "template": "@JobExp {experience:,d}; // 初回観測・差分不明"
         }
       ]
     },
@@ -1535,7 +1569,7 @@
             "event_kind": "zeny",
             "delta_known": true
           },
-          "template": "set Zeny, Zeny {delta:+d}; // 現在 {zeny:,d}"
+          "template": "set Zeny,Zeny{delta:+d}; // 現在 {zeny:,d}"
         },
         {
           "when": {
@@ -1546,15 +1580,49 @@
         },
         {
           "when": {
-            "event_kind": "base_exp"
+            "event_kind": "base_exp",
+            "delta_known": true,
+            "delta_positive": true
           },
-          "template": "@BaseExp {experience:,d};"
+          "template": "getexp {delta},0,0; // 現在 BaseExp {experience:,d}"
         },
         {
           "when": {
-            "event_kind": "job_exp"
+            "event_kind": "base_exp",
+            "delta_known": true,
+            "delta_positive": false
           },
-          "template": "@JobExp {experience:,d};"
+          "template": "@BaseExp {experience:,d}; // 差分 {delta:+d}"
+        },
+        {
+          "when": {
+            "event_kind": "base_exp",
+            "delta_known": false
+          },
+          "template": "@BaseExp {experience:,d}; // 初回観測・差分不明"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": true,
+            "delta_positive": true
+          },
+          "template": "getexp 0,{delta},0; // 現在 JobExp {experience:,d}"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": true,
+            "delta_positive": false
+          },
+          "template": "@JobExp {experience:,d}; // 差分 {delta:+d}"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": false
+          },
+          "template": "@JobExp {experience:,d}; // 初回観測・差分不明"
         }
       ]
     },
@@ -2095,15 +2163,49 @@
       "variants": [
         {
           "when": {
-            "event_kind": "base_exp"
+            "event_kind": "base_exp",
+            "delta_known": true,
+            "delta_positive": true
           },
-          "template": "@BaseExp {experience:,d};"
+          "template": "getexp {delta},0,0; // 現在 BaseExp {experience:,d}"
         },
         {
           "when": {
-            "event_kind": "job_exp"
+            "event_kind": "base_exp",
+            "delta_known": true,
+            "delta_positive": false
           },
-          "template": "@JobExp {experience:,d};"
+          "template": "@BaseExp {experience:,d}; // 差分 {delta:+d}"
+        },
+        {
+          "when": {
+            "event_kind": "base_exp",
+            "delta_known": false
+          },
+          "template": "@BaseExp {experience:,d}; // 初回観測・差分不明"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": true,
+            "delta_positive": true
+          },
+          "template": "getexp 0,{delta},0; // 現在 JobExp {experience:,d}"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": true,
+            "delta_positive": false
+          },
+          "template": "@JobExp {experience:,d}; // 差分 {delta:+d}"
+        },
+        {
+          "when": {
+            "event_kind": "job_exp",
+            "delta_known": false
+          },
+          "template": "@JobExp {experience:,d}; // 初回観測・差分不明"
         }
       ]
     },

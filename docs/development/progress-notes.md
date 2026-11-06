@@ -172,6 +172,11 @@ KYRiE は会話内 08E2→`navigateto`、会話元 09D1→`progressbar_npc` を�
 タイマーの progressbar コメント採用と秒数≠OnTimer は維持。viewpointmap は 0144 と区別できないため未生成。
 0A78 camerainfo は観測ログへ暫定追加（`@camerainfo`、f32 3値）。本文命令化はしない。
 
+### Zeny／BaseExp／JobExp 差分の命令化（2026-11-06）
+
+00B0/00B1/0ACB の残高変化で、ログイン等の初回読み込み以外の差分を命令化する。
+Zenyは `set Zeny,Zeny+1000;` 形式。BaseExp/JobExpの増加は `getexp`。
+減少EXPと差分不明は観測コメントのまま。会話資源の採用経路でも同様。
 ### 大容量取得時の応答なし（2026-11-06）
 
 v0.0.9 で約5万件・メモリ上限到達・Land Protector 等の skillunit 多発時に

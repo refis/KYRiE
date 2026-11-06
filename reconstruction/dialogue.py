@@ -293,6 +293,11 @@ class DialogueStore:
             if values['delta_known'] and values['delta'] == 0:
                 return
             fields = dict(value=values['zeny'], delta=values['delta'], delta_known=values['delta_known'])
+        elif kind in ('base_exp', 'job_exp'):
+            if values['delta_known'] and values['delta'] == 0:
+                return
+            fields = dict(value=values['experience'], delta=values['delta'],
+                          delta_known=values['delta_known'], delta_positive=bool(values.get('delta_positive')))
         elif kind in ('item_gain', 'item_loss'):
             if kind == 'item_gain' and values['result'] != 0:
                 return
@@ -331,7 +336,7 @@ class DialogueStore:
                 continue
             if row['kind'].startswith('quest_'):
                 raise ValueError('Quest resources use the existing setquest path')
-            if row['kind'] not in ('zeny', 'item_gain', 'item_loss', 'map'):
+            if row['kind'] not in ('zeny', 'base_exp', 'job_exp', 'item_gain', 'item_loss', 'map'):
                 raise ValueError('Unsupported resource kind for adoption')
             row['adoption_confirmed'] = confirmed
             self.revision += 1
