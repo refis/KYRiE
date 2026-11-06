@@ -43,9 +43,12 @@ def build_workspace(window):
     w.process = QComboBox()
     w.process.setMinimumWidth(250)
     w.refresh_processes = QPushButton('更新')
+    w.refresh_processes.setToolTip('実行中プロセス一覧を更新します')
     w.refresh_processes.clicked.connect(w.populate_processes)
     w.start_button = QPushButton('観測開始')
+    w.start_button.setToolTip('選択したEXEの通信観測を開始します')
     w.stop_button = QPushButton('停止')
+    w.stop_button.setToolTip('観測を停止します')
     w.stop_button.setEnabled(False)
     w.settings_button = QPushButton('設定')
     w.diagnostics_button = QPushButton('診断')
@@ -53,6 +56,7 @@ def build_workspace(window):
         control.setParent(w)
         control.hide()
     w.open_log_button = QPushButton('生ログを開く…')
+    w.open_log_button.setToolTip('保存済み生ログを再解析用に開きます（停止中）')
     w.open_log_button.clicked.connect(w.open_recording)
     from gui.reference_browser import ReferenceBrowser
     w.reference_browser=ReferenceBrowser(w.client_names,w.navigation,w,
@@ -79,6 +83,8 @@ def build_workspace(window):
 
     summary = QHBoxLayout()
     w.capture_state_label = QLabel('停止中')
+    w.capture_state_label.setCursor(Qt.PointingHandCursor)
+    w.capture_state_label.setToolTip('クリックで診断を開きます（エラー時の詳細確認）')
     w.mode_summary = QLabel()
     w.counter = QLabel('0 件')
     summary.addWidget(w.capture_state_label)
@@ -266,6 +272,9 @@ def build_workspace(window):
     exports.aboutToShow.connect(update_export_menu)
     w.menuBar().insertMenu(menu.menuAction(),exports)
     w.export_all_npcs_action.setToolTip('配置のみNPC・会話NPC・shopを含みます。会話統合チェックに従い、一覧の表示フィルターには依存しません。')
+    help_menu = w.menuBar().addMenu('ヘルプ')
+    help_menu.addAction('操作ガイドを開く…', w.open_operation_guide)
+    help_menu.addAction('KYRiEについて…', w.show_about_dialog)
 
 
 def show_panel(dialog):

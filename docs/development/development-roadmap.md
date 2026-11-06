@@ -583,8 +583,8 @@ Open issues は 2026-11-06 時点でなし。残作業（採取必須のもの�
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 6. **文書純化・GUI P2（v0.0.10 保存後）**: 正本は
    [packaging-docs-gui-ux.md](packaging-docs-gui-ux.md)。
-   順は (a) 操作ガイドの履歴分離、(b) Help/About・診断導線など GUI P2-1、
-   (c) 必要ならショートカット／初回チェックリスト。**EXE化・EXE配布はしない。**
+   P2-1（Help/About・状態ラベル→診断・toolTip）と `gui-workspace` 純化は着手済み。
+   残りはショートカット／初回チェックリスト（P2-2）など。**EXE化・EXE配布はしない。**
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。
