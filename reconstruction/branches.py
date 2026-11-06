@@ -72,6 +72,11 @@ def validate_resources(conversation):
         if kind == 'zeny':
             valid = (set(fields) == {'value', 'delta', 'delta_known'} and type(fields['value']) is int
                      and fields['value'] >= 0 and type(fields['delta']) is int and type(fields['delta_known']) is bool)
+        elif kind in ('base_exp', 'job_exp'):
+            valid = (set(fields) == {'value', 'delta', 'delta_known', 'delta_positive'}
+                     and type(fields['value']) is int and fields['value'] >= 0
+                     and type(fields['delta']) is int and type(fields['delta_known']) is bool
+                     and type(fields['delta_positive']) is bool)
         elif kind in ('item_gain', 'item_loss'):
             valid = (set(fields) == {'item_id', 'amount', 'index'}
                      and all(type(value) is int for value in fields.values())
@@ -243,11 +248,15 @@ def conversation_path(source_ref, conversation, strict=True):
                         if row.get('fields', {}).get('command') in ('getitem', 'getitem2', 'delitem', 'delequip')}
     adopted = {}
     for row in conversation.resource_observations:
-        if row.get('adoption_confirmed') is not True or row['kind'] not in ('zeny', 'item_gain', 'item_loss', 'map'):
+        if row.get('adoption_confirmed') is not True or row['kind'] not in (
+                'zeny', 'base_exp', 'job_exp', 'item_gain', 'item_loss', 'map'):
             continue
         if row['kind'] in ('item_gain', 'item_loss') and row['packet_index'] in scripted_packets:
             continue
         if row['kind'] == 'zeny' and not row['fields'].get('delta_known'):
+            continue
+        if row['kind'] in ('base_exp', 'job_exp') and (
+                not row['fields'].get('delta_known') or not row['fields'].get('delta_positive')):
             continue
         anchor = row.get('after_step_index')
         if type(anchor) is not int or not 0 <= anchor < len(steps):
@@ -270,6 +279,12 @@ def conversation_path(source_ref, conversation, strict=True):
                     tokens.append(dict(kind='resource_adoption_review', fields={}, evidence=reference))
                 if row['kind'] == 'zeny':
                     tokens.append(dict(kind='zeny_set', fields={'delta_signed': f"{row['fields']['delta']:+d}"},
+                                       evidence=reference))
+                elif row['kind'] == 'base_exp':
+                    tokens.append(dict(kind='base_exp_set', fields={'delta': row['fields']['delta']},
+                                       evidence=reference))
+                elif row['kind'] == 'job_exp':
+                    tokens.append(dict(kind='job_exp_set', fields={'delta': row['fields']['delta']},
                                        evidence=reference))
                 elif row['kind'] == 'map':
                     values = dict(map_name=row['fields']['map_name'], x=row['fields']['x'], y=row['fields']['y'])

@@ -15,7 +15,8 @@ CHARACTER_STRIDES = {0x99d: (155, 88, 118), 0xb72: (175, 108, 138)}
 PLAYER_IDS = {0x179, 0x71, 0x91, 0x92, 0x87, 0x88, 0x283, 0x2eb, 0xa18, *CHARACTER_STRIDES,
               0xb0, 0xb1, 0xacb, 0xb08, 0xb0b, 0xa37, 0xb41, 0xaf, 0x7fa, *LIST_STRIDES}
 DISPLAY_DEFAULTS = dict(event_kind='', map_name='不明', x=-1, y=-1, destination_x=-1, destination_y=-1,
-                        zeny=0, delta=0, delta_known=False, experience=0, item_id=0, amount=0, index=0,
+                        zeny=0, delta=0, delta_known=False, delta_positive=False, experience=0,
+                        item_id=0, amount=0, index=0,
                         result=0, inventory_type=0, entries=0, slots=0, total_amount=0,
                         inventory_complete=False, value=0, status_type=0, actor_id=0)
 DISPLAY_DEFAULTS.update(plain_item=False, identified=0, refine=0, grade=0, expires=0, bound=0,
@@ -142,7 +143,9 @@ class PlayerState:
     party_name: str | None = None
     guild_name: str | None = None
     base_exp: int | None = None
+    base_exp_delta: int | None = None
     job_exp: int | None = None
+    job_exp_delta: int | None = None
     sex: int | None = None
     map_name: str | None = None
     x: int | None = None
@@ -311,12 +314,22 @@ class PlayerStore:
                     values.update(event_kind='zeny', zeny=value, delta=state.zeny_delta or 0,
                                   delta_known=state.zeny_delta is not None)
                 attr = {1: 'base_exp', 2: 'job_exp', 5: 'hp', 6: 'max_hp', 7: 'sp', 8: 'max_sp'}.get(stat)
-                if attr:
+                if attr in ('base_exp', 'job_exp'):
+                    previous = getattr(state, attr)
+                    delta = None if previous is None else value - previous
                     setattr(state, attr, value)
-                if stat == 1:
-                    values.update(event_kind='base_exp', experience=value)
-                elif stat == 2:
-                    values.update(event_kind='job_exp', experience=value)
+                    setattr(state, attr + '_delta', delta)
+                    # Login/character-list seeds and the first absolute status read stay
+                    # observation-only. Known zero reaffirmations are suppressed. Positive
+                    # deltas become getexp candidates; negative stay commented.
+                    if delta is None:
+                        values.update(event_kind=attr, experience=value, delta=0,
+                                      delta_known=False, delta_positive=False)
+                    elif delta != 0:
+                        values.update(event_kind=attr, experience=value, delta=delta,
+                                      delta_known=True, delta_positive=delta > 0)
+                elif attr:
+                    setattr(state, attr, value)
                 character = self.characters.get((state.actor_id, state.character_id))
                 if (character is not None and self.active_characters.get((state.actor_id, state.character_id)) == key
                         and (stat == 20 or attr in ('base_exp', 'job_exp'))):
