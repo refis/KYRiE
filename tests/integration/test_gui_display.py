@@ -113,8 +113,21 @@ class DisplayGuiTests(WindowTestCase):
         self.assertGreater(panel.trials.width(),200)
         self.assertTrue(panel.adopt_button.isVisible())
         self.assertLessEqual(panel.adopt_button.geometry().right(),panel.adopt_button.parentWidget().width())
-        self.assertEqual([a.text() for a in w.menuBar().actions()],['作業','出力','設定・診断'])
+        self.assertEqual([a.text() for a in w.menuBar().actions()],['作業','出力','設定・診断','ヘルプ'])
         self.assertTrue(w.export_all_npcs_action.isVisible())
+        w.open_diagnostics_panel()
+        self.app.processEvents()
+        self.assertTrue(w.diagnostics_dialog.isVisible())
+        w.diagnostics_dialog.close()
+        with patch('gui.main_window.QMessageBox.about') as about:
+            w.show_about_dialog()
+            about.assert_called_once()
+            self.assertIn('EXE化', about.call_args.args[2])
+        guide=Path(__file__).resolve().parents[2]/'docs'/'guide'/'gui-workspace.md'
+        self.assertTrue(guide.is_file())
+        with patch('gui.main_window.QDesktopServices.openUrl', return_value=True) as opened:
+            w.open_operation_guide()
+            opened.assert_called_once()
         w.export_conversation_action.parent().aboutToShow.emit()
         self.assertFalse(w.export_conversation_action.isEnabled())
         self.assertFalse(w.export_selected_npc_action.isEnabled())

@@ -3,14 +3,14 @@ from datetime import datetime
 import sqlite3
 import json
 from gui.layout import build_workspace
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QUrl, QEvent
 from gui.packet_delivery import Bridge, PacketDelivery
 from gui.view_limits import DISPLAY_LIMIT
 from gui.event_history import MEMORY_EVENT_LIMIT, physical_index, trim_parallel
 from gui.history_tasks import HistoryTasks
 from gui.observation_save import ObservationTextSnapshot,ObservationSaveWorker
 from collections import deque
-from PySide6.QtGui import QTextCursor
+from PySide6.QtGui import QTextCursor, QDesktopServices
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QFileDialog, QMessageBox, QInputDialog
 from capture.receiver import Receiver
 from capture.process_monitor import list_processes
@@ -109,6 +109,7 @@ class MainWindow(QMainWindow):
         self.selected_display_direction = 'RECV'
         self.db = PacketDatabase(':memory:' if offline else 'packets.sqlite3')
         build_workspace(self)
+        self.capture_state_label.installEventFilter(self)
         self.display_export=None
         self.export_label="観測ログ"
         self.export_on_success=None
@@ -309,6 +310,33 @@ class MainWindow(QMainWindow):
             self.ignorepacket.save()
         except (OSError, ValueError) as exc:
             self.show_capture_status(f'非表示設定は適用済みですが保存できません: {exc}')
+
+    def eventFilter(self, obj, event):
+        if obj is getattr(self, 'capture_state_label', None) and event.type() == QEvent.MouseButtonRelease:
+            if event.button() == Qt.LeftButton:
+                self.open_diagnostics_panel()
+                return True
+        return super().eventFilter(obj, event)
+
+    def open_diagnostics_panel(self):
+        from gui.layout import show_panel
+        show_panel(self.diagnostics_dialog)
+
+    def open_operation_guide(self):
+        path = Path(__file__).resolve().parents[1] / 'docs' / 'guide' / 'gui-workspace.md'
+        if not path.is_file():
+            QMessageBox.warning(self, '操作ガイドを開けません', f'ファイルが見つかりません:\n{path}')
+            return
+        if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
+            QMessageBox.information(self, '操作ガイド', f'次のファイルを開いてください:\n{path}')
+
+    def show_about_dialog(self):
+        QMessageBox.about(
+            self, 'KYRiEについて',
+            f'KYRiE v{__version__}\n\n'
+            'Auriga向けNPC復元・MOB観測の開発スナップショットです。\n'
+            'EXE化・EXE配布は行いません。起動は Python＋venv です。\n'
+            '公開ライセンスは未確定です（NOTICE）。操作は docs/guide/ を参照してください。')
 
     def show_capture_status(self, message):
         brief = message
