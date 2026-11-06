@@ -480,19 +480,15 @@ class MainWindow(QMainWindow):
         return ReceiveDisplay(profile, direction=direction, client_names=getattr(self, 'client_names', None))
 
     def refresh_entity_views(self, *args):
-        # Header + entity tables stay live. Heavy MOB skill/combat, shop, spawn, and
-        # dialogue rebuilds only run while their tab is visible — skillunit floods
-        # used to refresh those every 250ms on the observation tab too.
+        # 250ms timer already rate-limits panel rebuilds. Skill/combat summaries still
+        # short-circuit when store.revision is unchanged; under skillunit floods they
+        # rebuild at most at this timer rate, not per packet.
+        self.mob_spawn_panel.refresh()
+        self.shop_panel.refresh()
         self.player_panel.refresh()
-        current = self.workspace_tabs.currentWidget()
-        if current is self.npc_panel:
-            self.shop_panel.refresh()
-        if current is self.mob_panel:
-            self.mob_spawn_panel.refresh()
-            self.mob_skills_panel.refresh()
-            self.mob_performance_panel.refresh()
-        if current is self.dialogue_panel or current is getattr(self.dialogue_panel, 'event_trials', None):
-            self.dialogue_panel.refresh()
+        self.dialogue_panel.refresh()
+        self.mob_skills_panel.refresh()
+        self.mob_performance_panel.refresh()
         if self.npc_world_revision != self.world.revision:
             self.npc_panel.set_records(self.world.records('NPC'))
             self.npc_world_revision = self.world.revision
