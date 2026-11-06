@@ -205,6 +205,29 @@ class MainWindow(QMainWindow):
         except (OSError, user_settings.UserSettingsError) as exc:
             self.show_capture_status(f'ユーザー設定を保存できません: {exc}')
 
+    def select_workspace_preset(self, preset):
+        from storage.user_settings import WORKSPACE_PRESETS, apply_workspace_preset
+        if preset not in WORKSPACE_PRESETS or self.workspace_closed:
+            return
+        combo = getattr(self, 'workspace_preset', None)
+        if combo is not None:
+            index = combo.findData(preset)
+            if index >= 0 and combo.currentIndex() != index:
+                combo.blockSignals(True)
+                combo.setCurrentIndex(index)
+                combo.blockSignals(False)
+        apply_workspace_preset(self, preset)
+        self.persist_user_settings()
+
+    def on_workspace_preset_changed(self, *_):
+        if self.workspace_closed:
+            return
+        from storage.user_settings import apply_workspace_preset
+        combo = getattr(self, 'workspace_preset', None)
+        preset = combo.currentData() if combo is not None else None
+        apply_workspace_preset(self, preset)
+        self.persist_user_settings()
+
     def edit_ignorepacket(self):
         dialog = IgnorePacketDialog(self.ignorepacket, self)
         if dialog.exec():

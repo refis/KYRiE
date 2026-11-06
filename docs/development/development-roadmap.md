@@ -583,9 +583,9 @@ Open issues は 2026-11-06 時点でなし。残作業（採取必須のもの�
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 6. **文書純化・GUI P2（v0.0.10 保存後）**: 正本は
    [packaging-docs-gui-ux.md](packaging-docs-gui-ux.md)。
-   P2-1／P2-2（Help・診断導線・F5/F8/Ctrl+Shift+O・開始前確認）と `gui-workspace` 純化は到達。
+   P2-1〜P2-3（Help・診断導線・F5/F8/Ctrl+Shift+O・開始前確認・タブ初期プリセット）と
+   `gui-workspace` 純化は到達。
    ignorepacket／user_settings はローカル専用＋不在時プリセット（Git/ZIPで空上書きしない）。
-   残りは任意の P2-3（タブ初期プリセット。詳細は packaging-docs-gui-ux.md）。
    **EXE化・EXE配布はしない。**
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。

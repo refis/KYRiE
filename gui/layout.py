@@ -21,7 +21,8 @@ from gui.combat import MobPerformancePanel
 from gui.shops import ShopPanel
 from gui.mob_spawns import MobSpawnPanel
 from storage.user_settings import (DEFAULT_OFFLINE_MAX_PACKETS, DEFAULT_OFFLINE_MAX_PACKET_MIB,
-                                   OFFLINE_MAX_PACKETS_RANGE, OFFLINE_MAX_PACKET_MIB_RANGE)
+                                   OFFLINE_MAX_PACKETS_RANGE, OFFLINE_MAX_PACKET_MIB_RANGE,
+                                   WORKSPACE_PRESET_CHOICES)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -74,6 +75,12 @@ def build_workspace(window):
     work_menu.addSeparator()
     w.repair_project_action = work_menu.addAction('プロジェクトの参照先を修復…', w.repair_project)
     w.edit_project_sources_action = work_menu.addAction('プロジェクトのログ一覧を編集…', w.edit_project_sources)
+    work_menu.addSeparator()
+    preset_menu = work_menu.addMenu('タブ初期表示')
+    w.workspace_preset_observe_action = preset_menu.addAction(
+        '観測中心', lambda: w.select_workspace_preset('observe'))
+    w.workspace_preset_restore_action = preset_menu.addAction(
+        '復元中心', lambda: w.select_workspace_preset('restore'))
     w.save_project_action.setEnabled(False)
     w.project_note_action.setEnabled(False)
     header.addWidget(QLabel('対象EXE'))
@@ -382,14 +389,22 @@ def _build_settings(w):
     profile.addWidget(w.display_reload)
     w.display_timestamps = QCheckBox('観測時刻を表示する')
     w.display_unmapped = QCheckBox('表示未定義のパケットも観測ログに表示する')
+    w.workspace_preset = QComboBox()
+    for value, label in WORKSPACE_PRESET_CHOICES:
+        w.workspace_preset.addItem(label, value)
+    w.workspace_preset.setToolTip(
+        '起動時に前面にするタブだけを選びます。全タブは残ります（観測中心=観測ログ、復元中心=会話・コード）。')
+    w.workspace_preset.currentIndexChanged.connect(w.on_workspace_preset_changed)
     display_form.addRow('出力形式', w.emulator)
     display_form.addRow('NPC本文インデント', w.script_indent)
+    display_form.addRow('タブ初期表示', w.workspace_preset)
     display_form.addRow('書式を編集する方向', w.display_direction)
     display_form.addRow('表示定義JSON', profile)
     display_form.addRow(w.display_timestamps)
     display_form.addRow(w.display_unmapped)
     display.addLayout(display_form)
     display.addWidget(QLabel('表示未定義を隠しても、取得・パケット詳細・SQLite保存は継続します。'))
+    display.addWidget(QLabel('タブ初期表示はフォーカスのみ変更します。パネル非表示や生成規則は変えません。'))
     display.addStretch(1)
 
     recording = _page(w.settings_tabs, '記録')
