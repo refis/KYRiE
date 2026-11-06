@@ -51,7 +51,9 @@ CONFIG_ROOT = Path(__file__).resolve().parent.parent / 'config'
 DEFAULT_PROFILE = CONFIG_ROOT / 'auriga' / 'display.json'
 DEFAULT_SEND_PROFILE = CONFIG_ROOT / 'send_display.json'
 TYPES = {'u8': 'B', 'u16': 'H', 'u32': 'I', 'u64': 'Q',
-         'i8': 'b', 'i16': 'h', 'i32': 'i', 'i64': 'q'}
+         'i8': 'b', 'i16': 'h', 'i32': 'i', 'i64': 'q',
+         'f32': 'f'}
+FLOAT_TYPES = frozenset({'f32'})
 META = {'packet_id', 'length', 'direction', 'source', 'connection', 'time', 'name', 'error'}
 FORMATS = {'', 'q', 'd', 'x', 'X', '#x', '#06x', '#08x', '06X', '04X', ',d', '+d'}
 
@@ -240,6 +242,10 @@ class DisplayProfile:
                     except (LookupError, TypeError) as exc:
                         raise ProfileError('Unknown field encoding') from exc
                 values[name] = 'text'
+            elif kind in FLOAT_TYPES:
+                if set(spec) & {'length', 'encoding', 'scale', 'add', 'mask'}:
+                    raise ProfileError('Float fields cannot specify length/encoding/transforms')
+                values[name] = 1.0
             else:
                 if 'length' in spec or 'encoding' in spec:
                     raise ProfileError('Integer fields cannot specify length/encoding')
@@ -256,7 +262,7 @@ class DisplayProfile:
             when = variant.get('when')
             if not isinstance(when, dict) or not when or set(when) - set(values):
                 raise ProfileError('Variant conditions require known fields')
-            if any(type(v) not in (int, str, bool) for v in when.values()):
+            if any(type(v) not in (int, float, str, bool) for v in when.values()):
                 raise ProfileError('Variant comparisons require scalar values')
             _template(variant.get('template'), set(values), values)
         remember = rule.get('remember', {})
@@ -461,9 +467,10 @@ class ReceiveDisplay:
                 data = event.raw[start:start + length]
                 if kind in TYPES:
                     value = struct.unpack('<' + TYPES[kind], data)[0]
-                    if 'mask' in spec:
-                        value &= spec['mask']
-                    value = value * spec.get('scale', 1) + spec.get('add', 0)
+                    if kind not in FLOAT_TYPES:
+                        if 'mask' in spec:
+                            value &= spec['mask']
+                        value = value * spec.get('scale', 1) + spec.get('add', 0)
                 elif kind == 'bytes':
                     value = data.hex(' ')
                 else:

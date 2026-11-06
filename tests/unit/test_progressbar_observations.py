@@ -18,7 +18,7 @@ class ProgressBarTests(unittest.TestCase):
         store.apply(packet(0xb4, struct.pack('<I', 42) + b'hello\0'))
         return store
 
-    def test_targeted_notifications_preserve_fields_and_repeat_conflicts_without_wait_commands(self):
+    def test_targeted_notifications_emit_progressbar_npc_and_repeat_conflicts(self):
         trials = []
         for seconds in (3, 5):
             store = self.opened()
@@ -28,7 +28,7 @@ class ProgressBarTests(unittest.TestCase):
             item.npc = dict(NPC)
             self.assertEqual(item.steps[2]['fields'], {'color': 0xabcdef, 'seconds': seconds})
             code = AurigaRenderer().render(item)
-            self.assertIn(f'秒数={seconds}', code)
+            self.assertIn(f'progressbar_npc "0xABCDEF",{seconds};', code)
             self.assertFalse(any(row.startswith(('progressbar ', 'sleep ', 'sleep2 ', 'OnTimer'))
                                  for row in code.splitlines()))
             trials.append((str(seconds), item))
@@ -47,8 +47,12 @@ class ProgressBarTests(unittest.TestCase):
         rows = store.presentation_observations
         self.assertEqual([row['context'] for row in rows], ['input_wait', 'outside_dialogue'])
         self.assertEqual(item.actions[0]['kind'], 'progress_action')
-        self.assertIn('progressbar 7,0x123456;', AurigaRenderer().render(item))
-        self.assertNotIn('秒数=', AurigaRenderer().render(item))
+        code = AurigaRenderer().render(item)
+        self.assertIn('progressbar 7,0x123456;', code)
+        # Own-NPC 09D1 during input_wait stays parallel observation (not a step);
+        # other-actor 09D1 is outside_dialogue. Neither enters the rendered body here.
+        self.assertNotIn('progressbar_npc', code)
+        self.assertNotIn('秒数=', code)
 
     def test_malformed_layouts_are_reported_and_send_is_not_decoded(self):
         for pid, raw in ((0x2f0, b'bad'), (0x9d1, bytes(13))):

@@ -80,6 +80,31 @@ class DisplayTests(unittest.TestCase):
         self.assertEqual(self.display.decode(event(0xA36, struct.pack('<IB', 42, 19))).fields['percent'], 95)
         self.assertEqual(self.display.decode(event(0xAB9, struct.pack('<H', 5))).text, 'itempreview 3;')
 
+    def test_camerainfo_f32_fields_are_observation_only(self):
+        # Auriga clif_camerainfo / PACKET 0x0A78: show@2, range@3, rotation@7, latitude@11 (15B).
+        raw = struct.pack('<Bfff', 0, 12.34, 56.78, -9.0)
+        result = self.display.decode(event(0xA78, raw))
+        self.assertEqual(result.status, 'decoded')
+        self.assertEqual(result.name, 'Camera info')
+        self.assertEqual(result.fields['show'], 0)
+        self.assertAlmostEqual(result.fields['range'], 12.34, places=5)
+        self.assertAlmostEqual(result.fields['rotation'], 56.78, places=5)
+        self.assertAlmostEqual(result.fields['latitude'], -9.0, places=5)
+        self.assertTrue(result.text.startswith('@camerainfo show=0, range='))
+        self.assertIn('rotation=', result.text)
+        self.assertIn('latitude=', result.text)
+        short = self.display.decode(event(0xA78, raw[:-1]))
+        self.assertEqual(short.status, 'error')
+        document = json.loads(DEFAULT_PROFILE.read_text(encoding='utf-8'))
+        for packet in document['packets']:
+            if '0A78' in packet['ids']:
+                packet['fields']['range'] = {'offset': 3, 'type': 'f32', 'scale': 100}
+                break
+        else:
+            self.fail('0A78 camerainfo rule missing')
+        with self.assertRaises(ProfileError):
+            DisplayProfile(document)
+
     def test_unknown_display_does_not_change_framing_or_send(self):
         result = self.display.decode(event(0xFFFF, b'anything'))
         self.assertEqual(result.status, 'unmapped')

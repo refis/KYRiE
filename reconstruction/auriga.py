@@ -705,7 +705,8 @@ class AurigaRenderer:
                     raise ValueError('Invalid progressbar values')
                 emit('progress_action', depth, seconds=fields['seconds'], color=f"0x{fields['color']:06X}")
             elif kind == 'navigation_action':
-                # Comment-only link to rAthena navigateto / ZC_NAVIGATION_ACTIVE; no executable form yet.
+                # Auriga navigateto (auriga/auriga#97): map[,x,y,flag,hide,mob id].
+                # Emit observed wire fields; type is derived server-side from x/y/mob.
                 emit('navigation_action', depth, type=fields['type'], set_type=fields['set_type'],
                      hide=fields['hide'], map_name=_quote(fields['map_name']), x=fields['x'], y=fields['y'],
                      spr_index=fields['spr_index'])
@@ -722,7 +723,12 @@ class AurigaRenderer:
             elif kind == 'action_wait_review':
                 emit('action_wait_review', depth)
             elif kind == 'progressbar':
-                emit('progressbar', depth, seconds=fields['seconds'], color=fields['color'])
+                # Auriga progressbar_npc (auriga/auriga#97): color string then seconds.
+                # Own-NPC 09D1 only reaches here; timers stay comment-only (seconds≠OnTimer).
+                if not 0 <= fields['seconds'] <= 2147483 or not 0 <= fields['color'] <= 0xffffffff:
+                    raise ValueError('Invalid progressbar_npc values')
+                emit('progressbar', depth, seconds=fields['seconds'],
+                     color=f"0x{fields['color'] & 0xffffff:06X}")
             elif kind == 'viewpoint':
                 supported = (type(fields['kind']) is int and fields['kind'] in (1, 2)
                              and all(type(fields[key]) is int and 0 <= fields[key] <= 1023 for key in ('x', 'y'))

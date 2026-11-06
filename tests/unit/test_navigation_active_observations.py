@@ -21,7 +21,7 @@ def navigation_active(nav_type=0, set_type=0x65, hide=1, map_name=b'ygg_edge', x
 
 
 class NavigationActiveObservationTests(unittest.TestCase):
-    def test_navigation_links_to_dialogue_action_and_stays_comment_only(self):
+    def test_navigation_links_to_dialogue_action_and_emits_navigateto(self):
         store = DialogueStore()
         events = [navigation_active(),
                   packet(0x90, struct.pack('<IB', 42, 1), 'SEND'),
@@ -46,11 +46,9 @@ class NavigationActiveObservationTests(unittest.TestCase):
                          dict(type=0, set_type=0x65, hide=1, map_name='ygg_fruit', x=82, y=120, spr_index=1002))
         self.assertFalse(action['cause_confirmed'])
         code = AurigaRenderer().render(item)
-        self.assertIn('navigateto 観測', code)
-        self.assertIn('map="ygg_fruit"', code)
-        self.assertTrue(any(line.lstrip().startswith('//') and 'navigateto 観測' in line
-                            for line in code.splitlines()))
-        self.assertFalse(any(line.strip().startswith('navigateto ') for line in code.splitlines()))
+        self.assertIn('navigateto "ygg_fruit",82,120,101,1,1002;', code)
+        self.assertFalse(any(line.lstrip().startswith('//') and 'navigateto' in line
+                             for line in code.splitlines()))
         self.assertEqual(
             decode_dialogue(navigation_active()),
             ('navigation_active', None,

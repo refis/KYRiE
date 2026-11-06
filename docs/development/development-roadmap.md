@@ -277,7 +277,7 @@ mapcell、BGM、showscript、status、会話サイズ・位置・整列等を逐
 | announce・通常 effect／解除・emotion・sound・cutin・unittalk | 条件付きで本文／命令候補へ |
 | quest set／delete | 通知と命令候補。条件式は生成しない。0446 showeventは OnQuestInfo 関連付け可 |
 | classchange（01B0） | 観測。会話／タイマーは setnpcdisplay 経路。単純classchange命令化は限定 |
-| progressbar（02F0／09D1） | 構造化。会話中は条件付き命令。手動タイマーはコメント採用（秒数≠OnTimer）。応答成功は断定しない |
+| progressbar（02F0／09D1） | 構造化。02F0会話内は progressbar、09D1会話元は progressbar_npc（Auriga #97）。手動タイマーはコメント採用（秒数≠OnTimer） |
 | viewpoint | 対応値は命令、未対応はコメント。手動タイマーも同じ対応範囲／コメント区分 |
 | 値付き effect（0284）・BGM（07FE/0B8C） | 観測／コメント。実行命令・NPC割当なし。BGMのタイマー採用は拒否 |
 | mapcell（0192） | 構造化と比較窓関連。タイマーはコメント採用可。setcell未生成。実ログ例は未確認 |
@@ -566,7 +566,10 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
    P1-C の根拠表示・確認チェックは #109/#110 まで到達。amount／delay／CASTTIME 等の
    観測自動補完はしない。次のコード着手は採取で必要になった非対称、または
    既存 export／bundle の観測一貫性修正から。
-5. **navigateto 実行命令化**・**OnTouch→cloakoff リスト命令**は未実装（観測のみ）。
+5. **OnTouch→cloakoff リスト命令**は未実装（観測のみ）。
+   Auriga [auriga/auriga#97](https://github.com/auriga/auriga/pull/97) により会話内
+   `navigateto`／`progressbar_npc` は生成可能。0A78 camerainfo は観測ログのみ（本文未生成）。
+   `viewpointmap` は 0144 と区別できないため未生成。
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
