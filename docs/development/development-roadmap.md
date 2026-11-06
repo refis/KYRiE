@@ -582,7 +582,8 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
    P1-C の根拠表示・確認チェックは #109/#110 まで到達。amount／delay／CASTTIME 等の
    観測自動補完はしない。次のコード着手は採取で必要になった非対称、または
    既存 export／bundle の観測一貫性修正から。
-5. **OnTouch→cloakoff リスト命令**は未実装（観測のみ。命令発明しない）。
+5. **OnTouch**: 一意入場時は cloak／effect／viewpoint を OnTouch枠へ載せる（再入場のみ／同セル同時は曖昧）。
+   cloakoff **リスト追加命令**自体は未実装（観測のみ。命令発明しない）。
    0A78 camerainfo は観測ログのみ（本文未生成）。`viewpointmap` は 0144 と区別できないため未生成。
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 6. **docs 物理移動（任意）**: `docs/user/` 等へのディレクトリ移動は明示指示後

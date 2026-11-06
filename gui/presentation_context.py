@@ -59,12 +59,19 @@ def presentation_context(row):
                          'MAP滞在中のcloakoffリスト等が出現パケットへ反映された可能性の観測であり、'
                          '起因NPC・OnTouch・サーバー恒久cloakoffの確定ではありません。'
                          + colocated + 'タイマーのcloak/hide実行命令へは出しません。'))
+        elif basis=='touch_range_entry':
+            result.update(actor_role='visibility_target',player_context_required=True,
+                short='一意なOnTouch入場に紐づくhide/cloakです。タイマー候補ではなくOnTouch枠のアクションです。',
+                summary=('範囲外から内側へ入った接触候補が一意のとき、0x0229差分をwarpと同様にOnTouch枠へ載せます。'
+                         '範囲内移動での再発火は扱いません。同セル同時候補や起因キュー順は断定しません。'
+                         + colocated))
         else:
             result.update(actor_role='visibility_target',player_context_required=True,
                 short='0x0229のhide/cloak差分です。会話外は演出観測、会話中は対象付きアクションになります。',
                 summary=('0x0229のビット差分からhideonnpc／cloakonnpc等を保持します。会話中は同一MAP世代の対象NPCへ紐付け、'
                          '会話外は手動タイマー候補（自身cloak／インスタンス自身hide）です。'
-                         + colocated + '出現パケットと初回状態の食い違い（appearance_vs_initial）とは別経路です。'))
+                         + colocated + '出現パケットと初回状態の食い違い（appearance_vs_initial）とは別経路です。'
+                         '一意入場のOnTouch枠（touch_range_entry）とは別経路です。'))
     elif kind=='viewpoint':
         result.update(actor_role='marker_npc',player_context_required=True,
             short='マーカー通知のNPC IDです。表示を受けるプレイヤーのIDとは区別します。',

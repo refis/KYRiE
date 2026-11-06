@@ -341,14 +341,20 @@ Aurigaの `emotion <n>`（実行NPCが対象）、
 リストに無い cloaked NPC は OnTouch しない（`can_trigger` は現在 options の hide/cloak を除外）。
 配置宣言用の `initial_options`（初回出現）は後続の hideoff/cloakoff で上書きしない。
 
+OnTouchの再発火・複数NPC（協会付け用の作業仮説。キュー順や条件優先は断定しない）:
+- 範囲入場で一度発火し、範囲内移動では再発火しない。範囲外へ出て入り直すと再発火。
+- 同座標・同範囲の複数NPCは同時発火し得る。endでアタッチ解除後に次が反応し得るが順序は発明しない。
+- 入場が接触候補一意のとき、warpと同様に cloak／effect／viewpoint を OnTouch枠へ載せる
+  （`frame_basis=range_entry`／`basis=touch_range_entry`）。曖昧・同セル同時は観測のみ。
+
 実測（ygg_roots）:
 - `調査地点#ch01_1/2/3`（class 10429）は初回 cloaked。同セルに接触候補 `#ch1evt_01/02/03`
   （class 139）が非cloakで並ぶ。到着 `ygg_roots` 325,147 の直後、#1 は cloaked 出現→0229 cloakoff。
 - 同MAP再出現は出現時点で非cloak（`appearance_vs_initial`）。MAP世代が変わると再び cloaked 出現
   （リストが持ち越されない観察と整合）。
 - 会話外の cloak 0229／`appearance_vs_initial` に、同セル接触候補があれば
-  `colocated_touch_npcs` を併記する。OnTouch 本文・リスト追加の実行命令は未生成。
-  タイマーの cloak 実行命令へも出さない。
+  `colocated_touch_npcs` を併記する。リスト追加の実行命令やタイマー cloak は未生成。
+  一意入場の OnTouch枠へ載せた cloak は会話アクション経路（タイマー非採用）。
 
 会話内の追加アクションはConversation.actionsに受信Packetの根拠とともに保存する。
 プログレスバー、表示状態、状態異常を入力応答のstepsへ挿入しないため、next/input等の返信対応は維持される。

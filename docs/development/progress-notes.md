@@ -250,3 +250,9 @@ ZIP へ空 ignorepacket を注入しない。雛形は `ignorepacket.example.jso
 #136–#139（v0.0.10、Help、ショートカット、ignorepacket ローカル化、P2-3）反映後、
 「次の着手単位」から完了した GUI P2 を外し、実機確認・観測のみ維持・任意 docs 移動へ整理。
 open Issue 空のため post-P2 backlog を Actions で再登録。
+
+### OnTouch入場枠と演出（2026-11-06）
+
+範囲は入場セルの軸オフセットを候補とし、両軸非ゼロで暫定解除。カバレッジは外側→内側のみ入場。
+一意入場時は cloak／effect／viewpoint を warp と同様に OnTouch枠（`touch_range_entry`）。
+同セル同時候補は `simultaneous_colocated_touch_candidates`。リスト命令・キュー順は発明しない。

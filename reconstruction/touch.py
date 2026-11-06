@@ -1,9 +1,22 @@
-"""Contact candidates and independently observed axes; never infer walk completion."""
+"""Contact candidates and independently observed axes; never infer walk completion.
+
+Server-side OnTouch behaviour kept as working assumptions for association only:
+- Entering the rectangle fires once; moving while still inside does not re-fire.
+- Leaving and re-entering fires again.
+- Multiple NPCs that share cell and range may fire together; after end detaches the
+  player, the next queued NPC may react. Order and condition priority are not claimed.
+Never invent queue order, range maxima, or OnTouch bodies without unique evidence.
+"""
 
 from reconstruction.actor_appearance import declaration_class, player_class
 
 TOUCH_CLASSES = (139, 111, 844, 45)
 MAX_TOUCH_RADIUS = 15
+# Presentations that may ride an OnTouch frame like warp when entry is unique.
+TOUCH_FRAME_KINDS = frozenset({
+    'visibility_action', 'effect', 'effect_remove', 'effect_value', 'viewpoint', 'emotion',
+})
+
 
 def priority(class_id):
     return TOUCH_CLASSES.index(class_id) if class_id in TOUCH_CLASSES else len(TOUCH_CLASSES)
@@ -22,6 +35,62 @@ def can_trigger(npc):
     if options is None:
         options = npc.get('initial_options')
     return options is None or type(options) is int and not options & 6
+
+
+def chebyshev(npc, position):
+    """Absolute Chebyshev distance, or None when coordinates are unusable."""
+    values = (position.get('x'), position.get('y'), npc.get('x'), npc.get('y'))
+    if not all(type(value) is int and 0 <= value <= 1023 for value in values):
+        return None
+    return max(abs(position['x'] - npc['x']), abs(position['y'] - npc['y']))
+
+
+def inside_axes(npc, position, radius_x, radius_y):
+    """True when the player cell is inside the OnTouch rectangle (inclusive)."""
+    if not all(type(value) is int and 1 <= value <= MAX_TOUCH_RADIUS for value in (radius_x, radius_y)):
+        return False
+    values = (position.get('x'), position.get('y'), npc.get('x'), npc.get('y'))
+    if not all(type(value) is int and 0 <= value <= 1023 for value in values):
+        return False
+    return abs(position['x'] - npc['x']) <= radius_x and abs(position['y'] - npc['y']) <= radius_y
+
+
+def membership_transition(previous_ids, current_ids):
+    """Return (entered, left) actor-id frozensets for coverage updates."""
+    previous = frozenset(previous_ids or ())
+    current = frozenset(current_ids or ())
+    return current - previous, previous - current
+
+
+def covering_touch_entities(world, session, flow_id, position, *, radius=MAX_TOUCH_RADIUS):
+    """Contact-class, can_trigger NPCs whose MAX/search rectangle covers the player cell."""
+    if world is None or not position or not isinstance(position.get('map_name'), str):
+        return []
+    if not all(type(position.get(axis)) is int and 0 <= position[axis] <= 1023 for axis in ('x', 'y')):
+        return []
+    if type(radius) is not int or not 1 <= radius <= MAX_TOUCH_RADIUS:
+        return []
+    matches = []
+    for entity in world.records('NPC', active_only=True):
+        if (entity.capture_session != session or entity.flow_id != flow_id
+                or entity.map_name != position['map_name']
+                or not can_trigger({'options': entity.options, 'initial_options': entity.initial_options})):
+            continue
+        class_id = declaration_class(vars(entity))
+        touch_class = 844 if player_class(class_id) else class_id
+        if touch_class not in TOUCH_CLASSES:
+            continue
+        if not inside_axes(vars(entity), position, radius, radius):
+            continue
+        matches.append(entity)
+    return matches
+
+
+def unique_entered_touch_entity(entered_entities):
+    """One newly covered contact NPC, or None when empty/ambiguous (incl. same-cell peers)."""
+    if len(entered_entities) != 1:
+        return None
+    return entered_entities[0]
 
 
 def colocated_touch_npcs(world, packet, session, entity, *, max_matches=8):
