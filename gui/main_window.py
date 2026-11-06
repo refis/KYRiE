@@ -97,7 +97,9 @@ class MainWindow(QMainWindow):
         except (OSError,ValueError):
             self.navigation=empty_navigation()
         self.dialogues.source_refs = self.world_sources
-        self.world_revision = -1
+        self.npc_world_revision = -1
+        self.mob_world_revision = -1
+        self._packet_progress_tick = 0
         self.world_notified_issues = set()
         self.presenter = None
         self.send_presenter = None
@@ -478,17 +480,25 @@ class MainWindow(QMainWindow):
         return ReceiveDisplay(profile, direction=direction, client_names=getattr(self, 'client_names', None))
 
     def refresh_entity_views(self, *args):
-        self.mob_spawn_panel.refresh()
-        self.shop_panel.refresh()
+        # Header + entity tables stay live. Heavy MOB skill/combat, shop, spawn, and
+        # dialogue rebuilds only run while their tab is visible — skillunit floods
+        # used to refresh those every 250ms on the observation tab too.
         self.player_panel.refresh()
-        self.dialogue_panel.refresh()
-        self.mob_skills_panel.refresh()
-        self.mob_performance_panel.refresh()
-        if self.world_revision == self.world.revision:
-            return
-        self.npc_panel.set_records(self.world.records('NPC'))
-        self.mob_panel.set_records(self.world.records('MOB'))
-        self.world_revision = self.world.revision
+        current = self.workspace_tabs.currentWidget()
+        if current is self.npc_panel:
+            self.shop_panel.refresh()
+        if current is self.mob_panel:
+            self.mob_spawn_panel.refresh()
+            self.mob_skills_panel.refresh()
+            self.mob_performance_panel.refresh()
+        if current is self.dialogue_panel or current is getattr(self.dialogue_panel, 'event_trials', None):
+            self.dialogue_panel.refresh()
+        if self.npc_world_revision != self.world.revision:
+            self.npc_panel.set_records(self.world.records('NPC'))
+            self.npc_world_revision = self.world.revision
+        if self.mob_world_revision != self.world.revision:
+            self.mob_panel.set_records(self.world.records('MOB'))
+            self.mob_world_revision = self.world.revision
 
     def save_entities(self, kind):
         if self.workspace_closing or self.display_export is not None:return
@@ -1204,6 +1214,11 @@ class MainWindow(QMainWindow):
 
     def update_packet_progress(self):
         counts=self.packet_progress()
+        urgent=counts['overflowed'] or self.database_failed
+        self._packet_progress_tick+=1
+        # Under floods, rewriting the diagnostics label every packet is pure GUI churn.
+        if not urgent and self._packet_progress_tick%16:
+            return
         self.packet_progress_label.setText(f'この画面: 取得側発行 {counts["published"]} / GUI未受付 {counts["awaiting_gui"]} / '
             f'GUI受付 {counts["gui_received"]} / 処理完了 {counts["processed"]} / '
             f'DB保存確認 {counts["db_confirmed"]} / DB保存未確認 {counts["db_unconfirmed"]} / '
@@ -1342,14 +1357,19 @@ class MainWindow(QMainWindow):
         if type(limit) is not int or limit < 1:
             return 0
         retained=len(self.events)
-        if (retained <= limit or self.database_failed or self.history_tasks.busy
-                or len(self.packet_rowids) != retained):
+        if retained <= limit or self.database_failed or len(self.packet_rowids) != retained:
             return 0
         drop=retained-limit
         while drop > 0 and self.packet_rowids[drop-1] is None:
             drop -= 1
         if drop <= 0:
             return 0
+        # Format/view jobs walk events by index; cancel them before trimming so a
+        # long reformat during a flood cannot pin RAM above MEMORY_EVENT_LIMIT.
+        if self.history_tasks.busy:
+            self.history_tasks.cancel()
+            self.history_view_stale=True
+            self.history_update_state()
         for offset in range(drop):
             rowid=self.packet_rowids[offset]
             if rowid is None:
