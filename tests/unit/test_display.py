@@ -75,8 +75,11 @@ class DisplayTests(unittest.TestCase):
         self.assertEqual(result.text, 'announce "hello", 0x9, 0xff1122;')
 
     def test_64_bit_experience_and_numeric_transforms(self):
+        # 0ACC combat/quest gains stay out of the observation log; getexp is NPC adoption only.
         result = self.display.decode(event(0xACC, struct.pack('<IQHH', 42, 2**40, 1, 0)))
-        self.assertEqual(result.text, 'getexp 1099511627776,0,0;')
+        self.assertEqual(result.text, '')
+        self.assertEqual(result.fields['experience'], 2**40)
+        self.assertEqual(result.fields['kind'], 1)
         self.assertEqual(self.display.decode(event(0xA36, struct.pack('<IB', 42, 19))).fields['percent'], 95)
         self.assertEqual(self.display.decode(event(0xAB9, struct.pack('<H', 5))).text, 'itempreview 3;')
 

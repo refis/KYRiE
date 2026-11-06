@@ -1456,13 +1456,13 @@
           "type": "u16"
         }
       },
-      "template": "getexp 0,{experience},{quest};",
+      "template": "",
       "variants": [
         {
           "when": {
             "kind": 1
           },
-          "template": "getexp {experience},0,{quest};"
+          "template": ""
         }
       ]
     },

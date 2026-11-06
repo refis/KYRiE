@@ -10,6 +10,7 @@ from gui.event_history import MEMORY_EVENT_LIMIT, physical_index, trim_parallel
 from gui.history_tasks import HistoryTasks
 from gui.observation_save import ObservationTextSnapshot,ObservationSaveWorker
 from collections import deque
+from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QFileDialog, QMessageBox, QInputDialog
 from capture.receiver import Receiver
 from capture.process_monitor import list_processes
@@ -935,6 +936,8 @@ class MainWindow(QMainWindow):
             self.packet_indices[:]=indices
             self.packet_pager.set_rows(self.packet_indices,'packets')
             self.display_log.setPlainText(self.bounded_display_text(text))
+            # Bounded rebuild replaces the document; keep the tail in view.
+            self._pin_display_log_to_end()
         def abort():self.history_view_stale=True
         self.history_tasks.start('view',project(),commit,
             asynchronous=not immediate and len(self.events)>2000,abort=abort)
@@ -945,7 +948,22 @@ class MainWindow(QMainWindow):
     def bounded_display_text(cls,text):
         return '\n'.join(text[-cls.DISPLAY_TEXT_LIMIT:].split('\n')[-5000:])
 
+    def _pin_display_log_to_end(self):
+        """After setPlainText/trims, keep the newest observation visible."""
+        def pin():
+            cursor=self.display_log.textCursor()
+            cursor.movePosition(QTextCursor.End)
+            self.display_log.setTextCursor(cursor)
+            self.display_log.ensureCursorVisible()
+            bar=self.display_log.verticalScrollBar()
+            bar.setValue(bar.maximum())
+        pin()
+        # Document replace may not update the scrollbar range until the next turn.
+        QTimer.singleShot(0, pin)
+
     def append_display_text(self,text):
+        bar=self.display_log.verticalScrollBar()
+        follow=bar.maximum()<=0 or bar.value()>=bar.maximum()-4
         self.display_log.appendPlainText(MainWindow.bounded_display_text(text))
         # Character bound without per-packet toPlainText (that freezes under floods).
         # maximumBlockCount already caps line count; trim body text only occasionally.
@@ -958,7 +976,10 @@ class MainWindow(QMainWindow):
         if self._display_trim_debt<64 and chars<=self.DISPLAY_TEXT_LIMIT+8192:
             return
         self._display_trim_debt=0
+        # setPlainText resets the scrollbar to the top (oldest retained line).
         self.display_log.setPlainText(self.display_log.toPlainText()[-self.DISPLAY_TEXT_LIMIT*3//4:])
+        if follow:
+            self._pin_display_log_to_end()
 
     def save_display(self):
         from storage.observation_export import save_observation_chunks,validate_export_destination,ExportLimitError
