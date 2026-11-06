@@ -1,5 +1,6 @@
 from version import __version__
 from datetime import datetime
+import os
 import sqlite3
 import json
 from gui.layout import build_workspace
@@ -11,7 +12,11 @@ from gui.history_tasks import HistoryTasks
 from gui.observation_save import ObservationTextSnapshot,ObservationSaveWorker
 from collections import deque
 from PySide6.QtGui import QTextCursor, QDesktopServices
-from PySide6.QtWidgets import QMainWindow, QTableWidgetItem, QFileDialog, QMessageBox, QInputDialog
+from PySide6.QtWidgets import (
+    QMainWindow, QTableWidgetItem, QFileDialog, QMessageBox, QInputDialog,
+    QDialog, QDialogButtonBox, QLabel, QVBoxLayout, QLineEdit, QPlainTextEdit,
+    QTextEdit, QAbstractSpinBox,
+)
 from capture.receiver import Receiver
 from capture.process_monitor import list_processes
 from scapy.interfaces import get_working_ifaces
@@ -171,6 +176,10 @@ class MainWindow(QMainWindow):
             self.show_capture_status(ignore_error)
         if settings_error:
             self.show_capture_status(settings_error)
+        if not getattr(self, 'startup_checklist_seen', False):
+            # Auto-show only on interactive desktops; offscreen CI must not block on dialogs.
+            if not self.offline and os.environ.get('QT_QPA_PLATFORM') != 'offscreen':
+                QTimer.singleShot(0, self.show_startup_checklist)
 
     def apply_user_settings(self):
         from storage import user_settings
@@ -178,6 +187,7 @@ class MainWindow(QMainWindow):
         try:
             document = user_settings.load()
         except (OSError, user_settings.UserSettingsError) as exc:
+            self.startup_checklist_seen = False
             return f'ユーザー設定を読み込めません（既定値を使用）: {exc}'
         user_settings.apply_to_window(self, document)
         try:
@@ -322,6 +332,77 @@ class MainWindow(QMainWindow):
         from gui.layout import show_panel
         show_panel(self.diagnostics_dialog)
 
+    def open_settings_panel(self):
+        from gui.layout import show_panel
+        show_panel(self.settings_dialog)
+
+    def focus_blocks_workspace_shortcut(self):
+        """True when the user is typing into an editable field."""
+        widget = self.focusWidget()
+        while widget is not None and widget is not self:
+            if isinstance(widget, QLineEdit):
+                return True
+            if isinstance(widget, (QPlainTextEdit, QTextEdit)) and not widget.isReadOnly():
+                return True
+            if isinstance(widget, QAbstractSpinBox):
+                return True
+            widget = widget.parentWidget()
+        return False
+
+    def shortcut_start_capture(self):
+        if self.offline or not self.start_button.isEnabled():
+            return
+        self.start()
+
+    def shortcut_stop_capture(self):
+        if self.offline or not self.stop_button.isEnabled():
+            return
+        self.stop()
+
+    def shortcut_open_recording(self):
+        if self.offline or not self.open_log_button.isEnabled():
+            return
+        self.open_recording()
+
+    def show_startup_checklist(self):
+        """Guide-only checklist; never mutates capture/display settings."""
+        existing = getattr(self, '_startup_checklist_dialog', None)
+        if existing is not None and existing.isVisible():
+            existing.raise_()
+            existing.activateWindow()
+            return
+        dialog = QDialog(self)
+        dialog.setWindowTitle('開始前の確認')
+        dialog.setModal(False)
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(
+            '取得を始める前に次を確認してください。\n'
+            'この案内では設定値を変更しません。\n\n'
+            '1. Npcap を導入し、必要なら管理者権限で起動する\n'
+            '2. 「設定 → 取得」で PacketLength 定義が対象クライアント向けか確認する\n'
+            '3. 再解析用の生バイト記録は「設定 → 記録」で明示的に有効化する（既定オフ）\n'
+            '4. EXE化・EXE配布は行いません。起動は Python＋venv です'))
+        buttons = QDialogButtonBox(dialog)
+        open_settings = buttons.addButton('設定を開く…', QDialogButtonBox.ActionRole)
+        close = buttons.addButton('閉じる', QDialogButtonBox.AcceptRole)
+        layout.addWidget(buttons)
+
+        def open_settings_and_close():
+            self.open_settings_panel()
+            dialog.accept()
+
+        open_settings.clicked.connect(open_settings_and_close)
+        close.clicked.connect(dialog.accept)
+
+        def on_finished(_result):
+            self.startup_checklist_seen = True
+            self.persist_user_settings()
+            self._startup_checklist_dialog = None
+
+        dialog.finished.connect(on_finished)
+        self._startup_checklist_dialog = dialog
+        dialog.show()
+
     def open_operation_guide(self):
         path = Path(__file__).resolve().parents[1] / 'docs' / 'guide' / 'gui-workspace.md'
         if not path.is_file():
@@ -336,7 +417,8 @@ class MainWindow(QMainWindow):
             f'KYRiE v{__version__}\n\n'
             'Auriga向けNPC復元・MOB観測の開発スナップショットです。\n'
             'EXE化・EXE配布は行いません。起動は Python＋venv です。\n'
-            '公開ライセンスは未確定です（NOTICE）。操作は docs/guide/ を参照してください。')
+            '公開ライセンスは未確定です（NOTICE）。操作は docs/guide/ を参照してください。\n'
+            'ショートカット: F5 観測開始 / F8 停止 / Ctrl+Shift+O 生ログを開く')
 
     def show_capture_status(self, message):
         brief = message

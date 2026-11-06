@@ -43,6 +43,8 @@ DEFAULTS = dict(
     pipe_enabled=False,
     pipe_name='',
     merge_npc_paths=False,
+    # Dismissal only; checklist never writes capture/display toggles by itself.
+    startup_checklist_seen=False,
 )
 
 
@@ -202,6 +204,7 @@ def collect_from_window(window):
         pipe_enabled=window.pipe_enabled.isChecked(),
         pipe_name=window.pipe_name.text().strip(),
         merge_npc_paths=window.dialogue_panel.merge_checkbox.isChecked(),
+        startup_checklist_seen=bool(getattr(window, 'startup_checklist_seen', False)),
     ))
 
 
@@ -262,6 +265,7 @@ def apply_to_window(window, settings):
             window.export_merge_action.blockSignals(True)
             window.export_merge_action.setChecked(document['merge_npc_paths'])
             window.export_merge_action.blockSignals(False)
+        window.startup_checklist_seen = document['startup_checklist_seen']
     finally:
         for control in controls:
             control.blockSignals(False)

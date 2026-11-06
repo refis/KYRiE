@@ -226,3 +226,9 @@ docs 目次を利用者／仕様契約／開発の入口に再編。実装は v0
 
 ヘルプメニュー（操作ガイド／About）、主要ヘッダー toolTip、状態ラベルクリックで診断。
 `gui-workspace.md` から未実装予定・旧検証件数の段を除去。EXE化なしを操作ガイドにも明記。
+
+### GUI P2-2 ショートカットと開始前確認（2026-11-06）
+
+F5 観測開始／F8 停止／Ctrl+Shift+O 生ログ（入力欄編集中は無効）。
+開始前チェックリストは案内のみで capture／display 設定を自動変更しない。
+既読は `user_settings.json` の `startup_checklist_seen`。offscreen では自動表示しない。

@@ -4,6 +4,7 @@ import os
 import uuid
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
     QLabel, QLineEdit, QPlainTextEdit, QPushButton, QSizePolicy, QSpinBox, QSplitter,
@@ -46,9 +47,9 @@ def build_workspace(window):
     w.refresh_processes.setToolTip('実行中プロセス一覧を更新します')
     w.refresh_processes.clicked.connect(w.populate_processes)
     w.start_button = QPushButton('観測開始')
-    w.start_button.setToolTip('選択したEXEの通信観測を開始します')
+    w.start_button.setToolTip('選択したEXEの通信観測を開始します（F5）')
     w.stop_button = QPushButton('停止')
-    w.stop_button.setToolTip('観測を停止します')
+    w.stop_button.setToolTip('観測を停止します（F8）')
     w.stop_button.setEnabled(False)
     w.settings_button = QPushButton('設定')
     w.diagnostics_button = QPushButton('診断')
@@ -56,7 +57,7 @@ def build_workspace(window):
         control.setParent(w)
         control.hide()
     w.open_log_button = QPushButton('生ログを開く…')
-    w.open_log_button.setToolTip('保存済み生ログを再解析用に開きます（停止中）')
+    w.open_log_button.setToolTip('保存済み生ログを再解析用に開きます（停止中・Ctrl+Shift+O）')
     w.open_log_button.clicked.connect(w.open_recording)
     from gui.reference_browser import ReferenceBrowser
     w.reference_browser=ReferenceBrowser(w.client_names,w.navigation,w,
@@ -274,7 +275,21 @@ def build_workspace(window):
     w.export_all_npcs_action.setToolTip('配置のみNPC・会話NPC・shopを含みます。会話統合チェックに従い、一覧の表示フィルターには依存しません。')
     help_menu = w.menuBar().addMenu('ヘルプ')
     help_menu.addAction('操作ガイドを開く…', w.open_operation_guide)
+    help_menu.addAction('開始前の確認…', w.show_startup_checklist)
     help_menu.addAction('KYRiEについて…', w.show_about_dialog)
+    _install_workspace_shortcuts(w)
+
+
+def _install_workspace_shortcuts(w):
+    """Window shortcuts that ignore editable text focus."""
+    def bind(key, callback):
+        shortcut = QShortcut(QKeySequence(key), w)
+        shortcut.setContext(Qt.WindowShortcut)
+        shortcut.activated.connect(lambda: None if w.focus_blocks_workspace_shortcut() else callback())
+        return shortcut
+    w.shortcut_start = bind('F5', w.shortcut_start_capture)
+    w.shortcut_stop = bind('F8', w.shortcut_stop_capture)
+    w.shortcut_open_log = bind('Ctrl+Shift+O', w.shortcut_open_recording)
 
 
 def show_panel(dialog):
