@@ -92,8 +92,9 @@ config/receive_display.jsonは従来の互換ファイル、rAthenaは従来の�
 - 0071/0283/02EB/0A18/0087/0088: マップ・自己ID・位置の観測。
 - 00B0/00B1/0ACB: 基本ステータス。type=20はZeny、type=1/2はBaseExp/JobExpの絶対値。
   初回値（ログイン／キャラ一覧反映含む）は収入として扱わず「差分不明」と表示する。
-  既知のZeny差分は `set Zeny,Zeny{delta:+d};`、BaseExp/JobExpの増加は
-  `getexp {delta},0,0;`／`getexp 0,{delta},0;`。差分0は抑制、EXP減少はコメントのみ。
+  既知のZeny差分は `set Zeny,Zeny{delta:+d};`。BaseExp/JobExpの既知増加は観測ログへ出さず、
+  会話紐づけの資源観測＋採用時のみ `getexp` 化する（戦闘EXPのログ洪水を避ける）。
+  差分0は抑制、EXP減少はコメントのみ。
 - アイテム取得／減少と一覧の開始・分割・完了を表示する。
   属性なしで鑑定済みの取得はgetitem、観測済みIndexからの減少はdelitemの書式。
   精錬、カード、オプション、期限、バインド、未鑑定等は@item_gainに属性を残す。
