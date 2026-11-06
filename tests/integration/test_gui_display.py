@@ -425,6 +425,39 @@ class DisplayGuiTests(WindowTestCase):
         self.assertTrue(w.history_view_stale)
         self.assertFalse(w.history_tasks.busy)
 
+    def test_observation_log_trim_keeps_scrollbar_on_newest(self):
+        from PySide6.QtTest import QTest
+        from unittest.mock import Mock
+        from parser.display import DisplayResult
+        from events import PacketEvent
+        w=self.window
+        w.resize(960,720)
+        w.show()
+        self.app.processEvents()
+        w.presenter=Mock()
+        w.presenter.decode.side_effect=lambda packet,*args:DisplayResult(
+            'test','message-'+str(int(packet.timestamp))+'-'+'x'*800,'decoded')
+        for index in range(900):
+            w.add_packet(PacketEvent(index,'RECV',127,b'\x7f\0','TEST','flow'))
+        self.assertIn('message-899-',w.display_log.toPlainText())
+        # Simulate a user stuck at the top after an unpinned setPlainText, then pin.
+        bar=w.display_log.verticalScrollBar()
+        bar.setValue(0)
+        w._pin_display_log_to_end()
+        self.app.processEvents()
+        QTest.qWait(20)
+        self.app.processEvents()
+        bar=w.display_log.verticalScrollBar()
+        self.assertEqual(bar.value(),bar.maximum())
+        w.rebuild_display_log()
+        self.finish_history_update()
+        self.app.processEvents()
+        QTest.qWait(20)
+        self.app.processEvents()
+        bar=w.display_log.verticalScrollBar()
+        self.assertEqual(bar.value(),bar.maximum())
+        self.assertIn('message-899-',w.display_log.toPlainText())
+
     def test_bounded_observation_document_saves_full_matching_history(self):
         from unittest.mock import Mock
         from parser.display import DisplayResult
