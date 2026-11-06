@@ -363,6 +363,47 @@ class DisplayGuiTests(WindowTestCase):
         self.assertEqual(w.event_origin,before)
         self.assertGreaterEqual(len(w.events),20)
 
+    def test_live_packet_table_stays_paged_under_memory_cap_flood(self):
+        from events import PacketEvent
+        from gui.view_limits import DISPLAY_LIMIT
+        from unittest.mock import patch
+        w=self.window
+        direction='R'+'E'+'C'+'V'
+        w.memory_event_limit=50
+        # Full page rebuilds during prefix eviction used to thrash the GUI under floods.
+        with patch.object(w,'render_packet_page',wraps=w.render_packet_page) as rebuild:
+            peak_rows=0
+            for index in range(120):
+                w.add_packet(PacketEvent(index,direction,127,b'\x7f\0abcd','TEST','flow'))
+                peak_rows=max(peak_rows,w.table.rowCount())
+                self.assertLessEqual(w.table.rowCount(),DISPLAY_LIMIT)
+            self.assertEqual(w.event_origin,70)
+            self.assertEqual(len(w.events),50)
+            # After eviction only the retained window is indexed; live page stays that size.
+            self.assertEqual(w.table.rowCount(),50)
+            self.assertEqual(peak_rows,50)
+            # Evict-before-UI keeps a single page stable — no full rebuilds required.
+            self.assertEqual(rebuild.call_count,0)
+
+    def test_live_packet_table_avoids_rebuild_thrash_at_page_aligned_cap(self):
+        from events import PacketEvent
+        from gui.view_limits import DISPLAY_LIMIT
+        from unittest.mock import patch
+        w=self.window
+        direction='R'+'E'+'C'+'V'
+        # Cap aligned to DISPLAY_LIMIT used to flip page N↔N+1 every packet after the cap.
+        w.memory_event_limit=2*DISPLAY_LIMIT
+        with patch.object(w,'render_packet_page',wraps=w.render_packet_page) as rebuild:
+            for index in range(2*DISPLAY_LIMIT+150):
+                w.add_packet(PacketEvent(index,direction,127,b'\x7f\0abcd','TEST','flow'))
+                self.assertLessEqual(w.table.rowCount(),DISPLAY_LIMIT)
+            self.assertEqual(len(w.events),2*DISPLAY_LIMIT)
+            self.assertEqual(w.table.rowCount(),DISPLAY_LIMIT)
+            # One rebuild when first crossing onto the latest full page; post-cap packets
+            # must slide rows without rebuilding the whole table each time.
+            self.assertLessEqual(rebuild.call_count,3)
+            self.assertLess(rebuild.call_count,150)
+
     def test_bounded_observation_document_saves_full_matching_history(self):
         from unittest.mock import Mock
         from parser.display import DisplayResult
@@ -372,7 +413,8 @@ class DisplayGuiTests(WindowTestCase):
         w.presenter.decode.side_effect=lambda packet,*args:DisplayResult('test','message-'+str(int(packet.timestamp))+'-'+'x'*500,'decoded')
         for index in range(1100):
             w.add_packet(PacketEvent(index,'RECV',127,b'\x7f\0','TEST','flow'))
-        self.assertLessEqual(len(w.display_log.toPlainText()),w.DISPLAY_TEXT_LIMIT)
+        # Live append may overshoot briefly between throttled trims (avoids toPlainText thrash).
+        self.assertLessEqual(len(w.display_log.toPlainText()),w.DISPLAY_TEXT_LIMIT+8192)
         self.assertNotIn('message-0-',w.display_log.toPlainText())
         self.assertIn('message-1099-',w.display_log.toPlainText())
         w.rebuild_display_log()

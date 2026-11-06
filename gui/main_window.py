@@ -941,9 +941,18 @@ class MainWindow(QMainWindow):
 
     def append_display_text(self,text):
         self.display_log.appendPlainText(MainWindow.bounded_display_text(text))
-        if self.display_log.document().characterCount()>self.DISPLAY_TEXT_LIMIT+1:
-            # Leave headroom so trimming is occasional rather than per packet.
-            self.display_log.setPlainText(self.display_log.toPlainText()[-self.DISPLAY_TEXT_LIMIT*3//4:])
+        # Character bound without per-packet toPlainText (that freezes under floods).
+        # maximumBlockCount already caps line count; trim body text only occasionally.
+        chars=self.display_log.document().characterCount()
+        if chars<=self.DISPLAY_TEXT_LIMIT+1:
+            self._display_trim_debt=0
+            return
+        self._display_trim_debt=getattr(self,'_display_trim_debt',0)+1
+        # Allow a small overshoot between trims; force when clearly bloated.
+        if self._display_trim_debt<64 and chars<=self.DISPLAY_TEXT_LIMIT+8192:
+            return
+        self._display_trim_debt=0
+        self.display_log.setPlainText(self.display_log.toPlainText()[-self.DISPLAY_TEXT_LIMIT*3//4:])
 
     def save_display(self):
         from storage.observation_export import save_observation_chunks,validate_export_destination,ExportLimitError
@@ -1281,19 +1290,36 @@ class MainWindow(QMainWindow):
         result = (renderer.decode(event, self.render_timestamps) if renderer
                   else DisplayResult('', '', 'unmapped'))
         self.display_results.append(result)
-        if not self.history_view_stale and not self.history_tasks.running("view") and self.matches(event):
+        matched=(
+            not self.history_view_stale and not self.history_tasks.running("view") and self.matches(event))
+        if matched:
             self.packet_indices.append(index)
+        # Evict before live-page math so a 50000-cap flood does not oscillate page
+        # count (N ↔ N+1) and force a full table rebuild on every packet.
+        trimmed=self._maybe_evict_memory_events()
+        self._refresh_event_counter()
+        if matched:
             pager=self.packet_pager
-            last=(len(self.packet_indices)-1)//DISPLAY_LIMIT
+            count=len(self.packet_indices)
+            last=max(0,(count-1)//DISPLAY_LIMIT) if count else 0
             if pager.follow_latest:
                 if pager.page!=last:
                     pager.page=last
                     self.render_packet_page()
                 else:
+                    # Keep the live page at DISPLAY_LIMIT rows; also drop rows that
+                    # memory eviction removed from this page (common under a small cap).
+                    # Unbounded insertRow caused "Not Responding" around the 50k memory
+                    # cap under skill-unit floods.
+                    remove=trimmed
+                    if self.table.rowCount()>=DISPLAY_LIMIT:
+                        remove=max(remove,1)
+                    for _ in range(min(remove,self.table.rowCount())):
+                        self.table.removeRow(0)
                     self.insert_packet_row(index)
+            elif trimmed:
+                self.render_packet_page()
             pager._update()
-        self._maybe_evict_memory_events()
-        self._refresh_event_counter()
         if not self.history_view_stale and not self.history_tasks.running("view") and self.display_visible(event, result, tags):
             self.append_display_text(result.text)
 
@@ -1306,35 +1332,57 @@ class MainWindow(QMainWindow):
             self.counter.setText(f'{logical} 件')
 
     def _maybe_evict_memory_events(self):
-        """Drop oldest in-memory packets only after DB confirmation. Never drop unsaved."""
+        """Drop oldest in-memory packets only after DB confirmation. Never drop unsaved.
+
+        Returns how many leading packet_indices were removed (0 when nothing evicted).
+        Does not rebuild the packet table; the caller updates the live page after eviction
+        so follow-latest stays on a stable page size at the memory cap.
+        """
         limit=self.memory_event_limit
         if type(limit) is not int or limit < 1:
-            return
+            return 0
         retained=len(self.events)
         if (retained <= limit or self.database_failed or self.history_tasks.busy
                 or len(self.packet_rowids) != retained):
-            return
+            return 0
         drop=retained-limit
         while drop > 0 and self.packet_rowids[drop-1] is None:
             drop -= 1
         if drop <= 0:
-            return
+            return 0
         for offset in range(drop):
             rowid=self.packet_rowids[offset]
             if rowid is None:
-                return
+                return 0
             if rowid:  # positive SQLite id; 0 means flag&2 intentionally not persisted
                 self.evicted_rowids[self.event_origin+offset]=rowid
         trim_parallel(
             (self.events,self.display_results,self.display_sessions,self.observation_tags,self.packet_rowids),
             drop)
         self.event_origin += drop
-        self.packet_indices[:] = [index for index in self.packet_indices if index >= self.event_origin]
+        # packet_indices stay ascending; drop the obsolete prefix without a full rescan.
+        # pager.rows already aliases this list — avoid set_rows (emits changed → full rebuild).
+        start=0
+        indices=self.packet_indices
+        origin=self.event_origin
+        while start < len(indices) and indices[start] < origin:
+            start += 1
+        if start:
+            del indices[:start]
         if not self.history_view_stale and not self.history_tasks.running('view'):
-            self.packet_pager.set_rows(self.packet_indices,'packets')
-            self.render_packet_page()
-        self.show_capture_status(
-            f'メモリ履歴を {drop} 件退避しました（累計 {self.event_origin}）。DB保存済み根拠へ移動できます。')
+            pager=self.packet_pager
+            count=len(indices)
+            last=max(0,(count-1)//DISPLAY_LIMIT) if count else 0
+            if pager.follow_latest:
+                pager.page=last
+            else:
+                pager.page=min(pager.page,last)
+            pager._update()
+        # Avoid statusBar spam when over-cap traffic evicts one packet at a time.
+        if drop > 1 or self.event_origin == drop or self.event_origin % 100 == 0:
+            self.show_capture_status(
+                f'メモリ履歴を {drop} 件退避しました（累計 {self.event_origin}）。DB保存済み根拠へ移動できます。')
+        return start
 
     def _show_evicted_packet(self, logical):
         rowid=self.evicted_rowids.get(logical)
