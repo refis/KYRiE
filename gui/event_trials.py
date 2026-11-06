@@ -11,6 +11,7 @@ from reconstruction.comparison_anchors import comparison_rows
 from reconstruction.event_timer_export import (
     COMMENT_TIMER_KINDS, TIMER_PRESENTATION_KINDS, validate_timer_trial)
 from gui.presentation_context import presentation_context
+from reconstruction.npc_roster import build_npc_roster
 from storage.event_trial_selection import save_selection, load_selection
 from storage.observation_export import save_observation_text
 
@@ -424,7 +425,8 @@ class EventTrialPanel(QWidget):
                        'close_wait': 'close応答待ち中', 'during_dialogue': '会話中',
                        'comparison_anchor': '比較基準点', 'external_candidate': '会話中・別NPCへの外部演出候補'}.get(row['context'], row['context'])
             kind = KINDS.get(row['kind'], row['kind'])
-            subject=self.target_text(row) if presentation_context(row) else row.get('npc', {}).get('name') or ('マップ全体' if row.get('anchor_type')=='map_arrival' else f'{row["entity_kind"]} {row["actor_id"]}')
+            context=self.presentation_note(row)
+            subject=self.target_text(row) if context else row.get('npc', {}).get('name') or ('マップ全体' if row.get('anchor_type')=='map_arrival' else f'{row["entity_kind"]} {row["actor_id"]}')
             values = [row['capture_session'], row['packet_index'], time,
                       subject,
                       row.get('npc', {}).get('map_name') or '不明', context,
@@ -569,8 +571,14 @@ class EventTrialPanel(QWidget):
             if type(packet) is int and packet >= 0:
                 self.on_source(packet)
 
-    @staticmethod
-    def target_text(row):
+    def workspace_roster(self):
+        return build_npc_roster(getattr(self.store, 'world', None),
+                                getattr(self.store, 'source_refs', None))
+
+    def presentation_note(self, row):
+        return presentation_context(row, self.workspace_roster())
+
+    def target_text(self, row):
         if row.get('comparison_scope')=='dialogue_owner':
             owner=row.get('npc',{}).get('name') or str(row.get('actor_id'))
             target=row.get('effect_target',{})
@@ -580,19 +588,24 @@ class EventTrialPanel(QWidget):
             label=raw_target.get('name') or target.get('name') or {'player':'プレイヤー（ID未記録）','unassigned':'未特定','npc':'NPC（名称未取得）','dialogue_npc':'会話NPC'}.get(target.get('role'),'未特定')
             if raw_target.get('map_name'):label+=' ['+raw_target['map_name']+']'
             return '会話: '+owner+' / 作用先: '+label
-        context=presentation_context(row)
+        context=self.presentation_note(row)
         if context:
             if context['actor_role']=='dialogue_layout':return '会話表示: 対象ID未記録'
             if context['actor_role']=='map_cell':
                 fields = row.get('fields', {})
                 return f'セル: {fields.get("map_name", "不明")} ({fields.get("x")},{fields.get("y")})'
             name=row.get('npc',{}).get('name') or row.get('entity_kind') or '個体未確認'
+            candidates=context.get('workspace_roster_candidates') or []
+            if not (isinstance(name, str) and name) and candidates:
+                name = candidates[0].get('name') or name
+                name = f'{name}?（他ログ候補）'
             if context['actor_role']=='sound_origin':return f'音源: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='progress_target':return f'進捗対象: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='marker_npc':return f'通知NPC: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='effect_target':return f'効果対象: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='speech_source':return f'色付き発言: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='status_enter_target':return f'入場時状態: {name} / ID {row.get("actor_id")}'
+            if context['actor_role']=='visibility_target':return f'表示状態: {name} / ID {row.get("actor_id")}'
             if context['actor_role']=='map_property':return 'マップ属性: 対象ID未記録'
             if context['actor_role']=='mercenary_actor':return f'傭兵: {name} / ID {row.get("actor_id")}'
             return 'BGM: 対象ID未記録' if row['kind']=='music' else '進捗: 対象ID未記録'
@@ -690,7 +703,7 @@ class EventTrialPanel(QWidget):
             event = candidate['events'][index]
             row = event['observation']
             projected=projected or row.get('comparison_scope')=='dialogue_owner'
-            context=presentation_context(row)
+            context=self.presentation_note(row)
             if context:parts.append(label+'の対象解釈: '+context['summary'])
             if row.get('speech_origin'):
                 parts.append(label+'の発言由来: '+speech_description(row))
@@ -733,7 +746,7 @@ class EventTrialPanel(QWidget):
             self.speech_note.setText('発言の観測行を選択すると由来の照合根拠を表示します。')
             return
         row = self.rows[index]
-        context=presentation_context(row)
+        context=self.presentation_note(row)
         self.speech_note.setText(context['short'] if context else speech_description(row))
         self.speech_note.setToolTip(context['summary'] if context else '')
         self.speech_source.setEnabled(speech_send_index(row) is not None)

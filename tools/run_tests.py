@@ -32,6 +32,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
                   'tests.unit.test_cloak_appearance_vs_initial',
                   'tests.unit.test_cloak_colocated_touch',
                   'tests.unit.test_deferred_cloakoff',
+                  'tests.unit.test_npc_roster',
                   'tests.unit.test_map_property_observations',
                   'tests.unit.test_maptype_property_catalog',
                   'tests.unit.test_zc_mapproperty_review',

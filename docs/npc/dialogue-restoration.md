@@ -361,6 +361,8 @@ OnTouchの再発火・複数NPC（協会付け用の作業仮説。キュー順�
   一意入場の OnTouch枠へ載せた cloak は会話アクション経路（タイマー非採用）。
 - 会話中の未観測 cloakoff は KYRiE 側で actor_id 保留→後観測で
   `cloakoffnpc "NPC名"; // actor_id` へ反映（命令自体は視界外・会話外NPCにも有効）。
+- 複数ログ作業では、他取得で同 ActorID に付いた名称を演出比較の「他ログ候補」として
+  表示のみする（ワークスペースNPC名簿）。スクリプトへは自動反映しない。
 
 会話内の追加アクションはConversation.actionsに受信Packetの根拠とともに保存する。
 プログレスバー、表示状態、状態異常を入力応答のstepsへ挿入しないため、next/input等の返信対応は維持される。
