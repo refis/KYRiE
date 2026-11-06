@@ -404,6 +404,27 @@ class DisplayGuiTests(WindowTestCase):
             self.assertLessEqual(rebuild.call_count,3)
             self.assertLess(rebuild.call_count,150)
 
+    def test_memory_eviction_continues_while_history_tasks_busy(self):
+        from events import PacketEvent
+        from unittest.mock import Mock
+        w=self.window
+        direction='R'+'E'+'C'+'V'
+        w.memory_event_limit=30
+        for index in range(30):
+            w.add_packet(PacketEvent(index,direction,127,b'\x7f\0abcd','TEST','flow'))
+        # Simulate a long format/view job that previously blocked eviction entirely.
+        def stalled():
+            while True:
+                yield
+        w.history_tasks.jobs['format']=dict(iterator=stalled(),commit=lambda *_:None,abort=None)
+        self.assertTrue(w.history_tasks.busy)
+        for index in range(30,60):
+            w.add_packet(PacketEvent(index,direction,127,b'\x7f\0abcd','TEST','flow'))
+        self.assertEqual(len(w.events),30)
+        self.assertEqual(w.event_origin,30)
+        self.assertTrue(w.history_view_stale)
+        self.assertFalse(w.history_tasks.busy)
+
     def test_bounded_observation_document_saves_full_matching_history(self):
         from unittest.mock import Mock
         from parser.display import DisplayResult
