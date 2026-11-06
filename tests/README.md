@@ -114,5 +114,12 @@ GUI では配線（読取専用・空欄・KeyError回避・候補固定）だ�
 外部採用案内の文言は定数＋unit、GUI timing からのソース読込照合は削除した。
 実行は変更モジュール／メソッド単位（`mob` / `events` / `gui-timing` / `gui-restoration` の該当メソッド）。
 
-直近スナップショットの検証範囲は[v0.0.6記録](../docs/releases/v0.0.6.md)を参照。
+直近スナップショットの検証範囲は[v0.0.9記録](../docs/releases/v0.0.9.md)を参照。
 版を進めるときは直下READMEも同コミットで更新する（[手順](../docs/releases/README.md)）。
+
+## 2026-11-06の整理（洪水・EXP観測）
+
+GUI洪水耐性（#129/#131）と観測ログの getexp 抑制（#132/#133）に合わせ、
+`gui-display` に切り詰め末尾固定、`display`／`player`／`resource_adoption` に
+EXP方針の回帰を追加した。`tools/run_tests.py` の機能グループは全94モジュールを割当済み
+（未割当なし）。discover 全件は時点で約809（達成指標にしない。選択実行を正とする）。

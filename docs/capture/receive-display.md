@@ -80,10 +80,13 @@ NPC Entity に `showevent_flag`（既定 `-1`）と `showevent_kind` を保持�
 出現（spawn）が無い Actor は配置 Entity を作らず観測ログのみ（`showeventflag=9999 NPC判定`）。
 解析・会話復元の `event_marker` 保持は従来どおり全件行う。
 
-### update_status（00B0／00B1／0ACB）
+### update_status（00B0／00B1／0ACB）と経験値通知（0ACC）
 
 HP/SP/重量など多発する `@update_status` 行は観測ログから抑制する。
-Zeny（type 20）と Base/Job Exp（type 1/2）は表示を残す。PlayerStore の数値更新は継続する。
+Zeny（type 20）の既知差分は `set Zeny,Zeny±n;` 形式で表示する。
+Base/Job Exp（type 1/2）の増加と 0ACC Experience gain は観測ログへ `getexp` を出さない
+（会話資源への紐づけ＋採用時のみ。戦闘洪水を避ける）。
+初回・差分不明・減少 EXP はコメント。PlayerStore の数値更新は継続する。
 
 セッション開始時は適用後の長さを `PacketLength.used.txt` に残し、オーバーレイ利用時は
 `PacketOverlay.used.json` と `session_start.overlay_sha256` も残す。
