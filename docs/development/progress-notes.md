@@ -171,3 +171,11 @@ Auriga に `navigateto`／`progressbar_npc`／`viewpointmap`／`camerainfo` が�
 KYRiE は会話内 08E2→`navigateto`、会話元 09D1→`progressbar_npc` を生成する。
 タイマーの progressbar コメント採用と秒数≠OnTimer は維持。viewpointmap は 0144 と区別できないため未生成。
 0A78 camerainfo は観測ログへ暫定追加（`@camerainfo`、f32 3値）。本文命令化はしない。
+
+### 大容量取得時の応答なし（2026-11-06）
+
+v0.0.9 で約5万件・メモリ上限到達・Land Protector 等の skillunit 多発時に
+「応答なし」報告（生ログなし）。最新ページが insertRow のみで行数上限を超え、
+上限後の毎パケット退避がページ数振動付きの全再構築を繰り返していた。
+退避を表更新より先にし、行数を1000件で付け外し追従するよう修正。
+観測本文の toPlainText 切り詰めも間引く。
