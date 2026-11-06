@@ -1,0 +1,210 @@
+# One-shot: register post-P2 / #139 backlog; no-op on rerun when titles already open.
+name: Bootstrap post-P2 backlog issues
+
+on:
+  push:
+    branches: [cursor/post-p2-backlog-d40d]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Ensure optional labels exist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const wanted = [
+              { name: 'capture', color: '0E8A16', description: 'Raw packet capture / re-observation tasks' },
+              { name: 'npc', color: '1D76DB', description: 'NPC restoration / shop / dialogue' },
+              { name: 'gui', color: 'FBCA04', description: 'GUI workspace behaviour' },
+              { name: 'investigation', color: '5319E7', description: 'Observation review without code change yet' },
+              { name: 'needs-auriga-check', color: 'F9D0C4', description: 'Needs Auriga load or runtime check' },
+              { name: 'needs-raw-log', color: 'E4E669', description: 'Blocked on raw capture evidence' },
+              { name: 'blocked', color: '000000', description: 'Waiting on external dependency' },
+              { name: 'P1', color: 'D93F0B', description: 'Incorrect reconstruction or missing evidence' },
+              { name: 'P2', color: '0E8A16', description: 'Display dictionary or UX' },
+            ];
+            for (const label of wanted) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: label.name });
+                core.info(`label exists: ${label.name}`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({ owner, repo, ...label });
+                core.info(`label created: ${label.name}`);
+              }
+            }
+
+      - name: Create post-P2 backlog issues if missing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issues = [
+              {
+                title: '[documentation] P2完了後の次の着手単位を再同期',
+                labels: ['documentation'],
+                body: `## 目的
+            open Issue が再び空になったため、development-roadmap.md の「次の着手単位」を
+            2026-11-06 時点（v0.0.10＋GUI P2-1〜P2-3／ignorepacket ローカル化 #136–#139）へ揃え、
+            採取必須・実機確認・観測のみ維持を区別する。
+
+            ## 観測境界
+            - 観測する: development-roadmap.md、packaging-docs-gui-ux.md、progress-notes、#136–#139
+            - 推測しない / 自動補完しない: 未採取経路の完了扱い、実機確認済みへの格上げ
+            - 生データ採取は不要
+
+            ## 領域
+            documentation
+
+            ## 完了条件
+            - 「次の着手単位」が現状の残作業だけを列挙する
+            - GUI P2／ローカル設定を完了扱いにし、物理 docs 移動は任意のまま
+            - 文書のみ（テスト実行は任意）
+
+            ## 優先
+            P0
+
+            ## 根拠
+            2026-11-06 / open Issue 空 / #139 merged / packaging 推奨順 1–4 到達`
+              },
+              {
+                title: '[investigation] 実機・Npcap・Auriga実行確認（合成と同一視しない）',
+                labels: ['investigation', 'needs-auriga-check', 'P1'],
+                body: `## 目的
+            Linux CI／合成通過を実機確認の代替にしない。手動タイマー候補の本体読込、
+            #128 の \`navigateto\`／\`progressbar_npc\` 読込を含む Windows＋Npcap＋Auriga 確認を記録する。
+
+            ## 観測境界
+            - 観測する: 実機起動、Npcap／権限、終了時動作、Auriga への候補スクリプト読込結果
+            - 推測しない / 自動補完しない: 未確認命令の生成増加、CI成功＝実機成功の断定
+            - 生データ採取は任意（失敗再現に必要なときのみ。ログ本体はリポジトリへ上げない）
+
+            ## 領域
+            gui / capture-stack / npc
+
+            ## 完了条件
+            - Issue に確認日時・環境・結果メモ（成功／失敗と対象コマンド）
+            - 失敗時は再現手順と docs／roadmap へのリンク更新
+            - 合成テストの契約は変えない
+
+            ## 優先
+            P1
+
+            ## 根拠
+            development-roadmap.md「次の着手単位」項目1／packaging 非目標`
+              },
+              {
+                title: '[investigation] OnTouch→cloakoff リストは観測のみ維持（命令未生成）',
+                labels: ['investigation', 'npc', 'needs-raw-log', 'P1'],
+                body: `## 目的
+            \`appearance_vs_initial\`／\`colocated_touch_npcs\` の観測併記は維持し、
+            OnTouch 本文や cloakoff リスト追加の実行命令は、追加根拠が揃うまで生成しない。
+
+            ## 観測境界
+            - 観測する: 既存 ygg_roots メモ、0229／09FF 系、同セル接触候補、MAP世代切替
+            - 推測しない / 自動補完しない: 未確認のリスト命令構文、タイマー cloak への流用、起因NPC断定
+            - 追加生ログがあればハッシュとメモのみ（本体は添付しない）
+
+            ## 領域
+            npc / documentation
+
+            ## 完了条件
+            - 現状どおり命令未生成を docs（dialogue-restoration／event-timer-candidates）で明示維持
+            - 新根拠がある場合のみ観察ノート更新。命令発明は別 Issue
+            - 本 Issue は「生成着手」ではなく境界維持の追跡票
+
+            ## 優先
+            P1（境界維持）
+
+            ## 根拠
+            dialogue-restoration.md「視界外 cloak」／roadmap 項目5／#124–#125`
+              },
+              {
+                title: '[documentation] docs 物理移動（docs/user 等）は任意・明示指示後',
+                labels: ['documentation', 'gui', 'P2'],
+                body: `## 目的
+            目次の読者軸分割（A）と gui-workspace 純化（B）は済み。
+            \`docs/user/\` 等へのディレクトリ物理移動（C）はリンク一括更新とセットで、
+            packaging-docs-gui-ux.md どおり明示指示があるまで着手しない。
+
+            ## 観測境界
+            - 観測する: docs/README の3入口、相対リンク、GUIからの操作ガイドパス
+            - 推測しない / 自動補完しない: 仕様契約（npc／mob／capture）の分割・削除
+            - 生データ採取は不要
+
+            ## 領域
+            documentation / gui
+
+            ## 完了条件
+            - 利用者からの明示指示後にのみ移動PRを作成
+            - 全内部リンク・README・Help 導線を同PRで更新
+            - 仕様契約パスは原則維持
+
+            ## 優先
+            P2（任意）
+
+            ## 根拠
+            packaging-docs-gui-ux.md 段階C／推奨着手順「物理 docs 大移動は明示指示の後」`
+              },
+              {
+                title: '[enhancement] 視覚エフェクト日本語は確認済み出典待ち',
+                labels: ['enhancement', 'blocked', 'P2'],
+                body: `## 目的
+            視覚エフェクト日本語タイトルは確認済み出典が揃うまで空のままにする。
+            stateiconimginfo の画像名は辞書化しない。原資料の Git 持ち出し禁止。
+
+            ## 観測境界
+            - 観測する: 許可されたローカル .reference と既存 reference_names 方針
+            - 推測しない / 自動補完しない: 未確認訳の捏造、画像名の意味断定
+            - .reference をコミットしない
+
+            ## 領域
+            config-dict / documentation
+
+            ## 完了条件
+            - 出典と取り込み手順が client-data-utilization-plan に書けること
+            - 出典未確認のまま辞書を埋めない
+            - ブロッカー解消後に別 Issue で実装
+
+            ## 優先
+            P2（blocked）
+
+            ## 根拠
+            development-roadmap.md「次の着手単位」項目2／client-data-utilization-plan.md`
+              },
+            ];
+
+            function normalizeBody(text) {
+              return text.replace(/^[ \t]+/gm, '').trim() + '\n';
+            }
+
+            const open = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', per_page: 100,
+            });
+            const openTitles = new Set(open.filter(i => !i.pull_request).map(i => i.title));
+            let created = 0;
+            for (const issue of issues) {
+              if (openTitles.has(issue.title)) {
+                core.info(`skip existing open: ${issue.title}`);
+                continue;
+              }
+              const result = await github.rest.issues.create({
+                owner, repo,
+                title: issue.title,
+                labels: issue.labels,
+                body: normalizeBody(issue.body),
+              });
+              created += 1;
+              core.info(`created #${result.data.number}: ${issue.title}`);
+            }
+            core.info(`created ${created} issue(s)`);

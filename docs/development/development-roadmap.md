@@ -549,22 +549,26 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-06時点（[v0.0.10](../releases/v0.0.10.md) 保存直後）。
-#45–#66・#71–#135 相当は完了または main 反映済み
+2026-11-06時点（[v0.0.10](../releases/v0.0.10.md) 保存後、GUI P2／ローカル設定まで到達）。
+#45–#66・#71–#139 相当は完了または main 反映済み
 （display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、
 OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント境界 #96–#107、
 MOB skill/spawn 編集根拠 #109/#110、ActorID／offscreen CI #113–#118、
 共有非同期保存 #119/#120、大容量再生上限 #122、ナビ08E2／cloak併記 #123–#125、
 actorコメント／ignorepacket flag／showevent・status抑制 #126、
-スナップショット v0.0.9／v0.0.10、
+スナップショット v0.0.9／v0.0.10（#136）、
 Auriga #97 `navigateto`／`progressbar_npc` #128、
 表 thrash／洪水耐性 #129/#131、Zeny差分・EXP資源採用 #130/#132、
 0ACC 観測抑制・観測ログ末尾固定 #133、ロードマップ同期 #134、
-文書入口／GUI UX方針（EXE化なし確定）#135）。
+文書入口／GUI UX方針（EXE化なし確定）#135、
+Help／診断導線 #137、ショートカット・開始前確認 #138、
+ignorepacket ローカル化＋タブ初期プリセット P2-3 #139）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
-Open issues は 2026-11-06 時点でなし。残作業（採取必須のものは採取後）:
+文書純化・GUI P2（P2-1〜P2-3）と ignorepacket／user_settings のローカル専用化は到達
+（正本 [packaging-docs-gui-ux.md](packaging-docs-gui-ux.md)）。**EXE化・EXE配布はしない。**
+残作業（採取必須のものは採取後。追跡 Issue は post-P2 bootstrap）:
 
 1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない。手動タイマー候補の本体読込、
    #128 の `navigateto`／`progressbar_npc` 読込含む）
@@ -578,15 +582,11 @@ Open issues は 2026-11-06 時点でなし。残作業（採取必須のもの�
    P1-C の根拠表示・確認チェックは #109/#110 まで到達。amount／delay／CASTTIME 等の
    観測自動補完はしない。次のコード着手は採取で必要になった非対称、または
    既存 export／bundle の観測一貫性修正から。
-5. **OnTouch→cloakoff リスト命令**は未実装（観測のみ）。
+5. **OnTouch→cloakoff リスト命令**は未実装（観測のみ。命令発明しない）。
    0A78 camerainfo は観測ログのみ（本文未生成）。`viewpointmap` は 0144 と区別できないため未生成。
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
-6. **文書純化・GUI P2（v0.0.10 保存後）**: 正本は
-   [packaging-docs-gui-ux.md](packaging-docs-gui-ux.md)。
-   P2-1〜P2-3（Help・診断導線・F5/F8/Ctrl+Shift+O・開始前確認・タブ初期プリセット）と
-   `gui-workspace` 純化は到達。
-   ignorepacket／user_settings はローカル専用＋不在時プリセット（Git/ZIPで空上書きしない）。
-   **EXE化・EXE配布はしない。**
+6. **docs 物理移動（任意）**: `docs/user/` 等へのディレクトリ移動は明示指示後
+   （段階C。リンク一括更新とセット）。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。

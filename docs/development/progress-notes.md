@@ -244,3 +244,9 @@ ZIP へ空 ignorepacket を注入しない。雛形は `ignorepacket.example.jso
 `user_settings.workspace_preset`（`observe`／`restore`）で起動時の前面タブのみ切替。
 観測中心=観測ログ、復元中心=会話・コード。設定→表示コンボと作業→タブ初期表示。
 全タブは残し、パネル非表示や生成規則は変えない。プロジェクトの `view.tab` が優先。
+
+### P2完了後の着手単位再同期（2026-11-06）
+
+#136–#139（v0.0.10、Help、ショートカット、ignorepacket ローカル化、P2-3）反映後、
+「次の着手単位」から完了した GUI P2 を外し、実機確認・観測のみ維持・任意 docs 移動へ整理。
+open Issue 空のため post-P2 backlog を Actions で再登録。
