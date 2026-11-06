@@ -115,10 +115,15 @@ def validate_actions(conversation):
         else:
             commands = fields.get('commands')
             target = fields.get('target')
+            basis = fields.get('basis')
             valid = (row['packet_id'] == 0x229 and isinstance(commands, list) and 1 <= len(commands) <= 2
                      and all(command in ('hideonnpc', 'hideoffnpc', 'cloakonnpc', 'cloakoffnpc') for command in commands)
                      and uint(fields.get('options')) and (fields.get('previous_options') is None or uint(fields['previous_options']))
+                     and (basis is None or basis in ('deferred_name_resolved', 'touch_range_entry'))
+                     and set(fields) <= {'commands', 'target', 'options', 'previous_options', 'basis'}
                      and (target is None or isinstance(target, dict)
-                          and all(isinstance(target.get(key), str) and target[key] for key in ('name', 'map_name'))))
+                          and all(isinstance(target.get(key), str) and target[key] for key in ('name', 'map_name'))
+                          and set(target) <= {'name', 'map_name', 'actor_id'}
+                          and (target.get('actor_id') is None or uint(target['actor_id']))))
         if not valid:
             raise ValueError('Invalid conversation action values')

@@ -4,7 +4,9 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 
 from reconstruction.touch import (context as touch_context, is_touch, TOUCH_CLASSES, can_trigger,
-                                  MAX_TOUCH_RADIUS, priority, compare_conversation_trials)
+                                  MAX_TOUCH_RADIUS, priority, compare_conversation_trials,
+                                  covering_touch_entities, membership_transition,
+                                  unique_entered_touch_entity, TOUCH_FRAME_KINDS)
 from reconstruction.decoder import ObservationError, Reader, decode_world_event
 from reconstruction.quests import decode_quest, QUEST_PACKET_IDS
 from reconstruction.conversation_actions import status_event, STATUS_IDS
@@ -269,6 +271,13 @@ class DialogueStore:
         self.touch_warp_inferences = deque(maxlen=2000)
         self.touch_inference_dropped = 0
         self.touch_positions = {}
+        # Coverage uses MAX_TOUCH_RADIUS as a search window only; re-entry association
+        # requires outside→inside transition (see reconstruction.touch module docstring).
+        self.touch_coverage = {}
+        self.touch_entered = {}
+        # Unobserved 0x0229 options / deferred cloakoff until the actor is named.
+        self.unobserved_visibility_options = {}
+        self.pending_visibility = {}
         self.pending_walk_sends = {}
         self.shop_recent = {}
         self.close_pending, self.after_close = {}, {}
@@ -448,7 +457,9 @@ class DialogueStore:
         self.revision += 1
 
     def _retain_action(self, packet, session, index, conversation, kind, fields):
-        if (not conversation.steps or self.action_count >= 10000 or len(conversation.actions) >= 512
+        # Touch-framed sessions may hold presentation/warp actions before any mes step.
+        if ((not conversation.steps and not is_touch(conversation.npc))
+                or self.action_count >= 10000 or len(conversation.actions) >= 512
                 or len(conversation.steps) + len(conversation.actions) + len(conversation.parallel_presentations)
                    + len(conversation.external_presentations) + len(conversation.resource_observations) >= 2048):
             self.action_dropped += 1
@@ -463,6 +474,170 @@ class DialogueStore:
         self.revision += 1
         return conversation.actions[-1]
 
+    def _refresh_touch_coverage(self, session, key, position):
+        """Update outside→inside coverage. Walk destinations do not count as arrival."""
+        if not position or position.get('position_basis') == 'observed_walk_destination':
+            return frozenset()
+        entities = covering_touch_entities(self.world, session, key[1], position)
+        current = frozenset(entity.actor_id for entity in entities)
+        previous = self.touch_coverage.get(key, frozenset())
+        entered, _left = membership_transition(previous, current)
+        if len(self.touch_coverage) >= 64 and key not in self.touch_coverage:
+            self.touch_coverage.pop(next(iter(self.touch_coverage)))
+        if len(self.touch_entered) >= 64 and key not in self.touch_entered:
+            self.touch_entered.pop(next(iter(self.touch_entered)))
+        self.touch_coverage[key] = current
+        self.touch_entered[key] = entered
+        return entered
+
+    def _unique_touch_entry_entity(self, session, key, actor=None):
+        """Unique NPC just entered at last position update.
+
+        Resolve by actor_id from the entry set (coverage was computed while the NPC
+        could still trigger). Do not re-apply can_trigger here: a cloak/hide that is
+        the OnTouch reaction itself would otherwise drop the frame owner.
+        """
+        entered_ids = self.touch_entered.get(key) or frozenset()
+        if not entered_ids or not self.world:
+            return None
+        if actor is not None:
+            entered_ids = frozenset(aid for aid in entered_ids if aid == actor)
+        entities = []
+        seen = set()
+        for entity in self.world.records('NPC', active_only=False):
+            if (entity.capture_session != session or entity.flow_id != key[1]
+                    or entity.actor_id not in entered_ids or entity.actor_id in seen):
+                continue
+            seen.add(entity.actor_id)
+            entities.append(entity)
+        return unique_entered_touch_entity(entities)
+
+    def _open_touch_frame(self, packet, session, index, key, entity):
+        """Start an OnTouch-framed conversation for a unique range-entry NPC."""
+        if entity is None or len(self.sessions) >= self.max_sessions:
+            return None
+        active = self.active.get(key)
+        if active is not None:
+            if active.actor_id == entity.actor_id and is_touch(active.npc):
+                return active
+            return None
+        conversation = Conversation(len(self.sessions) + 1, session, key[1], entity.actor_id,
+                                    packet.timestamp, False, npc=asdict(entity))
+        conversation.npc['touch'] = touch_context(conversation.npc, self.touch_positions.get(key), index)
+        if not is_touch(conversation.npc):
+            return None
+        conversation.npc['touch']['frame_basis'] = 'range_entry'
+        self.sessions.append(conversation)
+        self.active[key] = conversation
+        self.revision += 1
+        return conversation
+
+    def _touch_frame_for_presentation(self, packet, session, index, key, actor=None):
+        """Attach cloak/effect/viewpoint to OnTouch when entry NPC is unique (like warp).
+
+        The unique entered contact NPC owns the frame; presentation actor may be that NPC
+        or another same-MAP target (recorded via action target fields).
+        """
+        entity = self._unique_touch_entry_entity(session, key, actor=None)
+        return self._open_touch_frame(packet, session, index, key, entity)
+
+    def _visibility_changes(self, previous, options, *, allow_unobserved_cloakoff=False):
+        changes = []
+        for bit, on, off in ((2, 'hideonnpc', 'hideoffnpc'), (4, 'cloakonnpc', 'cloakoffnpc')):
+            if previous is not None and (previous & bit) != (options & bit):
+                changes.append(on if options & bit else off)
+            elif previous is None and options & bit:
+                changes.append(on)
+            elif (allow_unobserved_cloakoff and previous is None and bit == 4
+                  and not (options & bit)):
+                # First 0x0229 for an unseen actor during dialogue: treat clear cloak bit as
+                # deferred cloakoff (client list / out-of-sight target). Hide is not assumed.
+                changes.append(off)
+        return changes
+
+    def _queue_pending_visibility(self, packet, session, index, key, actor, conversation, changes, options, previous):
+        """Keep cloakoff (etc.) by actor_id until a later spawn supplies the NPC name."""
+        if not conversation or not changes:
+            return
+        # Evidence row without a name; timer adoption stays blocked by extra/missing fields.
+        self._retain_presentation(
+            packet, session, index, actor, 'outside_dialogue',
+            decoded=('visibility_action', actor,
+                     dict(commands=list(changes), target=None, options=options,
+                          previous_options=previous, basis='deferred_unobserved')))
+        if not conversation.steps:
+            return
+        pending_key = (session, key[1], actor)
+        if len(self.pending_visibility) >= 256 and pending_key not in self.pending_visibility:
+            self.pending_visibility.pop(next(iter(self.pending_visibility)))
+        scene = self.world.scenes.get((session, packet.connection)) if self.world else None
+        self.pending_visibility[pending_key] = dict(
+            commands=list(changes), options=options, previous_options=previous,
+            packet_index=index, packet_id=packet.packet_id, timestamp=packet.timestamp,
+            direction=packet.direction, connection=packet.connection, source=packet.source,
+            conversation_id=conversation.id, capture_session=session, flow_id=key[1],
+            after_step_index=len(conversation.steps) - 1,
+            map_generation=None if scene is None else scene.generation,
+            basis='deferred_unobserved')
+
+    def _resolve_pending_visibility(self, packet, session, index, entity):
+        """Once an unobserved cloakoff target appears with a name, attach to the owner dialogue."""
+        if entity is None or entity.kind != 'NPC' or not isinstance(entity.name, str) or not entity.name:
+            return
+        pending_key = (session, entity.flow_id or packet.flow_id or packet.connection, entity.actor_id)
+        pending = self.pending_visibility.get(pending_key)
+        if pending is None:
+            return
+        if (pending.get('map_generation') is not None
+                and type(entity.map_generation) is int
+                and entity.map_generation != pending['map_generation']):
+            self.pending_visibility.pop(pending_key, None)
+            return
+        if not isinstance(entity.map_name, str) or not entity.map_name:
+            return
+        owner = next((item for item in self.sessions
+                      if item.capture_session == pending['capture_session']
+                      and item.id == pending['conversation_id']), None)
+        if owner is None:
+            self.pending_visibility.pop(pending_key, None)
+            return
+        after_step = pending.get('after_step_index')
+        if (type(after_step) is not int or not owner.steps
+                or not 0 <= after_step < len(owner.steps)
+                or pending['packet_index'] <= owner.steps[after_step]['packet_index']):
+            self.pending_visibility.pop(pending_key, None)
+            return
+        self.pending_visibility.pop(pending_key, None)
+        fields = dict(commands=list(pending['commands']),
+                      target=dict(name=entity.name, map_name=entity.map_name, actor_id=entity.actor_id),
+                      options=pending['options'], previous_options=pending['previous_options'],
+                      basis='deferred_name_resolved')
+        # Retain against the deferred packet index so chronology stays with the 0x0229 evidence.
+        action = dict(kind='visibility_action', fields=deepcopy(fields),
+                      capture_session=pending['capture_session'], flow_id=pending['flow_id'],
+                      packet_index=pending['packet_index'], packet_id=pending['packet_id'],
+                      timestamp=pending['timestamp'], direction=pending['direction'],
+                      connection=pending['connection'], source=pending['source'],
+                      after_step_index=after_step, cause_confirmed=False)
+        if self.action_count >= 10000 or len(owner.actions) >= 512:
+            self.action_dropped += 1
+            owner.issues.append(dict(packet_index=index, message='Conversation action capacity reached'))
+            return
+        owner.actions.append(action)
+        self.action_count += 1
+        self.revision += 1
+
+    def _drop_flow_pending_visibility(self, session, flow_id):
+        """MAP move clears the client cloakoff list; drop deferred rows for that flow."""
+        stale = [key for key in self.pending_visibility
+                 if key[0] == session and key[1] == flow_id]
+        for key in stale:
+            self.pending_visibility.pop(key, None)
+        stale_options = [key for key in self.unobserved_visibility_options
+                         if key[0] == session and key[1] == flow_id]
+        for key in stale_options:
+            self.unobserved_visibility_options.pop(key, None)
+
     def _observe_actions(self, packet, session, index, conversation):
         if packet.direction != 'RECV':
             return False
@@ -472,6 +647,10 @@ class DialogueStore:
                 conversation.issues.append(dict(packet_index=index, message='Invalid conversation action: ' + str(exc)))
         if self.world and packet.packet_id in (0x1b0, 0x9ff, 0x9fe, 0x9fd):
             record = self.world.last_actor_observation
+            if packet.packet_id in (0x9ff, 0x9fe, 0x9fd) and record and record.get('actor_id') is not None:
+                entity = self.world.find_current(packet, session, record['actor_id'], kind='NPC')
+                if entity is not None:
+                    self._resolve_pending_visibility(packet, session, index, entity)
             if record and record['kind'] == 'NPC' and 'class_id' in record.get('changes', {}):
                 display = ({'class_id': record['display']['class_id']} if packet.packet_id == 0x1b0
                            else {name: deepcopy(record['display'][name]) for name in ('class_id', 'appearance_data')
@@ -494,7 +673,28 @@ class DialogueStore:
             try:
                 actor = Reader(packet.raw).number(2 if packet.packet_id == 0x229 else 5, 'I')
                 entity = self.world.find_current(packet, session, actor, kind='NPC')
-                if entity:
+                if entity is None and packet.packet_id == 0x229:
+                    if len(packet.raw) != 15:
+                        raise ObservationError('Invalid visibility notification length')
+                    options = Reader(packet.raw).number(10, 'I')
+                    key = (session, packet.flow_id or packet.connection)
+                    option_key = (session, key[1], actor)
+                    previous = self.unobserved_visibility_options.get(option_key)
+                    if len(self.unobserved_visibility_options) >= 1024 and option_key not in self.unobserved_visibility_options:
+                        self.unobserved_visibility_options.pop(next(iter(self.unobserved_visibility_options)))
+                    self.unobserved_visibility_options[option_key] = options
+                    changes = self._visibility_changes(
+                        previous, options, allow_unobserved_cloakoff=conversation is not None)
+                    if changes and conversation:
+                        self._queue_pending_visibility(
+                            packet, session, index, key, actor, conversation, changes, options, previous)
+                    elif changes:
+                        self._retain_presentation(
+                            packet, session, index, actor, 'outside_dialogue',
+                            decoded=('visibility_action', actor,
+                                     dict(commands=changes, target=None, options=options,
+                                          previous_options=previous, basis='deferred_unobserved')))
+                elif entity:
                     identity = tuple(entity.key)
                     previous = self.visibility_states.get(identity)
                     if len(self.visibility_states) >= 8192 and identity not in self.visibility_states:
@@ -503,33 +703,38 @@ class DialogueStore:
                     if packet.packet_id == 0x229:
                         if len(packet.raw) != 15:
                             raise ObservationError('Invalid visibility notification length')
-                        changes = []
-                        for bit, on, off in ((2, 'hideonnpc', 'hideoffnpc'), (4, 'cloakonnpc', 'cloakoffnpc')):
-                            if (previous is not None and (previous & bit) != (entity.options & bit)
-                                    or previous is None and entity.options & bit):
-                                changes.append(on if entity.options & bit else off)
+                        changes = self._visibility_changes(previous, entity.options)
                         if changes and conversation:
                             origin = self.world.find_current(packet, session, conversation.actor_id, kind='NPC')
                             if (origin and origin.appearance == conversation.npc.get('appearance')
                                     and entity.map_name == conversation.npc.get('map_name')
                                     and entity.map_generation == conversation.npc.get('map_generation')):
                                 target = None if actor == conversation.actor_id else dict(
-                                    name=entity.name, map_name=entity.map_name)
+                                    name=entity.name, map_name=entity.map_name, actor_id=entity.actor_id)
                                 self._retain_action(packet, session, index, conversation, 'visibility_action',
                                     dict(commands=changes, target=target, options=entity.options,
                                          previous_options=previous))
                         elif changes and not conversation:
-                            # Outside dialogue: keep as presentation for manual timer hide/cloak.
+                            key = (session, packet.flow_id or packet.connection)
                             fields = dict(commands=changes, target=None, options=entity.options,
                                           previous_options=previous)
-                            if any(command.startswith('cloak') for command in changes):
-                                from reconstruction.touch import colocated_touch_npcs
-                                companions = colocated_touch_npcs(self.world, packet, session, entity)
-                                if companions:
-                                    fields['colocated_touch_npcs'] = companions
-                            self._retain_presentation(
-                                packet, session, index, actor, 'outside_dialogue',
-                                decoded=('visibility_action', actor, fields))
+                            # Unique range-entry OnTouch frame (same gate as warp); else observation only.
+                            frame = self._touch_frame_for_presentation(packet, session, index, key, actor=actor)
+                            if frame is not None:
+                                fields = dict(fields, basis='touch_range_entry')
+                                target = None if actor == frame.actor_id else dict(
+                                    name=entity.name, map_name=entity.map_name, actor_id=entity.actor_id)
+                                fields['target'] = target
+                                self._retain_action(packet, session, index, frame, 'visibility_action', fields)
+                            else:
+                                if any(command.startswith('cloak') for command in changes):
+                                    from reconstruction.touch import colocated_touch_npcs
+                                    companions = colocated_touch_npcs(self.world, packet, session, entity)
+                                    if companions:
+                                        fields['colocated_touch_npcs'] = companions
+                                self._retain_presentation(
+                                    packet, session, index, actor, 'outside_dialogue',
+                                    decoded=('visibility_action', actor, fields))
                     elif (type(entity.initial_options) is int
                             and (entity.initial_options & 6) != (entity.options & 6)
                             and not conversation):
@@ -589,6 +794,10 @@ class DialogueStore:
         self.progress.begin_capture()
         self.visibility_states.clear()
         self.touch_positions.clear()
+        self.touch_coverage.clear()
+        self.touch_entered.clear()
+        self.unobserved_visibility_options.clear()
+        self.pending_visibility.clear()
         self.pending_walk_sends.clear()
         self.shop_recent.clear()
         self.close_pending.clear()
@@ -647,6 +856,7 @@ class DialogueStore:
         if packet.direction == 'SEND' and packet.packet_id not in (0xb8, 0xb9, 0x143, 0x1d5, 0x146, 0x7d, 0x7e):
             self.timeout_closed.pop(key, None)
         if self.world and packet.direction == 'RECV' and packet.packet_id in (0x91, 0x92):
+            self._drop_flow_pending_visibility(session, key[1])
             try:
                 observed = decode_world_event(packet)
                 scene = self.world.scenes.get((session, packet.connection))
@@ -684,6 +894,9 @@ class DialogueStore:
                             send_index = self.pending_walk_sends.pop(key, None)
                         if type(send_index) is int and send_index >= 0:
                             self.touch_positions[key]['walk_send_packet_index'] = send_index
+                else:
+                    self.touch_positions[key]['position_basis'] = 'observed_position'
+                    self._refresh_touch_coverage(session, key, self.touch_positions[key])
         conversation = self.active.get(key)
         action_conversation = conversation
         recent = self.after_close.get(key)
@@ -899,6 +1112,17 @@ class DialogueStore:
                             and target.map_generation == conversation.npc.get('map_generation')):
                         self._retain_presentation(packet, session, index, actor, 'external_candidate', conversation)
                         return
+                if conversation is None and session == self.current_capture:
+                    try:
+                        kind, _, fields = decode_dialogue(packet)
+                    except ObservationError:
+                        kind, fields = None, None
+                    if kind in TOUCH_FRAME_KINDS:
+                        frame = self._touch_frame_for_presentation(packet, session, index, key, actor=actor)
+                        if frame is not None:
+                            fields = dict(fields, basis='touch_range_entry')
+                            self._retain_action(packet, session, index, frame, kind, fields)
+                            return
                 pending = self.close_pending.get(key)
                 context = 'close_wait' if pending and pending.actor_id == actor else 'outside_dialogue'
                 self._retain_presentation(packet, session, index, actor, context)
@@ -970,12 +1194,21 @@ class DialogueStore:
                     unique = {entity.actor_id: entity for entity in nearby if distance(entity) == nearest}
                     if len(self.touch_warp_inferences) == self.touch_warp_inferences.maxlen:
                         self.touch_inference_dropped += 1
+                    same_cell = (len({(entity.x, entity.y) for entity in unique.values()}) == 1
+                                 and len(unique) > 1)
+                    if len(unique) == 1:
+                        reason = 'unique_nearest_in_highest_priority_class'
+                    elif same_cell:
+                        # Same-cell peers may fire together; do not invent queue order after end.
+                        reason = 'simultaneous_colocated_touch_candidates'
+                    else:
+                        reason = 'ambiguous_nearest_in_highest_priority_class'
                     self.touch_warp_inferences.append(dict(capture_session=session, flow_id=key[1],
                         packet_index=index, packet_id=packet.packet_id, timestamp=packet.timestamp,
                         player=deepcopy(previous_position), max_radius=MAX_TOUCH_RADIUS,
                         priority_rank=best, nearest_distance=nearest, nearest_count=len(unique), cause_confirmed=False,
                         selected_actor_id=next(iter(unique)) if len(unique) == 1 else None,
-                        reason='unique_nearest_in_highest_priority_class' if len(unique) == 1 else 'ambiguous_nearest_in_highest_priority_class',
+                        reason=reason, colocated_same_cell=same_cell,
                         candidate_count=len(nearby), candidates=[dict(actor_id=e.actor_id, name=e.name, class_id=e.class_id, base_class=declaration_class(vars(e)),
                             x=e.x, y=e.y, options=e.options, distance=distance(e)) for e in nearby[:64]],
                         candidates_truncated=len(nearby) > 64))
@@ -987,6 +1220,8 @@ class DialogueStore:
                         conversation.npc['touch'] = touch_context(conversation.npc, previous_position, index)
                         self.sessions.append(conversation)
             self.touch_positions.pop(key, None)
+            self.touch_coverage.pop(key, None)
+            self.touch_entered.pop(key, None)
             self.pending_walk_sends.pop(key, None)
             if conversation:
                 conversation.status = 'map_changed'

@@ -6,7 +6,8 @@ from reconstruction.world import WorldStore
 from reconstruction.dialogue import DialogueStore
 from reconstruction.branches import build_merged
 from reconstruction.npc_bundle import build_npc_bundle
-from reconstruction.touch import context, compare_trials, format_trial_comparison, merge_contexts
+from reconstruction.touch import (context, compare_trials, format_trial_comparison, merge_contexts,
+                                  membership_transition)
 from tests.support.world import map_packet, actor_packet, packet
 from tests.support.dialogue import packet as dialogue_packet
 
@@ -339,3 +340,70 @@ class TouchNpcTests(unittest.TestCase):
         self.assertIn('歩行SEND#2', caption)
         self.assertIn('転送#9', caption)
         self.assertIn('候補1', caption)
+
+    def test_observed_offset_confirms_both_axes_at_plus_two(self):
+        npc = dict(class_id=45, map_name='test.gat', x=150, y=200)
+        # Enter (+2,+2): both axes get independent nonzero evidence.
+        result = context(npc, dict(map_name='test.gat', x=152, y=202,
+                                   position_basis='observed_position'), 5)
+        self.assertEqual((result['radius_x'], result['radius_y']), (2, 2))
+        self.assertEqual(result['confirmed_axes'], dict(x=True, y=True))
+        self.assertFalse(result['range_provisional'])
+        self.assertEqual(result['range_basis'], 'observed_minimum')
+        self.assertEqual(result['signed_offsets'], dict(dx=2, dy=2))
+
+    def test_coverage_reentry_only_on_leave_and_return(self):
+        entered, left = membership_transition({42}, {42})
+        self.assertEqual(entered, frozenset())
+        self.assertEqual(left, frozenset())
+        entered, left = membership_transition({42}, frozenset())
+        self.assertEqual(entered, frozenset())
+        self.assertEqual(left, frozenset({42}))
+        entered, left = membership_transition(frozenset(), {42})
+        self.assertEqual(entered, frozenset({42}))
+        self.assertEqual(left, frozenset())
+
+    def test_unique_range_entry_cloak_opens_touch_frame_not_timer_presentation(self):
+        world, dialogues, consume = self.scene()
+        # Approach from outside the search window, then step onto (+2,+0).
+        self.position(consume, x=130, y=200)
+        self.position(consume, x=152, y=200)
+        consume(packet(0x229, struct.pack('<IHHIB', 42, 0, 0, 4, 0)))
+        self.assertEqual(len(dialogues.sessions), 1)
+        item = dialogues.sessions[0]
+        self.assertTrue(item.npc.get('touch'))
+        self.assertEqual(item.npc['touch'].get('frame_basis'), 'range_entry')
+        self.assertEqual(item.npc['touch']['confirmed_axes'], dict(x=True, y=False))
+        self.assertEqual(len(item.actions), 1)
+        self.assertEqual(item.actions[0]['kind'], 'visibility_action')
+        self.assertEqual(item.actions[0]['fields']['basis'], 'touch_range_entry')
+        self.assertFalse(any(row['kind'] == 'visibility_action'
+                             for row in dialogues.presentation_observations))
+
+    def test_colocated_same_cell_entry_stays_ambiguous_for_warp(self):
+        world, dialogues, consume = self.scene(class_id=139)
+        event = actor_packet(actor_id=43, name='Peer', x=150, y=200)
+        raw = bytearray(event.raw)
+        struct.pack_into('<H', raw, 23, 139)
+        consume(replace(event, raw=bytes(raw)))
+        self.position(consume, x=150, y=201)
+        consume(map_packet('target.gat'))
+        evidence = dialogues.snapshot()['touch_warp_inferences'][0]
+        self.assertEqual(evidence['reason'], 'simultaneous_colocated_touch_candidates')
+        self.assertTrue(evidence['colocated_same_cell'])
+        self.assertIsNone(evidence['selected_actor_id'])
+        self.assertFalse(dialogues.sessions)
+
+    def test_moving_inside_range_does_not_reopen_touch_frame(self):
+        world, dialogues, consume = self.scene()
+        self.position(consume, x=130, y=200)
+        self.position(consume, x=152, y=200)
+        consume(packet(0x229, struct.pack('<IHHIB', 42, 0, 0, 4, 0)))
+        self.assertEqual(len(dialogues.sessions), 1)
+        # Stay inside / move to another covered cell: no second entry association.
+        dialogues.active.clear()
+        self.position(consume, x=151, y=200)
+        consume(packet(0x229, struct.pack('<IHHIB', 42, 0, 0, 0, 0)))
+        self.assertEqual(len(dialogues.sessions), 1)
+        self.assertTrue(any(row['kind'] == 'visibility_action'
+                            for row in dialogues.presentation_observations))

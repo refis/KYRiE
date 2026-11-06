@@ -51,8 +51,8 @@ class ConversationActionTests(unittest.TestCase):
         item = store.sessions[0]
         before = deepcopy(item)
         code = AurigaRenderer().render(item)
-        expected = ['mes "hello";', 'delquest 100;', 'hideonnpc getmdnpcname("Target");',
-                    'hideoffnpc getmdnpcname("Target");', 'cloakonnpc;', 'cloakoffnpc;',
+        expected = ['mes "hello";', 'delquest 100;', 'hideonnpc getmdnpcname("Target"); // 43',
+                    'hideoffnpc getmdnpcname("Target"); // 43', 'cloakonnpc;', 'cloakoffnpc;',
                     'unittalk "own words";', 'close;']
         positions = [code.index(command) for command in expected]
         self.assertEqual(positions, sorted(positions))
