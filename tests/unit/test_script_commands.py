@@ -158,6 +158,33 @@ class ScriptCommandTests(unittest.TestCase):
                 command='sit;' if action==2 else 'stand;'
                 self.assertEqual(self.code(store).splitlines().count(command),0 if requested else 1)
 
+    def test_own_skill_requires_no_matching_send_and_ignores_other_players(self):
+        from parser.display import DisplayProfile, ReceiveDisplay
+        def damage(actor, skill_id=28, level=5):
+            body=bytearray(31)
+            struct.pack_into('<HII',body,0,skill_id,actor,0)
+            struct.pack_into('<H',body,26,level)
+            return packet(0x1de,body)
+        for requested in (False,True):
+            _,store,consume=self.setup_store()
+            if requested:
+                consume(packet(0x113,struct.pack('<HhI',28,5,0),direction='SEND'))
+            consume(damage(777))
+            consume(damage(888))
+            self.close(consume)
+            lines=self.code(store).splitlines()
+            self.assertEqual(lines.count('skill 28,5;'),0 if requested else 1)
+            self.assertFalse(any('skill 28' in line and '888' in line for line in lines))
+        display=ReceiveDisplay(DisplayProfile.load())
+        # Other / unresolved player-looking skill lines stay comments, not @skillattack.
+        player=actor_packet(actor_id=9002,name='Caster')
+        raw=bytearray(player.raw);raw[4]=0
+        text=''
+        for event in (map_packet(),replace(player,raw=bytes(raw)),damage(9002)):
+            text=display.decode(event).text or text
+        self.assertIn('スキル通知（非NPC/非MOB）',text)
+        self.assertNotIn('@skillattack',text)
+
     def test_dropitem_excludes_mob_death_and_manual_drop_and_does_not_invent_lifetime(self):
         for cause in ('none','death','drop'):
             _,store,consume=self.setup_store()

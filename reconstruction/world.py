@@ -118,8 +118,8 @@ class WorldStore:
                 entity.state = 'past_capture'
         self.revision += 1
 
-    def waitingroom_owner(self, packet, session, actor_id):
-        """Classify 0xd7 owner as npc, player, or unknown. Never invents ownership."""
+    def actor_owner_kind(self, packet, session, actor_id):
+        """Classify an actor as player, npc, mob, or unknown. Never invents ownership."""
         if type(actor_id) is not int:
             return 'unknown'
         state = self.player_maps.states.get((session, packet.flow_id or packet.connection))
@@ -131,7 +131,14 @@ class WorldStore:
             return 'player'
         if self.find_current(packet, session, actor_id, kind='NPC') is not None:
             return 'npc'
+        if self.find_current(packet, session, actor_id, kind='MOB') is not None:
+            return 'mob'
         return 'unknown'
+
+    def waitingroom_owner(self, packet, session, actor_id):
+        """Classify 0xd7 owner as npc, player, or unknown. Never invents ownership."""
+        kind = self.actor_owner_kind(packet, session, actor_id)
+        return kind if kind in ('npc', 'player') else 'unknown'
 
     def _evidence(self, packet, session, index):
         return dict(capture_session=session, packet_index=index, packet_id=packet.packet_id,

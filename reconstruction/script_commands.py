@@ -7,6 +7,7 @@ from pathlib import Path
 from reconstruction.decoder import Reader, ObservationError
 from reconstruction.player import decode_player, LIST_STRIDES
 from reconstruction.instance_names import map_name
+from reconstruction.skills import decode_skill
 
 POLICY_PATH = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'script_commands.json'
 COMMAND_ARGS = {
@@ -14,7 +15,8 @@ COMMAND_ARGS = {
     'getitem2': ('item_id', 'amount', 'identified', 'refine', 'attribute', 'card1', 'card2', 'card3', 'card4'),
     'delitem': ('item_id', 'amount'), 'delequip': ('slot',), 'unequip': ('slot',),
     'successrefitem': ('slot',), 'failedrefitem': ('slot',), 'downrefitem': ('slot', 'decrement'),
-    'sit': (), 'stand': (), 'dropitem': ('map_name', 'x', 'y', 'item_id', 'amount', 'extra_lifetime_ms')}
+    'sit': (), 'stand': (), 'skill': ('skill_id', 'level'),
+    'dropitem': ('map_name', 'x', 'y', 'item_id', 'amount', 'extra_lifetime_ms')}
 
 
 def load_policy(path=None):
@@ -34,7 +36,7 @@ def load_policy(path=None):
     if not isinstance(result.get('equip_slots'), dict) or any(not k.isdecimal() or type(v) is not int or not 1 <= v <= 22 for k,v in result['equip_slots'].items()):
         raise ValueError('Invalid equipment slot map')
     requests = result.get('request_ids')
-    required = {'unequip', 'posture', 'drop', 'walk', 'cart_from_body', 'cart_to_body'}
+    required = {'unequip', 'posture', 'drop', 'walk', 'cart_from_body', 'cart_to_body', 'skill', 'skill_ground'}
     if not isinstance(requests, dict) or set(requests) != required:
         raise ValueError('Invalid request packet groups')
     for key, values in requests.items():
@@ -151,6 +153,14 @@ class ScriptCommandStore:
             elif pid in requests['drop']:
                 state['pending']['drop'] = packet.timestamp
                 state['pending']['drop',r.number(2,'H')] = packet.timestamp
+            elif pid in requests['skill']:
+                if len(packet.raw) != 10:
+                    raise ObservationError('Unsupported skill-use SEND layout')
+                state['pending']['skill', r.number(2, 'H')] = packet.timestamp
+            elif pid in requests['skill_ground']:
+                if len(packet.raw) != 10:
+                    raise ObservationError('Unsupported ground-skill SEND layout')
+                state['pending']['skill', r.number(2, 'H')] = packet.timestamp
             elif pid in requests['cart_from_body']:
                 if len(packet.raw) != 8:
                     raise ObservationError('Unsupported cart move-from-body layout')
@@ -344,6 +354,30 @@ class ScriptCommandStore:
                     requested=state['pending'].pop(('posture',action),None)
                     if requested is None and not state.get('pending_incomplete'):
                         emit('sit' if action==2 else 'stand',{})
+        try:
+            decoded_skill = decode_skill(packet)
+        except ObservationError as exc:
+            raise ObservationError(str(exc)) from exc
+        if decoded_skill and world:
+            kind, actor, fields = decoded_skill
+            player = world.player_maps.states.get(key)
+            # Other players' skill RECV never become NPC skill script candidates.
+            if (player and actor == player.actor_id and kind in ('cast', 'damage', 'effect', 'ground')
+                    and type(fields.get('skill_id')) is int and 0 < fields['skill_id'] <= 65535):
+                skill_id = fields['skill_id']
+                requested = state['pending'].pop(('skill', skill_id), None)
+                if requested is None and not state.get('pending_incomplete'):
+                    recent = [old for old in state['recent']
+                              if old['fields']['command'] == 'skill'
+                              and old['fields']['arguments'].get('skill_id') == skill_id
+                              and nearby(old['timestamp'])]
+                    if not recent:
+                        raw_level = fields.get('level_raw')
+                        level = raw_level if type(raw_level) is int and 0 < raw_level < 0x8000 else None
+                        emit('skill', dict(skill_id=skill_id, level=level),
+                             review=level is None,
+                             reason='スキルLvが未通知のため要確認' if level is None else '',
+                             observed=dict(kind=kind, level_raw=raw_level))
         if pid in (0x9e,0x84b,0xadd):
             expected={0x9e:17,0x84b:19,0xadd:24}[pid]
             if len(packet.raw)!=expected:

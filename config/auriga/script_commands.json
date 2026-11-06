@@ -46,6 +46,13 @@
     ],
     "cart_to_body": [
       "0127"
+    ],
+    "skill": [
+      "0113",
+      "0438"
+    ],
+    "skill_ground": [
+      "0116"
     ]
   },
   "dropitem_lifetime_ms": 60000,
