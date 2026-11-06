@@ -30,9 +30,10 @@ python -m tools.build_snapshot --output-dir dist
 - 既存ZIPは上書きしない。別の出力先を使う。
 - ZIP内 `SNAPSHOT.json` にファイルごとのサイズとSHA-256、ZIP横に全体のSHA-256を残す。
 - リポジトリ直下の `SNAPSHOT.json` を版マニフェストとして置く場合は、**作成したZIP内の同名ファイルをコピー**して更新する（手編集しない）。版・日付は `version.py` と一致させる。
-- `logs/`、DB、クライアントEXE、`.reference`、生成コード、キャッシュ、`config/user_settings.json`は含めない。
-- ZIP内の `ignorepacket.json` だけ空の既定値へ戻す（作業側の設定は変えない）。
-- `config/user_settings.json`はローカル専用のためZIPへ入れない（作業側のファイルも変更しない）。
+- `logs/`、DB、クライアントEXE、`.reference`、生成コード、キャッシュは含めない。
+- `config/user_settings.json` と `config/ignorepacket.json` はローカル専用のためZIPへ入れない
+  （作業ツリーも変更しない。テンプレートは `ignorepacket.example.json`）。
+  展開時に空の ignorepacket で上書き破壊しない。
 
 検証の目安:
 

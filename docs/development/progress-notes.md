@@ -232,3 +232,15 @@ docs 目次を利用者／仕様契約／開発の入口に再編。実装は v0
 F5 観測開始／F8 停止／Ctrl+Shift+O 生ログ（入力欄編集中は無効）。
 開始前チェックリストは案内のみで capture／display 設定を自動変更しない。
 既読は `user_settings.json` の `startup_checklist_seen`。offscreen では自動表示しない。
+
+### ignorepacket ローカル化と不在時プリセット（2026-11-06）
+
+`config/ignorepacket.json` を Git／スナップショット対象外にし、不在時は
+`IgnorePacket.ensure_default_file` で空プリセットのみ生成（既存非上書き）。
+ZIP へ空 ignorepacket を注入しない。雛形は `ignorepacket.example.json`。
+
+### GUI P2-3 タブ初期プリセット（2026-11-06）
+
+`user_settings.workspace_preset`（`observe`／`restore`）で起動時の前面タブのみ切替。
+観測中心=観測ログ、復元中心=会話・コード。設定→表示コンボと作業→タブ初期表示。
+全タブは残し、パネル非表示や生成規則は変えない。プロジェクトの `view.tab` が優先。

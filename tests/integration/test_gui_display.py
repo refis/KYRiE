@@ -1064,3 +1064,39 @@ class DisplayGuiTests(WindowTestCase):
             elapsed = QElapsedTimer(); elapsed.start()
             while not restarted.workspace_closed and elapsed.elapsed() < 60000:
                 self.app.processEvents(); QTest.qWait(1)
+
+    def test_workspace_preset_focuses_tab_without_hiding_others(self):
+        from gui.main_window import MainWindow
+        from storage.database import PacketDatabase
+        from storage.user_settings import load
+        from reconstruction.emulator_profiles import set_target
+        w = self.window
+        self.assertEqual(w.workspace_tabs.count(), 6)
+        self.assertEqual(w.workspace_preset.currentData(), 'observe')
+        self.assertEqual(w.workspace_tabs.currentIndex(), 0)
+        w.select_workspace_preset('restore')
+        self.app.processEvents()
+        self.assertIs(w.workspace_tabs.currentWidget(), w.dialogue_panel)
+        self.assertEqual(w.workspace_preset.currentData(), 'restore')
+        self.assertEqual(load(self.settings_path)['workspace_preset'], 'restore')
+        self.assertEqual(w.workspace_tabs.count(), 6)
+        self.assertEqual(w.workspace_tabs.tabText(0), '観測ログ')
+        self.assertEqual(w.workspace_tabs.tabText(5), 'パケット詳細')
+        db = PacketDatabase(':memory:')
+        with patch('gui.main_window.PacketDatabase', return_value=db), \
+             patch('gui.main_window.list_processes', return_value=[]):
+            restarted = MainWindow()
+        try:
+            self.assertEqual(restarted.workspace_preset.currentData(), 'restore')
+            self.assertIs(restarted.workspace_tabs.currentWidget(), restarted.dialogue_panel)
+            restarted.select_workspace_preset('observe')
+            self.app.processEvents()
+            self.assertEqual(restarted.workspace_tabs.currentIndex(), 0)
+        finally:
+            set_target('auriga')
+            restarted.close()
+            from PySide6.QtCore import QElapsedTimer
+            from PySide6.QtTest import QTest
+            elapsed = QElapsedTimer(); elapsed.start()
+            while not restarted.workspace_closed and elapsed.elapsed() < 60000:
+                self.app.processEvents(); QTest.qWait(1)

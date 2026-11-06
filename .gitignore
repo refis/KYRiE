@@ -10,8 +10,9 @@ logs/
 /dist/
 /.venv/
 
-# Local GUI preference profile (machine-specific; never commit)
+# Local GUI preference profiles (machine-specific; never commit)
 config/user_settings.json
+config/ignorepacket.json
 
 # Local capture / session artifacts (may contain game data)
 capture.jsonl

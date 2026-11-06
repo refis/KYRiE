@@ -77,7 +77,8 @@ python -m venv .venv
 - `config/player_classes.json`: 職業外見class一覧。変更後は再起動・再解析。
 - `config/auriga/status_ids.json`: 状態異常ID変換。未確認の引数は自動補完しません。
 - `config/auriga/script_commands.json`: 命令候補の条件。床アイテムの総寿命は60000ms。
-- `config/ignorepacket.json`: 観測ログ非表示（flag&1）と任意のSQLite保存スキップ（flag&2）。意味解析・コード生成は継続します。
+- `config/ignorepacket.json`: 観測ログ非表示（flag&1）と任意のSQLite保存スキップ（flag&2）。
+  ローカル専用（Git/スナップショット対象外）。不在時は起動時に空プリセットを生成。雛形は `ignorepacket.example.json`。
 - `config/user_settings.json`: 設定画面などのGUI設定（ローカル専用。Git/スナップショット対象外）。
 
 表示書式はGUIから再読込できます。低優先のrAthena書式は`config/rathena/`に分離しています。
@@ -100,8 +101,9 @@ C++ x86による暗号化前取得は未実装です。任意の外部producer�
 再解析には「設定 → 記録」で生バイト記録を有効にします。生ログ・DBにはゲーム内情報が含まれ得るため、
 ソースと別に管理してください。パケットDBはWAL＋FULL同期・1件commitを使用し、単体コピーはアプリ終了後に行います。
 使用中の-wal／-shmは個別削除しないでください。[保存方式](docs/capture/capture-analysis.md)に詳細があります。
-スナップショットZIPにはlogs、DB、クライアントEXE、参照リポジトリ、生成コード、`config/user_settings.json`を含めません。
-ローカルのignorepacket設定はZIP内で空の既定値へ戻します。作業側の設定・データは変更しません。
+スナップショットZIPにはlogs、DB、クライアントEXE、参照リポジトリ、生成コード、
+`config/user_settings.json`、`config/ignorepacket.json`を含めません（雛形 `ignorepacket.example.json` は可）。
+作業側のローカル設定・データは変更しません。
 版を進めるときは`version.py`と**直下README.mdの版見出し**を同じ値へ揃え、手順は[スナップショット手順](docs/releases/README.md)に従います。
 
 ```powershell

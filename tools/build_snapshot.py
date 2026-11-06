@@ -14,7 +14,6 @@ ROOT_FILES = ('main.py','events.py','version.py','README.md','DEVELOPMENT.md','C
               'requirements.txt','requirements-lock.txt','PacketLength.txt','.gitignore','LICENSE','NOTICE',
               '.cursor/rules/project.mdc','client/README.md','.github/CODEOWNERS')
 SUFFIXES = {'.py','.md','.json','.txt','.yml','.yaml'}
-DEFAULT_IGNORE = dict(version=2,packet_flags={},mob_combat=False,npc_actor_ids=[],npc_names=[])
 
 
 def require_versioned_readme(root):
@@ -53,7 +52,7 @@ def build_snapshot(root, output_dir):
             raise ValueError('Source file resolves outside snapshot root')
         name = path.relative_to(root).as_posix()
         if name == 'config/ignorepacket.json':
-            continue  # Local NPC names/IDs and packet exclusions are personal preferences.
+            continue  # Local exclusions; never ship or overwrite with empty defaults.
         if name == 'config/user_settings.json':
             continue  # Local GUI preference profile; never ship machine-specific settings.
         size = path.stat().st_size
@@ -64,11 +63,13 @@ def build_snapshot(root, output_dir):
             raise ValueError('Source changed while building snapshot')
         files[name] = data
         total += size
-    files['config/ignorepacket.json'] = (json.dumps(DEFAULT_IGNORE,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
+    # Do not inject empty ignorepacket.json: extracting a ZIP must not wipe local presets.
+    # Tracked template is config/ignorepacket.example.json; runtime seeds via IgnorePacket.ensure_default_file.
     manifest = dict(kind='source_snapshot',version=__version__,snapshot_date=SNAPSHOT_DATE,
-        includes_private_capture_data=False, local_ignore_preferences_reset=True,
+        includes_private_capture_data=False, local_preferences_excluded=True,
         excluded=['logs/','client EXE and extracted definitions','.reference/','packets.sqlite3*',
-                  'root generated NPC code','caches','dist/','config/user_settings.json'],
+                  'root generated NPC code','caches','dist/',
+                  'config/user_settings.json','config/ignorepacket.json'],
         files=[dict(path=name,size=len(data),sha256=hashlib.sha256(data).hexdigest()) for name,data in sorted(files.items())])
     files['SNAPSHOT.json'] = (json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
     output_dir = Path(output_dir).resolve()

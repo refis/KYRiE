@@ -13,6 +13,12 @@ DEFAULT_PATH = PROJECT_ROOT / 'config' / 'user_settings.json'
 MAX_BYTES = 65536
 EMULATORS = frozenset({'auriga', 'rathena'})
 SCRIPT_INDENTS = frozenset({'spaces', 'tabs'})
+# Tab-focus presets only; never hide panels or change generation rules.
+WORKSPACE_PRESETS = frozenset({'observe', 'restore'})
+WORKSPACE_PRESET_CHOICES = (
+    ('observe', '観測中心'),
+    ('restore', '復元中心'),
+)
 
 # GUI offline replay staging budget (not live capture). CLI analyze_* has no packet cap.
 DEFAULT_OFFLINE_MAX_PACKETS = 20000
@@ -45,6 +51,8 @@ DEFAULTS = dict(
     merge_npc_paths=False,
     # Dismissal only; checklist never writes capture/display toggles by itself.
     startup_checklist_seen=False,
+    # Initial workspace tab focus only (observe=観測ログ, restore=会話・コード).
+    workspace_preset='observe',
 )
 
 
@@ -114,6 +122,10 @@ def validate(document):
         elif key == 'script_indent':
             if value not in SCRIPT_INDENTS:
                 raise UserSettingsError('script_indent must be spaces or tabs')
+            result[key] = value
+        elif key == 'workspace_preset':
+            if value not in WORKSPACE_PRESETS:
+                raise UserSettingsError('workspace_preset must be observe or restore')
             result[key] = value
         elif key == 'manual_server_port':
             text = _bounded_string(value, key, 16)
@@ -205,7 +217,18 @@ def collect_from_window(window):
         pipe_name=window.pipe_name.text().strip(),
         merge_npc_paths=window.dialogue_panel.merge_checkbox.isChecked(),
         startup_checklist_seen=bool(getattr(window, 'startup_checklist_seen', False)),
+        workspace_preset=_workspace_preset_from_window(window),
     ))
+
+
+def _workspace_preset_from_window(window):
+    combo = getattr(window, 'workspace_preset', None)
+    if combo is not None and hasattr(combo, 'currentData'):
+        value = combo.currentData()
+        if value in WORKSPACE_PRESETS:
+            return value
+    value = getattr(window, 'workspace_preset_value', None)
+    return value if value in WORKSPACE_PRESETS else 'observe'
 
 
 def apply_to_window(window, settings):
@@ -266,7 +289,33 @@ def apply_to_window(window, settings):
             window.export_merge_action.setChecked(document['merge_npc_paths'])
             window.export_merge_action.blockSignals(False)
         window.startup_checklist_seen = document['startup_checklist_seen']
+        window.workspace_preset_value = document['workspace_preset']
+        combo = getattr(window, 'workspace_preset', None)
+        if combo is not None and hasattr(combo, 'findData'):
+            combo.blockSignals(True)
+            index = combo.findData(document['workspace_preset'])
+            if index < 0:
+                index = 0
+            combo.setCurrentIndex(index)
+            combo.blockSignals(False)
+        apply_workspace_preset(window, document['workspace_preset'])
     finally:
         for control in controls:
             control.blockSignals(False)
     return document
+
+
+def apply_workspace_preset(window, preset=None):
+    """Focus the preset's primary tab. All tabs remain available."""
+    value = preset if preset in WORKSPACE_PRESETS else getattr(window, 'workspace_preset_value', 'observe')
+    if value not in WORKSPACE_PRESETS:
+        value = 'observe'
+    window.workspace_preset_value = value
+    tabs = getattr(window, 'workspace_tabs', None)
+    if tabs is None:
+        return value
+    if value == 'restore' and getattr(window, 'dialogue_panel', None) is not None:
+        tabs.setCurrentWidget(window.dialogue_panel)
+    else:
+        tabs.setCurrentIndex(0)
+    return value

@@ -78,6 +78,7 @@ class UserSettingsTests(unittest.TestCase):
         self.assertEqual(result['offline_max_packets'], DEFAULT_OFFLINE_MAX_PACKETS)
         self.assertEqual(result['offline_max_packet_mib'], DEFAULT_OFFLINE_MAX_PACKET_MIB)
         self.assertFalse(result['startup_checklist_seen'])
+        self.assertEqual(result['workspace_preset'], 'observe')
 
     def test_startup_checklist_seen_roundtrip_does_not_require_other_keys(self):
         result = validate(dict(version=1, startup_checklist_seen=True))
@@ -85,6 +86,16 @@ class UserSettingsTests(unittest.TestCase):
         self.assertTrue(result['capture_send'])
         with self.assertRaises(UserSettingsError):
             validate(dict(DEFAULTS, startup_checklist_seen='yes'))
+
+    def test_workspace_preset_defaults_and_rejects_unknown(self):
+        self.assertEqual(DEFAULTS['workspace_preset'], 'observe')
+        self.assertEqual(validate(dict(version=1))['workspace_preset'], 'observe')
+        restored = validate(dict(version=1, workspace_preset='restore'))
+        self.assertEqual(restored['workspace_preset'], 'restore')
+        with self.assertRaises(UserSettingsError):
+            validate(dict(DEFAULTS, workspace_preset='compact'))
+        with self.assertRaises(UserSettingsError):
+            validate(dict(DEFAULTS, workspace_preset=1))
 
     def test_offline_replay_budget_converts_mib_to_bytes(self):
         packets, nbytes = offline_replay_budget()
