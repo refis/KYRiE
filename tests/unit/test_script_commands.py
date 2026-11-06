@@ -197,6 +197,32 @@ class ScriptCommandTests(unittest.TestCase):
         self.assertIn('end;\n',report['auriga'].split('OnInit:')[0])
         self.assertIn('waitingroom "Queue",0;',report['auriga'])
 
+    def test_player_chatroom_is_not_npc_waitingroom_metadata_or_command(self):
+        from parser.display import DisplayProfile, ReceiveDisplay
+        world,store,consume=self.setup_store()
+        # Other player appearance (actor_type 0) then chat room on that actor.
+        player=actor_packet(actor_id=9001,name='Passerby')
+        raw=bytearray(player.raw)
+        raw[4]=0  # non NPC/MOB type
+        struct.pack_into('<I',raw,19,0)
+        consume(replace(player,raw=bytes(raw)))
+        body=struct.pack('<IIHHB',9001,700,0,0,1)+b'Party\0'
+        room=replace(packet(0xd7),raw=struct.pack('<HH',0xd7,len(body)+4)+body)
+        consume(room)
+        self.close(consume)
+        probe=replace(raw_packet(0x9ff),connection='game',flow_id='game')
+        self.assertIsNone(world.find_current(probe,0,9001,kind='NPC'))
+        self.assertEqual(world.waitingroom_owner(
+            replace(room,connection='game',flow_id='game'),0,9001),'player')
+        report=build_npc_bundle(world.snapshot('NPC')['entities'],store.sessions)
+        self.assertNotIn('waitingroom "Party"',report['auriga'])
+        display=ReceiveDisplay(DisplayProfile.load())
+        text=''
+        for event in (map_packet(),replace(player,raw=bytes(raw)),room):
+            text=display.decode(event).text or text
+        self.assertIn('チャット室（非NPC所有者）',text)
+        self.assertNotIn('waitingroom "',text)
+
     def test_sc_end_status_load_uses_conversion_table_inside_conversation(self):
         _,store,consume=self.setup_store()
         consume(packet(0x196,struct.pack('<HIB',10,777,0)))

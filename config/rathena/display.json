@@ -440,7 +440,7 @@
           "type": "string"
         }
       },
-      "template": "waitingroom {text:q}, 0;\t// {actor_comment}",
+      "template": "// チャット室（非NPC所有者） {text:q}\t// {actor_comment}",
       "min_length": 18
     },
     {

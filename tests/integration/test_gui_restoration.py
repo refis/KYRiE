@@ -413,7 +413,9 @@ class RestorationGuiTests(WindowTestCase):
         self.assertIn('OnInit:',bundle['auriga'])
         self.assertIn('waitingroom "Queue",0;',bundle['auriga'])
         w.add_packet(replace(room(888),connection='flow-a',flow_id=None))
-        self.assertIn('waitingroom ',w.display_log.toPlainText())
+        shown=w.display_log.toPlainText()
+        self.assertIn('チャット室（非NPC所有者）',shown)
+        self.assertNotIn('waitingroom "',shown)
 
     def test_conversation_progress_action_has_code_timeline_and_source_jump(self):
         from tests.support.dialogue import packet
