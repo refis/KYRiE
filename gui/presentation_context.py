@@ -65,13 +65,25 @@ def presentation_context(row):
                 summary=('範囲外から内側へ入った接触候補が一意のとき、0x0229差分をwarpと同様にOnTouch枠へ載せます。'
                          '範囲内移動での再発火は扱いません。同セル同時候補や起因キュー順は断定しません。'
                          + colocated))
+        elif basis=='deferred_unobserved':
+            result.update(actor_role='visibility_target',player_context_required=True,
+                short='未観測actor_id向け0x0229です。名称は後の出現で会話アクションへ解決します。',
+                summary=('会話中に視界外・未観測NPCへのcloakoff等をactor_idだけで保持します。ログ上の名称は出ません。'
+                         '同一MAP世代で後から09FF系により名称が付いたとき、cloakoffnpc "名前"; // actor_id として'
+                         '会話アクションへ反映します。MAP移動で保留は破棄します。'))
+        elif basis=='deferred_name_resolved':
+            result.update(actor_role='visibility_target',player_context_required=True,
+                short='未観測0x0229を後の出現名称で解決したvisibilityです。',
+                summary=('会話中に保持した未観測cloakoff等を、後続の出現パケットで得たNPC名へ結び付けました。'
+                         '生成は cloakoffnpc "名前"; // actor_id 形式です。起因キュー順は断定しません。'))
         else:
             result.update(actor_role='visibility_target',player_context_required=True,
                 short='0x0229のhide/cloak差分です。会話外は演出観測、会話中は対象付きアクションになります。',
                 summary=('0x0229のビット差分からhideonnpc／cloakonnpc等を保持します。会話中は同一MAP世代の対象NPCへ紐付け、'
                          '会話外は手動タイマー候補（自身cloak／インスタンス自身hide）です。'
                          + colocated + '出現パケットと初回状態の食い違い（appearance_vs_initial）とは別経路です。'
-                         '一意入場のOnTouch枠（touch_range_entry）とは別経路です。'))
+                         '一意入場のOnTouch枠（touch_range_entry）とは別経路です。'
+                         '未観測actor_idの保留解決（deferred_*）とは別経路です。'))
     elif kind=='viewpoint':
         result.update(actor_role='marker_npc',player_context_required=True,
             short='マーカー通知のNPC IDです。表示を受けるプレイヤーのIDとは区別します。',

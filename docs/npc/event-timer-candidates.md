@@ -43,7 +43,7 @@ OnTimer0は生成しない。照合したAurigaでは、開始時のカウント
 | effect_value / hat_effect / colored_speech / progressbar / cutin / mapcell | **全行コメント**。実行命令へ落とさない（会話本文の 09D1→progressbar_npc とは別。タイマーでは秒数をOnTimer／sleepへ使わない。cutin／mapcell／対象なし02F0は窓内関連・起因未確定。setcellは出さない） |
 | event_marker | 実行命令 `showevent {state}, {kind}; // {x}, {y}`（対象NPC自身・会話外。座標は注記）。rAthena書式は確認コメントのまま可 |
 | classchange | 実行命令 `setnpcdisplay {NPC名},{class_id};`（対象NPC自身・会話外の手動採用時）。kind は根拠のみ |
-| visibility_action | `cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし・0x0229差分。自身発生は受信者本人のみのため採用可）。`hideonnpc;`／`hideoffnpc;`はインスタンスマップ（MAP名に`@`）上の自身向けのみ。通常MAPの hide・他NPC向け target 付きは拒否。`basis=appearance_vs_initial`／`touch_range_entry` や `colocated_touch_npcs` 付きは観測のみでタイマー採用不可（一意入場の touch_range_entry は OnTouch枠の会話アクションへ） |
+| visibility_action | `cloakonnpc;`／`cloakoffnpc;`（対象NPC自身・会話外・引数なし・0x0229差分。自身発生は受信者本人のみのため採用可）。`hideonnpc;`／`hideoffnpc;`はインスタンスマップ（MAP名に`@`）上の自身向けのみ。通常MAPの hide・他NPC向け target 付きは拒否。`basis=appearance_vs_initial`／`touch_range_entry`／`deferred_unobserved`／`deferred_name_resolved` や `colocated_touch_npcs` 付きは観測のみでタイマー採用不可（一意入場の touch_range_entry と未観測解決は会話アクション経路） |
 | viewpoint | 実行命令 `viewpoint {kind},{x},{y},{marker_id},{color};`（対象NPC自身・会話外。種別1／2・座標0〜1023・marker 0〜255）。未対応値は **全行コメント**（`viewpoint_observation`。命令は未生成） |
 | npc_display_action | 実行命令 `setnpcdisplay …;`（対象NPC自身・会話外の 09FF／09FE／09FD class変更。会話中アクション経路は従来どおり。01B0会話外は classchange 経路） |
 

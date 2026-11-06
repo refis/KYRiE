@@ -92,6 +92,7 @@ for _suffix in ('', '_hidden', '_cloaked'):
 for _command in ('hideonnpc', 'hideoffnpc', 'cloakonnpc', 'cloakoffnpc'):
     FILE_FIELDS[_command] = set()
     FILE_FIELDS[_command + '_target'] = {'target'}
+    FILE_FIELDS[_command + '_target_id'] = {'target', 'actor_id'}
 FILE_FIELDS.update({'unittalk_target': {'text', 'target'}, 'progress_action': {'seconds', 'color'},
                     'navigation_action': {'type', 'set_type', 'hide', 'map_name', 'x', 'y', 'spr_index'},
                     'status_start': {'symbol', 'duration', 'value'}, 'status_end': {'symbol'},
@@ -703,7 +704,11 @@ class AurigaRenderer:
                         reference = _quote(base_npc_name(target['name'], target['map_name']))
                         if '@' in (target['map_name'] or ''):
                             reference = self.templates['instance_npc_reference'].format(name=reference)
-                        emit(command + '_target', depth, target=reference)
+                        actor_id = target.get('actor_id')
+                        if type(actor_id) is int and 0 <= actor_id <= 0xffffffff:
+                            emit(command + '_target_id', depth, target=reference, actor_id=actor_id)
+                        else:
+                            emit(command + '_target', depth, target=reference)
                     else:
                         emit(command, depth)
             elif kind == 'unittalk_target':
