@@ -47,7 +47,9 @@ class ProjectTests(unittest.TestCase):
             fixed = root / 'relocated.gpa.json'
             save_relocated_project(fixed, relocated)
             self.assertEqual(load_project(fixed), relocated)
-            config_target = Path(__file__).resolve().parents[2] / 'config' / 'ignorepacket.json'
+            # Any path under config/ is export-protected; example stays tracked after
+            # local ignorepacket.json was removed from the repository.
+            config_target = Path(__file__).resolve().parents[2] / 'config' / 'ignorepacket.example.json'
             original_config = config_target.read_bytes()
             for save in (lambda: save_project(config_target, files, view, 'note', expected),
                          lambda: save_multiple_project(config_target, common, sources, view, 'multiple'),
