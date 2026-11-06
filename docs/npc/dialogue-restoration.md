@@ -197,10 +197,11 @@ ActorIDがないため、会話中でもNPCへ割り当てず、対象未特定�
 09D1は既存display.jsonのレイアウトに対応する。保存済み実ログ3件には両通知がなく、
 検証は合成パケット・GUI・既存ログ回帰まで。09D1の現クライアント実動作は追加ログで確認する。
 通知の秒数は観測フィールドであり、サーバー待機・イベントタイマー設定を確定しない。
-0x09D1（対象付き）の会話コード生成は外部テンプレートprogressbarによる観測コメントのみとし、
-progressbar/sleep/OnTimer命令は生成しない。手動タイマーでは対象付き 09D1 と、選択窓内の
-対象なし 02F0 を**全行コメント採用**できる（秒数をOnTimer値へ使わない。
-[タイマー候補](event-timer-candidates.md)）。
+0x09D1（対象付き）で会話元NPC自身への通知は、Auriga `progressbar_npc "0xRRGGBB",{sec};`
+（[auriga/auriga#97](https://github.com/auriga/auriga/pull/97)）を本文へ出す。
+02F0の会話内 `progress_action` は従来どおり `progressbar {sec},{color};`。
+秒数を sleep／OnTimer 値へ置き換えない。手動タイマーでは対象付き 09D1 と窓内 02F0 を
+**全行コメント採用**のまま維持する（[タイマー候補](event-timer-candidates.md)）。
 受信一覧の既存MARiA形式表示と、会話コード生成の対応範囲は異なる。
 
 ### BGM通知（2026-10-28）
@@ -226,11 +227,12 @@ NPC演出の非表示リストには連動せず、非表示にする場合はPa
 
 固定長27バイトの`PACKET_ZC_NAVIGATION_ACTIVE`。公式レイアウトは
 Type／SetType／Hide／MapName[16]／xPos／yPos／sprIndex。
-rAthenaの`navigateto` → `clif_navigateTo` と対応する。
+Auriga `navigateto` → `clif_navigateto`（[auriga/auriga#97](https://github.com/auriga/auriga/pull/97)）および
+rAthena `navigateto` → `clif_navigateTo` と対応する。
 ミニマップマーカーの`viewpoint`（0144）や mes 内 `<NAVI>` クリックリンクとは別経路。
-会話中の受信は`navigation_action`として同一フローの会話へ時間紐付けし、
-本文には`// navigateto 観測: ...`コメントのみ出す（実行命令・起因確定はしない）。
-会話外・close待ちは`navigation_active`演出観測として保持する
+会話中の受信は`navigation_action`として同一フローへ時間紐付けし、
+`navigateto {map},{x},{y},{set_type},{hide},{spr_index};` を本文へ出す（起因は未確定）。
+会話外・close待ちは`navigation_active`演出観測として保持し、タイマーへは出さない
 （[未対応通知](unsupported-notifications.md#クライアントナビ開始08e2)）。
 実測例は `小さなトネリコの木#c1p1` の同行選択直後、および ygg 系会話のナビ。
 
@@ -319,8 +321,8 @@ Aurigaの `emotion <n>`（実行NPCが対象）、
 ## 会話中のアクションと状態異常ID
 
 通常の0x02F0通知は`progressbar 秒数,色;`を会話本文へ生成する。
-0x09D1のNPC対象付きバーは、参照したAurigaに対象指定命令がないため引き続き観測コメントとする。
-NPC用通知をプレイヤー用待機命令へ置き換えない。
+0x09D1のNPC対象付きバーは会話元NPC自身なら `progressbar_npc` を出す。
+プレイヤー用 `progressbar` や sleep／OnTimer へは置き換えない。
 
 0x0229のhide／cloakビット差分はhideonnpc、hideoffnpc、cloakonnpc、cloakoffnpcを生成する。
 会話相手自身は引数を省略し、他のNPCは観測したNPC名を指定する。unittalkも会話相手自身は

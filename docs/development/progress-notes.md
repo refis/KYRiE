@@ -165,6 +165,13 @@ update_status（00B0系）は HP/SP 等を抑制し Zeny／EXP を残す（#126�
 showeventflag・update_status抑制・大容量再生上限までをソースZIPへ保存。v0.0.4–v0.0.8 ZIPは変更しない。
 次の着手は「次の着手単位」を正とする（実機確認、視覚エフェクト出典待ち）。
 
+### Auriga UI命令（auriga/auriga#97 / 2026-11-05）
+
+Auriga に `navigateto`／`progressbar_npc`／`viewpointmap`／`camerainfo` が追加された。
+KYRiE は会話内 08E2→`navigateto`、会話元 09D1→`progressbar_npc` を生成する。
+タイマーの progressbar コメント採用と秒数≠OnTimer は維持。viewpointmap は 0144 と区別できないため未生成。
+0A78 camerainfo は観測ログへ暫定追加（`@camerainfo`、f32 3値）。本文命令化はしない。
+
 ### 大容量取得時の応答なし（2026-11-06）
 
 v0.0.9 で約5万件・メモリ上限到達・Land Protector 等の skillunit 多発時に

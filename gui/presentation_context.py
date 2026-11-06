@@ -25,7 +25,7 @@ def presentation_context(row):
     elif kind=='navigation_active':
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='クライアントNavigation開始。対象ActorID未記録。会話外観測のみ。viewpoint／warpと混同しません。',
-            summary='0x08E2（PACKET_ZC_NAVIGATION_ACTIVE、27バイト）は Type／SetType／Hide／MapName／xPos／yPos／sprIndex を保持します。会話中は navigation_action として同一フローの会話へ時間紐付けし、ここ（navigation_active）は会話外・close待ちの観測です。viewpoint（0144）や0092 warpと同一視せず、navigateto 実行命令やタイマーへは変換しません。')
+            summary='0x08E2（PACKET_ZC_NAVIGATION_ACTIVE、27バイト）は Type／SetType／Hide／MapName／xPos／yPos／sprIndex を保持します。会話中は navigation_action として同一フローへ時間紐付けし、Auriga navigateto を生成します（起因は未確定）。ここ（navigation_active）は会話外・close待ちの観測で、タイマーへは変換しません。viewpoint（0144）や0092 warpと同一視しません。')
     elif kind=='map_property':
         result.update(actor_role='map_property',observed_actor_id=None,player_context_required=True,
             short='マップ属性通知です。対象ActorIDは未記録で、NPC本文命令へは出しません。',
@@ -44,8 +44,8 @@ def presentation_context(row):
             summary='0x02F0は対象ActorIDを含まない進捗通知です。既存の会話内progressbarはプレイヤーの実行文脈で扱います。会話元IDを進捗対象へ流用せず、通知秒数をNPCのOnTimer値にも使用しません。')
         if row.get('comparison_scope')=='dialogue_owner':result['dialogue_owner_actor_id']=actor
     elif kind=='progressbar' and packet==0x9d1:
-        result.update(actor_role='progress_target',short='対象ID付き進捗通知。対象IDは発生元NPCを示すとは限りません。',
-            summary='0x09D1のActorIDは進捗対象の根拠です。発生元やプレイヤーの紐付け・実行命令を確定したものではありません。既存の観測・比較を維持し、未確認の命令やNPCタイマーへ変換しません。')
+        result.update(actor_role='progress_target',short='対象ID付き進捗通知。会話NPC自身なら progressbar_npc 候補。',
+            summary='0x09D1のActorIDは進捗対象の根拠です。会話元NPC自身への通知は Auriga progressbar_npc を本文へ出します（起因は未確定）。秒数をOnTimer／sleepへは使いません。発生元やプレイヤー紐付けを確定したものではありません。')
     elif kind=='visibility_action':
         basis=(row.get('fields') or {}).get('basis')
         companions=(row.get('fields') or {}).get('colocated_touch_npcs') or []

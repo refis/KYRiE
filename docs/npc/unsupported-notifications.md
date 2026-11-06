@@ -147,11 +147,11 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | 項目 | 内容 |
 |------|------|
 | PacketID | `08E2`（`PACKET_ZC_NAVIGATION_ACTIVE`、27バイト固定） |
-| 表示名 | クライアント Navigation 開始 / rAthena `navigateto` → `clif_navigateTo` |
+| 表示名 | クライアント Navigation 開始 / Auriga・rAthena `navigateto` |
 | フィールド（公式） | `Type`@2 u8、`SetType`@3 u8、`Hide`@4 bool、`MapName`@5 char[16]、`xPos`@0x15 i16、`yPos`@0x17 i16、`sprIndex`@0x19 i16 |
 | 観測 fields | `type`／`set_type`／`hide`／`map_name`／`x`／`y`／`spr_index` |
 | 状態 | 会話中は `navigation_action`（同一フロー会話へ時間紐付け、`cause_confirmed=false`）。会話外・close待ちは `navigation_active` 演出観測。対象ActorIDなし |
-| 生成 | 会話本文へは `// navigateto 観測: ...` コメントのみ。実行 `navigateto`・タイマー変換はしない。warp（0092）や viewpoint（0144）と混同しない |
+| 生成 | 会話本文へ `navigateto {map},{x},{y},{set_type},{hide},{spr_index};`（Auriga [auriga/auriga#97](https://github.com/auriga/auriga/pull/97)）。タイマーへは出さない。warp（0092）や viewpoint（0144）と混同しない |
 | 実測 | 2026-11-03 採取の `小さなトネリコの木#c1p1` で「一緒に行く」選択後・close前に3回。例: Type=0, SetType=0x65（`NAV_KAFRA_AND_AIRSHIP`=101）, Hide=1, MapName=`ygg_edge`, xPos=253, yPos=246, sprIndex=1002。直後の map 転送は 0092→`ygg_edge.gat` 255,240。続きログ（ygg_fruit／ygg_roots）でも会話直前ナビを同様に確認 |
 
 同ログの `ナビエル#c1p1naviel` は別経路で `0144` viewpoint（KYRiE観測済み）と mes 内 `<NAVI>…<INFO>…</INFO></NAVI>` クリックリンク（本文として保持、専用decodeなし）を使う。`0B18`（`ZC_EXTEND_BODYITEM_SIZE`）はマップ入場付近の所持枠通知でナビ無関係。
@@ -173,8 +173,10 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | `status_enter`（08FF／0984） | 構造化・コメント | sc_start 等なし。タイマー採用対象外 |
 | `mercenary`（029B） | 構造化・コメント | makemerc 実行命令・タイマーへ出さない |
 | `external_*` | 外部候補 | 既定はコメント。emotion／effect／解除／overhead／unittalk／event_marker は明示採用可。sound等は不可 |
-| `progressbar` 観測コメント／viewpoint 未対応値 | 構造化 | 09D1／窓内02F0 progressbar はタイマーコメント採用可（秒数≠OnTimer）。viewpoint対応範囲はタイマー実行命令、未対応値はコメント採用 |
-| `navigation_action`／`navigation_active`（08E2） | 構造化・コメント紐付け | 会話中はアクションコメント。実行 navigateto・タイマーへ出さない。viewpoint／warp と分離 |
+| `progressbar`（09D1／窓内02F0） | 構造化 | 会話元への 09D1 は Auriga `progressbar_npc`。02F0 会話内は `progressbar`。タイマーはコメント採用のみ（秒数≠OnTimer） |
+| `navigation_action`／`navigation_active`（08E2） | 構造化 | 会話中は Auriga `navigateto`。会話外観測は保持のみ・タイマーへ出さない。viewpoint／warp と分離 |
+| `viewpointmap` | （未観測専用経路） | Auriga #97 で命令追加。0144 単体観測から viewpoint と区別できないため未生成 |
+| `camerainfo`（0A78） | 観測ログのみ | Auriga #97。show@2／range@3 f32／rotation@7 f32／latitude@11 f32（15B）。`@camerainfo ...` 表示。NPC本文・タイマーへは未生成。スクリプト引数は wire float×100 |
 
 ## 変更時の確認
 
