@@ -1,5 +1,13 @@
 # Development baseline and plan
 
+## Local ignorepacket defaults; no empty ZIP/Git overwrite (2026-11-06)
+
+ignorepacket.json is gitignored and omitted from source snapshots (like
+user_settings). Missing file: IgnorePacket.ensure_default_file writes an empty
+preset once and never overwrites an existing file. Tracked template is
+ignorepacket.example.json. Snapshot no longer injects empty ignorepacket into
+the ZIP. Selected: display release + unit ignorepacket.
+
 ## GUI P2-2 shortcuts and startup checklist (2026-11-06)
 
 After v0.0.10: F5 start / F8 stop / Ctrl+Shift+O open log, blocked while typing

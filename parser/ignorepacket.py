@@ -12,6 +12,8 @@ from reconstruction.dialogue import decode_dialogue, PRESENTATION_ACTOR_OFFSETS
 from reconstruction.decoder import ObservationError
 
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / 'config' / 'ignorepacket.json'
+# Tracked template only; local ignorepacket.json is gitignored like user_settings.
+EXAMPLE_PATH = Path(__file__).resolve().parent.parent / 'config' / 'ignorepacket.example.json'
 
 # Per-packet bit flags. Combinable.
 HIDE_LOG = 1   # flag&1: omit from observation log / exported log text
@@ -84,8 +86,21 @@ class IgnorePacket:
                     npc_names=sorted(self.npc_names))
 
     @classmethod
+    def ensure_default_file(cls, path=DEFAULT_PATH):
+        """Create an empty local preset only when the file is absent. Never overwrite."""
+        path = Path(path)
+        if path.is_file():
+            return False
+        path.parent.mkdir(parents=True, exist_ok=True)
+        cls().save(path)
+        return True
+
+    @classmethod
     def load(cls, path=DEFAULT_PATH):
         path = Path(path)
+        if not path.is_file():
+            # Missing file: in-memory defaults. Optional disk seed via ensure_default_file.
+            return cls()
         if path.stat().st_size > 65536:
             raise ValueError('ignorepacket設定は64 KiB以下にしてください。')
         doc = json.loads(path.read_text(encoding='utf-8'))

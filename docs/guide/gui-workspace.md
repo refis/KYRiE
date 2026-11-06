@@ -55,10 +55,11 @@ EXE化・EXE配布は行わない（起動は Python＋venv）。
 設定画面の入力は起動中の値で、取得条件は次の観測開始時に使う。
 表示JSON自体は外部ファイルとして保存・編集する。
 チェックボックス等のGUI設定はローカルの`config/user_settings.json`へ保存し、次回起動時に自動適用する。
-このファイルはGit・ソーススナップショットの対象外（`.gitignore` / `tools/build_snapshot.py`）。
-生ログGUI再生のパケット件数／RAW合計上限も同ファイル（設定→記録）で変更できる。
-大きなログは[保存ログの再解析](offline-replay.md)のCLI手順も参照。
-非表示設定（ignorepacket）は別ファイルで、[観測ログの表示除外](ignorepacket.md)を参照（PacketID flag&1 ログ、flag&2 保存スキップ）。
+非表示設定（ignorepacket）もローカルの`config/ignorepacket.json`（不在時は空プリセットを生成）。
+いずれもGit・ソーススナップショットの対象外（`.gitignore` / `tools/build_snapshot.py`）。
+雛形は`config/ignorepacket.example.json`。生ログGUI再生のパケット件数／RAW合計上限は
+user_settings（設定→記録）で変更できる。大きなログは[保存ログの再解析](offline-replay.md)のCLI手順も参照。
+詳細は[観測ログの表示除外](ignorepacket.md)（PacketID flag&1 ログ、flag&2 保存スキップ）。
 
 ## タブと生成の読み方
 

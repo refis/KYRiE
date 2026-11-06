@@ -63,9 +63,9 @@ class MainWindow(QMainWindow):
         self.ignorepacket = IgnorePacket()
         ignore_error = ''
         try:
+            # Local-only file: seed empty preset when absent; never replace an existing file.
+            IgnorePacket.ensure_default_file()
             self.ignorepacket = IgnorePacket.load()
-        except FileNotFoundError:
-            pass
         except (OSError, ValueError) as exc:
             ignore_error = f'ignorepacket設定を読み込めません: {exc}'
         self.display_results = []

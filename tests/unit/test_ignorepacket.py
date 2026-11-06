@@ -15,6 +15,19 @@ from tests.support.world import actor_packet, map_packet
 
 
 class IgnorePacketTests(unittest.TestCase):
+    def test_missing_file_loads_defaults_and_ensure_seeds_without_overwrite(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'ignorepacket.json'
+            self.assertEqual(IgnorePacket.load(path), IgnorePacket())
+            self.assertTrue(IgnorePacket.ensure_default_file(path))
+            self.assertTrue(path.is_file())
+            seeded = IgnorePacket.load(path)
+            self.assertEqual(seeded, IgnorePacket())
+            customized = IgnorePacket(frozenset({0xb0}), frozenset(), True, frozenset(), frozenset())
+            customized.save(path)
+            self.assertFalse(IgnorePacket.ensure_default_file(path))
+            self.assertEqual(IgnorePacket.load(path), customized)
+
     def test_failed_atomic_save_keeps_original_and_removes_temporary_file(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'ignorepacket.json'
