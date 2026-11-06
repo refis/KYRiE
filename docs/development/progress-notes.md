@@ -209,3 +209,9 @@ Open issues なし。#128–#133 を main へ反映済み（Auriga #97 命令、
 Zeny／EXP方針、0ACC抑制、観測ログ末尾固定）。文書の正本は
 [次の着手単位](development-roadmap.md#次の着手単位) を更新して揃えた。
 次スナップショット v0.0.10 は利用者指示で作成する。
+
+### EXE・docs分割・GUI UX の検討（2026-11-06）
+
+実行形式コンパイル、利用者／開発ドキュメント分割、GUI発見性の方針を
+[packaging-docs-gui-ux.md](packaging-docs-gui-ux.md) に整理。実装は未着手。
+docs 目次を利用者／仕様契約／開発の入口に再編。公開EXEはライセンス未確定のため先送り。

@@ -544,6 +544,9 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 - 過去の検証結果を現状の対応状況と混同しないよう、古い文書の未実装記述を整理する。
 - 依存ライブラリの版と配布環境を固定してWindowsで再現可能な起動手順を用意する。
   Npcapの権限・アダプター選択・終了時動作もリリース確認に含める。
+- 利用者向け／開発向けの文書入口分割、private EXE 試験、GUI発見性（Help/About等）の
+  方針は[実行形式・文書分割・GUI UX の検討](packaging-docs-gui-ux.md)を正とする。
+  公開EXE・ライセンス確定前の再配布は行わない。
 
 ## 次の着手単位
 
@@ -580,6 +583,10 @@ Open issues は 2026-11-06 時点でなし。残作業（採取必須のもの�
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 6. **次スナップショット v0.0.10** は利用者指示で作成（洪水耐性・EXP方針・Auriga #97 命令を含む想定）。
    版同期手順は[リリース記録](../releases/README.md)。
+7. **配布・文書・GUI UX（検討済み・実装は指示後）**: 正本は
+   [packaging-docs-gui-ux.md](packaging-docs-gui-ux.md)。
+   推奨順は (a) 操作ガイドの履歴分離など文書純化、(b) Help/About・診断導線など GUI P2-1、
+   (c) Windows 向け private PyInstaller onedir 試験。公開EXEはライセンス／Npcap／辞書条件が揃うまで行わない。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。
