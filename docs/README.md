@@ -6,8 +6,8 @@
 検証件数や実ログ結果は記載時点の記録です。最新の作業記録は[DEVELOPMENT.md](../DEVELOPMENT.md)を参照してください。
 Issue/PRはGitHub、確定仕様はdocsを正本とします。
 
-EXE化・文書の読者分割・GUI操作性の**方針検討**は
-[実行形式・文書分割・GUI UX](development/packaging-docs-gui-ux.md) を参照（実装済み機能一覧ではない）。
+文書の読者分割・GUI操作性の**方針検討**（EXE化・EXE配布はしない）は
+[文書分割・GUI UX](development/packaging-docs-gui-ux.md) を参照（実装済み機能一覧ではない）。
 
 ## 利用者向け（まずここ）
 
@@ -74,7 +74,7 @@ EXE化・文書の読者分割・GUI操作性の**方針検討**は
 - [GitHubラベル作成](development/github-labels.md)
 - [復元の基本方針・根拠の扱い](development/restoration-plan.md)
 - [MARiAとの差分・今後の計画](development/development-roadmap.md)
-- [実行形式・文書分割・GUI UX の検討](development/packaging-docs-gui-ux.md)
+- [文書分割・GUI UX の検討（EXE化なし）](development/packaging-docs-gui-ux.md)
 - [保存後の経過メモ](development/progress-notes.md)
 - [提供TXT/Luaの調査と活用計画](development/client-data-utilization-plan.md)
 - [貢献・作業の進め方](../CONTRIBUTING.md)
@@ -85,6 +85,6 @@ EXE化・文書の読者分割・GUI操作性の**方針検討**は
 ## スナップショット
 
 - [手順・タグ前チェック](releases/README.md)
-- [v0.0.9](releases/v0.0.9.md) · [v0.0.8](releases/v0.0.8.md) · [v0.0.7](releases/v0.0.7.md) · [v0.0.6](releases/v0.0.6.md) · [v0.0.5](releases/v0.0.5.md) · [v0.0.4](releases/v0.0.4.md)
+- [v0.0.10](releases/v0.0.10.md) · [v0.0.9](releases/v0.0.9.md) · [v0.0.8](releases/v0.0.8.md) · [v0.0.7](releases/v0.0.7.md) · [v0.0.6](releases/v0.0.6.md) · [v0.0.5](releases/v0.0.5.md) · [v0.0.4](releases/v0.0.4.md)
 
 資料追加時は該当分類へ配置し、この目次へリンクを追加します。詳細仕様は各資料、全体方針は開発方針、作業履歴はDEVELOPMENT.mdへ記録します。

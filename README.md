@@ -1,12 +1,15 @@
-# KYRiE v0.0.9 (Windows)
+# KYRiE v0.0.10 (Windows)
 
-v0.0.9はナビ08E2観測・cloak併記・actorコメント／ignorepacket flag・showeventflagとupdate_status抑制などを含むソース保存版です。過去のv0.0.4／v0.0.5／v0.0.6／v0.0.7／v0.0.8 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
+v0.0.10は Auriga #97 命令生成、洪水耐性、Zeny／EXP方針、0ACC抑制、文書入口再編などを含むソース保存版です。
+GUI発見性など利用感が変わる作業の前基準点です。**EXE化・EXE配布は行いません**（起動は Python＋venv）。
+過去のv0.0.4–v0.0.9 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
 
 Auriga形式のNPCコード復元と、MOB性能・使用スキルの観測解析を目的とする開発スナップショットです。
 MARiAを参考に、受信・観測可能な非暗号化送信パケットから編集用コードと根拠を生成します。
 完成した元スクリプトやサーバー設定を保証するものではありません。
 
-- [v0.0.9の変更点・検証・残作業](docs/releases/v0.0.9.md)
+- [v0.0.10の変更点・検証・残作業](docs/releases/v0.0.10.md)
+- [保存済みv0.0.9の記録](docs/releases/v0.0.9.md)
 - [保存済みv0.0.8の記録](docs/releases/v0.0.8.md)
 - [保存済みv0.0.7の記録](docs/releases/v0.0.7.md)
 - [保存済みv0.0.6の記録](docs/releases/v0.0.6.md)
@@ -14,7 +17,7 @@ MARiAを参考に、受信・観測可能な非暗号化送信パケットから
 - [保存済みv0.0.4の記録](docs/releases/v0.0.4.md)
 - [目的別ドキュメント一覧](docs/README.md)（利用者／仕様契約／開発の入口）
 - [GUI操作](docs/guide/gui-workspace.md) / [開発計画](docs/development/development-roadmap.md)
-- [EXE・文書分割・GUI UXの検討](docs/development/packaging-docs-gui-ux.md)（実装ではなく方針）
+- [文書分割・GUI UXの検討](docs/development/packaging-docs-gui-ux.md)（EXE化なし）
 - [貢献・GitHub作業合意](CONTRIBUTING.md) / [取り扱い](SECURITY.md) / [スナップショット手順](docs/releases/README.md)
 
 ## 導入
@@ -31,6 +34,7 @@ python -m venv .venv
 
 `requirements.txt`は許容範囲、`requirements-lock.txt`は今回使用した版の記録です。
 新規環境での依存取得・起動確認はスナップショットの手動確認事項です。
+実行形式（EXE）へのコンパイルやEXE配布は行いません。
 
 4. 対象クライアント版に合う`PacketLength.txt`を選びます。同梱定義は全クライアント共通ではありません。
    既定はプロジェクト直下の`PacketLength.txt`です。抽出定義を使う場合は設定画面から明示的に選択してください。
@@ -39,7 +43,7 @@ python -m venv .venv
 
 [取得の診断](docs/capture/capture-analysis.md) / [非暗号化SEND](docs/capture/send-capture.md)
 
-## v0.0.9でできること
+## v0.0.10でできること
 
 - プロセス選択、複数接続追跡、TCP再構成、送受信共通PacketEvent、観測ログと生パケット保存。
 - マップ・XY・所持品・Zeny、NPC/MOBの初回と差分、サーバー別ActorID順の一覧・出力。
@@ -52,11 +56,14 @@ python -m venv .venv
 - 会話外タイマーの実行／コメント採用境界（classchange・visibility・viewpoint・event_marker 等）。
 - OnQuestInfo／クエスト年表、NPC walk／速度、生ログの単独／複数再解析（GUI上限は設定で変更可）、作業プロジェクト保存。
 - MAP・クエスト・ナビ資料の検索、状態／エフェクト辞書の任意日本語説明、接触試行比較表示。
-- display_only 観測保持（実績・色付き発言・アイテムプレビュー・map/status・傭兵・08E2ナビ等）。命令は生成しない。
+- display_only 観測保持（実績・色付き発言・アイテムプレビュー・map/status・傭兵・08E2ナビ等）。
+- 会話内ナビは `navigateto`、会話元 progressbar は `progressbar_npc`（Auriga #97）。camerainfo は観測のみ。
 - MapTypeProperty／mapflag コメント候補、通常shop識別済品名、パケット構造オーバーレイ。
 - rAthena向け生成／表示プロファイル切替（`--emulator`／GUI）。Auriga優先は維持。
 - DB確定後の表示履歴メモリ退避、会話・MOB・ショップ観測JSONの共有非同期保存。
-- actorコメントの名称付き整形、ignorepacket の保存スキップ flag、showeventflag／update_status のログ抑制。詳細は各 docs とリリース記録を参照。
+- 大容量／多パケット時の表 thrash 耐性、観測ログ切り詰め後の末尾追従。
+- actorコメントの名称付き整形、ignorepacket の保存スキップ flag、showeventflag／update_status のログ抑制。
+- Zeny既知差分の命令表示、戦闘EXPの観測ログ getexp 抑制（会話資源採用時のみ getexp）。詳細は各 docs とリリース記録を参照。
 
 [全NPC一括出力](docs/npc/npc-bundle-export.md) / [イベント比較](docs/npc/event-trials.md) /
 [MOB解析](docs/mob/mob-performance.md) / [保存ログの再解析](docs/guide/offline-replay.md)
@@ -103,7 +110,7 @@ python -m tools.build_snapshot --output-dir dist
 
 既存ZIPは上書きしません。更新版を作る場合は別の出力先を指定します。
 ZIP内の`SNAPSHOT.json`にファイル一覧とSHA-256、ZIP横に全体のSHA-256を保存します。
-このソース保存はEXE配布や公開リリースとは別です。公開時のライセンス・同梱データの扱いは別途確認します。
+このソース保存はEXE配布や公開リリースではありません。EXE化も行いません。公開時のライセンス・同梱データの扱いは別途確認します。
 
 ## 検証
 
@@ -114,13 +121,13 @@ python -m tools.run_tests --list
 python -m tools.run_tests npc events
 ```
 
-全件テストが必要な場合の手動実行（v0.0.9作成時は選択グループのみ実行）:
+全件テストが必要な場合の手動実行（v0.0.10作成時は選択グループのみ実行）:
 
 ```powershell
 python -m unittest discover -s tests -t . -q
 ```
 
-[テスト方針](tests/README.md)と[v0.0.9の検証記録](docs/releases/v0.0.9.md)を参照してください。
+[テスト方針](tests/README.md)と[v0.0.10の検証記録](docs/releases/v0.0.10.md)を参照してください。
 合成・GUIテストの通過はWindowsゲーム実機／Auriga本体での動作確認を代替しません。
 旧v0.2/v0.3の開発経緯は[DEVELOPMENT.md](DEVELOPMENT.md)に保存しています。
 
