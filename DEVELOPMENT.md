@@ -1,5 +1,12 @@
 # Development baseline and plan
 
+## GUI P2-2 shortcuts and startup checklist (2026-11-06)
+
+After v0.0.10: F5 start / F8 stop / Ctrl+Shift+O open log, blocked while typing
+in editable fields. Non-modal startup checklist is guidance-only (does not flip
+capture/display settings); dismissal sets startup_checklist_seen in user_settings.
+Auto-show skipped under QT_QPA_PLATFORM=offscreen. Selected: storage + gui-display.
+
 ## v0.0.10 snapshot and no-EXE policy (2026-11-06)
 
 Bumped to v0.0.10 before GUI discoverability work changes the feel. Packaging

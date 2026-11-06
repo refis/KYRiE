@@ -77,6 +77,14 @@ class UserSettingsTests(unittest.TestCase):
         self.assertEqual(result['script_indent'], 'spaces')
         self.assertEqual(result['offline_max_packets'], DEFAULT_OFFLINE_MAX_PACKETS)
         self.assertEqual(result['offline_max_packet_mib'], DEFAULT_OFFLINE_MAX_PACKET_MIB)
+        self.assertFalse(result['startup_checklist_seen'])
+
+    def test_startup_checklist_seen_roundtrip_does_not_require_other_keys(self):
+        result = validate(dict(version=1, startup_checklist_seen=True))
+        self.assertTrue(result['startup_checklist_seen'])
+        self.assertTrue(result['capture_send'])
+        with self.assertRaises(UserSettingsError):
+            validate(dict(DEFAULTS, startup_checklist_seen='yes'))
 
     def test_offline_replay_budget_converts_mib_to_bytes(self):
         packets, nbytes = offline_replay_budget()

@@ -128,6 +128,27 @@ class DisplayGuiTests(WindowTestCase):
         with patch('gui.main_window.QDesktopServices.openUrl', return_value=True) as opened:
             w.open_operation_guide()
             opened.assert_called_once()
+        self.assertTrue(hasattr(w, 'shortcut_start'))
+        self.assertTrue(hasattr(w, 'shortcut_stop'))
+        self.assertTrue(hasattr(w, 'shortcut_open_log'))
+        with patch.object(w, 'focusWidget', return_value=w.path):
+            self.assertTrue(w.focus_blocks_workspace_shortcut())
+        with patch.object(w, 'focusWidget', return_value=w.display_log):
+            self.assertFalse(w.focus_blocks_workspace_shortcut())
+        before_record = w.record_stream.isChecked()
+        before_send = w.capture_send.isChecked()
+        w.show_startup_checklist()
+        self.app.processEvents()
+        dialog = w._startup_checklist_dialog
+        self.assertIsNotNone(dialog)
+        self.assertTrue(dialog.isVisible())
+        dialog.accept()
+        self.app.processEvents()
+        self.assertTrue(w.startup_checklist_seen)
+        self.assertEqual(w.record_stream.isChecked(), before_record)
+        self.assertEqual(w.capture_send.isChecked(), before_send)
+        from storage.user_settings import load
+        self.assertTrue(load(self.settings_path)['startup_checklist_seen'])
         w.export_conversation_action.parent().aboutToShow.emit()
         self.assertFalse(w.export_conversation_action.isEnabled())
         self.assertFalse(w.export_selected_npc_action.isEnabled())
