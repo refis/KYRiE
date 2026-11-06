@@ -1,14 +1,16 @@
 # Development baseline and plan
 
+## v0.0.10 snapshot and no-EXE policy (2026-11-06)
+
+Bumped to v0.0.10 before GUI discoverability work changes the feel. Packaging
+note now forbids EXE builds and EXE distribution (venv+source and private
+source ZIP only). Docs index already split user/contract/development.
+Post-snapshot next: guide purification then GUI P2-1.
+
 ## Packaging / docs audience / GUI UX consideration (2026-11-06)
 
-Added docs/development/packaging-docs-gui-ux.md: keep venv+source as the
-canonical launch path; private PyInstaller onedir only after maintainer ask;
-no public EXE until license/Npcap/dictionary redistrib are clear. Docs index
-split into user / contract / development entrances without moving files yet.
-GUI next: Help/About, diagnostics one-click, shortcuts — not a simplified
-mode that weakens evidence. Roadmap next-work item 7 and O3 point to the note.
-Docs only; no runtime change.
+Added docs/development/packaging-docs-gui-ux.md and docs index audience split.
+Later revised: EXE packaging/distribution cancelled by user policy.
 
 ## Roadmap / docs / tests sync after #128–#133 (2026-11-06)
 

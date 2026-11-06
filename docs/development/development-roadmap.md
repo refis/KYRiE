@@ -544,23 +544,23 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 - 過去の検証結果を現状の対応状況と混同しないよう、古い文書の未実装記述を整理する。
 - 依存ライブラリの版と配布環境を固定してWindowsで再現可能な起動手順を用意する。
   Npcapの権限・アダプター選択・終了時動作もリリース確認に含める。
-- 利用者向け／開発向けの文書入口分割、private EXE 試験、GUI発見性（Help/About等）の
-  方針は[実行形式・文書分割・GUI UX の検討](packaging-docs-gui-ux.md)を正とする。
-  公開EXE・ライセンス確定前の再配布は行わない。
+- 利用者向け／開発向けの文書入口分割と GUI発見性（Help/About等）の方針は
+  [文書分割・GUI UX の検討](packaging-docs-gui-ux.md)を正とする。**EXE化・EXE配布は行わない。**
 
 ## 次の着手単位
 
-2026-11-06時点（[v0.0.9](../releases/v0.0.9.md) 保存後、#128–#133 反映）。
-#45–#66・#71–#133 相当は完了または main 反映済み
+2026-11-06時点（[v0.0.10](../releases/v0.0.10.md) 保存直後）。
+#45–#66・#71–#135 相当は完了または main 反映済み
 （display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、
 OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント境界 #96–#107、
 MOB skill/spawn 編集根拠 #109/#110、ActorID／offscreen CI #113–#118、
 共有非同期保存 #119/#120、大容量再生上限 #122、ナビ08E2／cloak併記 #123–#125、
 actorコメント／ignorepacket flag／showevent・status抑制 #126、
-スナップショット v0.0.9、
+スナップショット v0.0.9／v0.0.10、
 Auriga #97 `navigateto`／`progressbar_npc` #128、
 表 thrash／洪水耐性 #129/#131、Zeny差分・EXP資源採用 #130/#132、
-0ACC 観測抑制・観測ログ末尾固定 #133）。
+0ACC 観測抑制・観測ログ末尾固定 #133、ロードマップ同期 #134、
+文書入口／GUI UX方針（EXE化なし確定）#135）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
@@ -581,12 +581,10 @@ Open issues は 2026-11-06 時点でなし。残作業（採取必須のもの�
 5. **OnTouch→cloakoff リスト命令**は未実装（観測のみ）。
    0A78 camerainfo は観測ログのみ（本文未生成）。`viewpointmap` は 0144 と区別できないため未生成。
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
-6. **次スナップショット v0.0.10** は利用者指示で作成（洪水耐性・EXP方針・Auriga #97 命令を含む想定）。
-   版同期手順は[リリース記録](../releases/README.md)。
-7. **配布・文書・GUI UX（検討済み・実装は指示後）**: 正本は
+6. **文書純化・GUI P2（v0.0.10 保存後）**: 正本は
    [packaging-docs-gui-ux.md](packaging-docs-gui-ux.md)。
-   推奨順は (a) 操作ガイドの履歴分離など文書純化、(b) Help/About・診断導線など GUI P2-1、
-   (c) Windows 向け private PyInstaller onedir 試験。公開EXEはライセンス／Npcap／辞書条件が揃うまで行わない。
+   順は (a) 操作ガイドの履歴分離、(b) Help/About・診断導線など GUI P2-1、
+   (c) 必要ならショートカット／初回チェックリスト。**EXE化・EXE配布はしない。**
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。

@@ -114,7 +114,7 @@ GUI では配線（読取専用・空欄・KeyError回避・候補固定）だ�
 外部採用案内の文言は定数＋unit、GUI timing からのソース読込照合は削除した。
 実行は変更モジュール／メソッド単位（`mob` / `events` / `gui-timing` / `gui-restoration` の該当メソッド）。
 
-直近スナップショットの検証範囲は[v0.0.9記録](../docs/releases/v0.0.9.md)を参照。
+直近スナップショットの検証範囲は[v0.0.10記録](../docs/releases/v0.0.10.md)を参照。
 版を進めるときは直下READMEも同コミットで更新する（[手順](../docs/releases/README.md)）。
 
 ## 2026-11-06の整理（洪水・EXP観測）
