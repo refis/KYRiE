@@ -99,6 +99,9 @@ class WorldStore:
         self.max_showevent_state = 20000
         self.display_observations = []
         self.display_dropped = 0
+        # actor_seen with non-NPC/MOB types (players, etc.); used to reject chatroom→waitingroom.
+        self.non_npc_actors = OrderedDict()
+        self.max_non_npc_actors = 8192
 
     def begin_capture(self, session):
         if session <= self.current_capture:
@@ -108,11 +111,34 @@ class WorldStore:
         self.map_context.clear()
         self.showevent_state.clear()
         self.last_showevent = None
+        self.non_npc_actors.clear()
         for entity in self.entities.values():
             if entity.active and entity.capture_session != session:
                 entity.active = False
                 entity.state = 'past_capture'
         self.revision += 1
+
+    def actor_owner_kind(self, packet, session, actor_id):
+        """Classify an actor as player, npc, mob, or unknown. Never invents ownership."""
+        if type(actor_id) is not int:
+            return 'unknown'
+        state = self.player_maps.states.get((session, packet.flow_id or packet.connection))
+        if state is not None and state.actor_id == actor_id:
+            return 'player'
+        scope = (session, packet.connection)
+        scene = self.scenes.get(scope)
+        if scene is not None and (*scope, scene.generation, actor_id) in self.non_npc_actors:
+            return 'player'
+        if self.find_current(packet, session, actor_id, kind='NPC') is not None:
+            return 'npc'
+        if self.find_current(packet, session, actor_id, kind='MOB') is not None:
+            return 'mob'
+        return 'unknown'
+
+    def waitingroom_owner(self, packet, session, actor_id):
+        """Classify 0xd7 owner as npc, player, or unknown. Never invents ownership."""
+        kind = self.actor_owner_kind(packet, session, actor_id)
+        return kind if kind in ('npc', 'player') else 'unknown'
 
     def _evidence(self, packet, session, index):
         return dict(capture_session=session, packet_index=index, packet_id=packet.packet_id,
@@ -201,6 +227,9 @@ class WorldStore:
                 if not 18 <= len(packet.raw) <= 78 or r.number(2, 'H') != len(packet.raw):
                     raise ObservationError('Invalid waiting room packet length')
                 actor = r.number(4, 'I')
+                # Player / non-NPC chat rooms are not NPC waitingroom metadata.
+                if self.waitingroom_owner(packet, session, actor) != 'npc':
+                    return False
                 entity = self.find_current(packet, session, actor, kind='NPC')
                 if entity:
                     room = dict(title=r.text(17), limit=r.number(12, 'H'), chat_id=r.number(8, 'I'),
@@ -266,6 +295,9 @@ class WorldStore:
             kind = ACTOR_KINDS.get(actor_type)
             if kind is None:
                 self.pending_names.pop(identity, None)
+                if identity not in self.non_npc_actors and len(self.non_npc_actors) >= self.max_non_npc_actors:
+                    self.non_npc_actors.popitem(last=False)
+                self.non_npc_actors[identity] = actor_type
                 if entity and entity.active:
                     entity.active = False
                     entity.state = 'replaced'

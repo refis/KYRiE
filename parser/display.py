@@ -537,6 +537,21 @@ class ReceiveDisplay:
                 if all(values[key] == expected for key, expected in variant['when'].items()):
                     template = variant['template']
                     break
+            # Confirmed player skill sources are observation comments, not NPC/MOB skill lines.
+            # Unknown owners stay on the normal template (spawn may be missing).
+            skill_source_ids = {0x13e, 0x7fb, 0x1b9, 0x1de, 0x11a, 0x9cb, 0x117}
+            if event.packet_id in skill_source_ids:
+                source = values.get('actor_id')
+                if self.world.actor_owner_kind(event, 0, source) == 'player':
+                    skill = values.get('skill_id', '')
+                    text = prefix + (f'// スキル通知（プレイヤー） skill={skill} src={source}')
+                    return DisplayResult(rule['name'], text, 'decoded', fields)
+            if event.packet_id == 0x9ca and rule.get('decoder') == 'skill_unit':
+                source = values.get('source_actor_id')
+                if self.world.actor_owner_kind(event, 0, source) == 'player':
+                    text = prefix + (f'// スキルユニット（プレイヤー） src={source} '
+                                     f'unit={values.get("unit_actor_id")}')
+                    return DisplayResult(rule['name'], text, 'decoded', fields)
             if profile.instance_warp is not None and event.packet_id in (0x91, 0x92) and '@' in fields.get('map', ''):
                 values['map'] = base_map_name(fields['map'])
                 if source_map and '@' in source_map:

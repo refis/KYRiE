@@ -170,6 +170,7 @@
   "script_downrefitem": "downrefitem {slot},{decrement};",
   "script_sit": "sit;",
   "script_stand": "stand;",
+  "script_skill": "skill {skill_id},{level};",
   "script_dropitem": "dropitem {map_name},{x},{y},{item_id},{amount},{extra_lifetime_ms};",
   "script_review": "// {code} // 要確認: {reason}",
   "script_rendered": "{text}",

@@ -388,7 +388,7 @@
           "type": "string"
         }
       },
-      "template": "waitingroom {text:q}, 0;\t// {actor_id}",
+      "template": "// チャット室（非NPC所有者） {text:q}\t// {actor_id}",
       "min_length": 18
     },
     {

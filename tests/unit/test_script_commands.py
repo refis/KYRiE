@@ -158,6 +158,37 @@ class ScriptCommandTests(unittest.TestCase):
                 command='sit;' if action==2 else 'stand;'
                 self.assertEqual(self.code(store).splitlines().count(command),0 if requested else 1)
 
+    def test_own_skill_requires_no_matching_send_and_ignores_other_players(self):
+        from parser.display import DisplayProfile, ReceiveDisplay
+        def damage(actor, skill_id=28, level=5):
+            body=bytearray(31)
+            struct.pack_into('<HII',body,0,skill_id,actor,0)
+            struct.pack_into('<H',body,26,level)
+            return packet(0x1de,body)
+        for requested in (False,True):
+            _,store,consume=self.setup_store()
+            if requested:
+                consume(packet(0x113,struct.pack('<HhI',28,5,0),direction='SEND'))
+            consume(damage(777))
+            consume(damage(888))
+            self.close(consume)
+            lines=self.code(store).splitlines()
+            self.assertEqual(lines.count('skill 28,5;'),0 if requested else 1)
+            self.assertFalse(any('skill 28' in line and '888' in line for line in lines))
+        display=ReceiveDisplay(DisplayProfile.load())
+        # Confirmed player skill lines stay comments, not @skillattack.
+        player=actor_packet(actor_id=9002,name='Caster')
+        raw=bytearray(player.raw);raw[4]=0
+        body=bytearray(31)
+        struct.pack_into('<HII',body,0,28,9002,0)
+        struct.pack_into('<H',body,26,5)
+        shown=replace(raw_packet(0x1de,body),connection='flow-a',flow_id='flow-a')
+        text=''
+        for event in (map_packet(),replace(player,raw=bytes(raw)),shown):
+            text=display.decode(event).text or text
+        self.assertIn('スキル通知（プレイヤー）',text)
+        self.assertNotIn('@skillattack',text)
+
     def test_dropitem_excludes_mob_death_and_manual_drop_and_does_not_invent_lifetime(self):
         for cause in ('none','death','drop'):
             _,store,consume=self.setup_store()
@@ -196,6 +227,32 @@ class ScriptCommandTests(unittest.TestCase):
         report=build_npc_bundle(world.snapshot('NPC')['entities'],[])
         self.assertIn('end;\n',report['auriga'].split('OnInit:')[0])
         self.assertIn('waitingroom "Queue",0;',report['auriga'])
+
+    def test_player_chatroom_is_not_npc_waitingroom_metadata_or_command(self):
+        from parser.display import DisplayProfile, ReceiveDisplay
+        world,store,consume=self.setup_store()
+        # Other player appearance (actor_type 0) then chat room on that actor.
+        player=actor_packet(actor_id=9001,name='Passerby')
+        raw=bytearray(player.raw)
+        raw[4]=0  # non NPC/MOB type
+        struct.pack_into('<I',raw,19,0)
+        consume(replace(player,raw=bytes(raw)))
+        body=struct.pack('<IIHHB',9001,700,0,0,1)+b'Party\0'
+        room=replace(packet(0xd7),raw=struct.pack('<HH',0xd7,len(body)+4)+body)
+        consume(room)
+        self.close(consume)
+        probe=replace(raw_packet(0x9ff),connection='game',flow_id='game')
+        self.assertIsNone(world.find_current(probe,0,9001,kind='NPC'))
+        self.assertEqual(world.waitingroom_owner(
+            replace(room,connection='game',flow_id='game'),0,9001),'player')
+        report=build_npc_bundle(world.snapshot('NPC')['entities'],store.sessions)
+        self.assertNotIn('waitingroom "Party"',report['auriga'])
+        display=ReceiveDisplay(DisplayProfile.load())
+        text=''
+        for event in (map_packet(),replace(player,raw=bytes(raw)),room):
+            text=display.decode(event).text or text
+        self.assertIn('チャット室（非NPC所有者）',text)
+        self.assertNotIn('waitingroom "',text)
 
     def test_sc_end_status_load_uses_conversion_table_inside_conversation(self):
         _,store,consume=self.setup_store()
