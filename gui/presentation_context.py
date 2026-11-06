@@ -1,7 +1,20 @@
 """View-only recipient notes; observed actor IDs are not inferred callers or receivers."""
 
 
-def presentation_context(row):
+def _roster_hint(row, roster):
+    """Cross-log name hints for unresolved actor_ids. Never mutates script fields."""
+    if not roster:
+        return '', []
+    npc = row.get('npc') or {}
+    if isinstance(npc.get('name'), str) and npc['name']:
+        return '', []
+    from reconstruction.npc_roster import format_roster_candidates, roster_candidates
+    candidates = roster_candidates(
+        roster, actor_id=row.get('actor_id'), capture_session=row.get('capture_session'))
+    return format_roster_candidates(candidates), candidates
+
+
+def presentation_context(row, roster=None):
     kind=row.get('kind');packet=row.get('packet_id');actor=row.get('actor_id')
     result=dict(kind=kind,packet_id=packet,observed_actor_id=actor,
         player_context_required=None,automatic_timer_supported=False,cause_confirmed=False,
@@ -66,24 +79,32 @@ def presentation_context(row):
                          '範囲内移動での再発火は扱いません。同セル同時候補や起因キュー順は断定しません。'
                          + colocated))
         elif basis=='deferred_unobserved':
+            hint, candidates = _roster_hint(row, roster)
             result.update(actor_role='visibility_target',player_context_required=True,
                 short='未観測actor_id向け0x0229です。名称は後の出現で会話アクションへ解決します。',
                 summary=('会話中に視界外・未観測NPCへのcloakoff等をactor_idだけで保持します。ログ上の名称は出ません。'
                          '同一MAP世代で後から09FF系により名称が付いたとき、cloakoffnpc "名前"; // actor_id として'
-                         '会話アクションへ反映します。MAP移動で保留は破棄します。'))
+                         '会話アクションへ反映します。MAP移動で保留は破棄します。'
+                         + hint))
+            if candidates:
+                result['workspace_roster_candidates'] = candidates
         elif basis=='deferred_name_resolved':
             result.update(actor_role='visibility_target',player_context_required=True,
                 short='未観測0x0229を後の出現名称で解決したvisibilityです。',
                 summary=('会話中に保持した未観測cloakoff等を、後続の出現パケットで得たNPC名へ結び付けました。'
                          '生成は cloakoffnpc "名前"; // actor_id 形式です。起因キュー順は断定しません。'))
         else:
+            hint, candidates = _roster_hint(row, roster)
             result.update(actor_role='visibility_target',player_context_required=True,
                 short='0x0229のhide/cloak差分です。会話外は演出観測、会話中は対象付きアクションになります。',
                 summary=('0x0229のビット差分からhideonnpc／cloakonnpc等を保持します。会話中は同一MAP世代の対象NPCへ紐付け、'
                          '会話外は手動タイマー候補（自身cloak／インスタンス自身hide）です。'
                          + colocated + '出現パケットと初回状態の食い違い（appearance_vs_initial）とは別経路です。'
                          '一意入場のOnTouch枠（touch_range_entry）とは別経路です。'
-                         '未観測actor_idの保留解決（deferred_*）とは別経路です。'))
+                         '未観測actor_idの保留解決（deferred_*）とは別経路です。'
+                         + hint))
+            if candidates:
+                result['workspace_roster_candidates'] = candidates
     elif kind=='viewpoint':
         result.update(actor_role='marker_npc',player_context_required=True,
             short='マーカー通知のNPC IDです。表示を受けるプレイヤーのIDとは区別します。',
