@@ -287,13 +287,14 @@ mapcell、BGM、showscript、status、会話サイズ・位置・整列等を逐
 | 0A3B hat_effect | 構造化・コメント。hateffect 実行命令なし。タイマーはコメント採用可 |
 | display_only | [未対応通知](../npc/unsupported-notifications.md) |
 
-### 3. ワープ・移動・アイテム・Zeny
+### 3. ワープ・移動・アイテム・Zeny・EXP
 
-マップ・移動・所持品・Zenyの状態と差分は保存・GUI表示済み。
+マップ・移動・所持品・Zeny・Base/Job Expの状態と差分は保存・GUI表示済み。
 OnTouchのwarp型、close応答後の関連warp、会話中の授受・装備等は個別条件付きで候補生成する。
 近接・同時発生だけでは原因を確定せず、歩行先を到着位置とは扱わない。
-Zeny差分や一般の所持品変化から隠れた報酬条件を生成しない。
-床アイテム履歴・MOBドロップ台帳の拡張は利用者指定で対象外。
+既知のZeny差分は観測ログでも `set Zeny,Zeny±n;`。Base/Job Expの増加は戦闘洪水を避け
+観測ログへ `getexp` を出さず、会話資源への紐づけ＋採用時のみ命令化する（0ACCも同様）。
+隠れた報酬条件は生成しない。床アイテム履歴・MOBドロップ台帳の拡張は利用者指定で対象外。
 
 ### 4. ショップ
 
@@ -362,10 +363,11 @@ P0の再生基盤を使い、機能ごとに小さく実装する。
 
 1. 配置情報が揃ったNPCの宣言と本文を一つの編集用ファイルへ出力。
    最小出力は実装済み。[配置付きNPC出力](../npc/npc-file-export.md)を参照。Auriga実行・実ログ配置の検証は残る。
-2. 会話中のアイテム・Zeny増減、マップ遷移を根拠付きの観測コメントへ関連付ける。
-   初期実装済み。[会話中の状態変化](../npc/dialogue-resource-observations.md)を参照。命令化・起因判定は行わない。
+2. 会話中のアイテム・Zeny・EXP増減、マップ遷移を根拠付きの観測へ関連付ける。
+   初期実装済み。[会話中の状態変化](../npc/dialogue-resource-observations.md)を参照。起因判定は行わない。
 3. 確認された対象・操作だけを命令候補へ切り替えられる形にする。
-   資源行の `adoption_confirmed` と GUI 切替を追加（Zeny／マップ／重複しないアイテム）。起因は未確定のまま。
+   資源行の `adoption_confirmed` と GUI 切替を追加（Zeny／Base・Job Exp／マップ／重複しないアイテム）。
+   戦闘中の 00B0系 EXP 増加と 0ACC は観測ログへ `getexp` を出さない。起因は未確定のまま。
 4. 通常ショップの商品台帳と出力、続いて交換・バルター系を追加。
    [通常ショップの観測台帳・JSON保存](../npc/shop-observations.md)と
    [shop/callshop編集用出力](../npc/shop-export.md)を追加済み。
@@ -497,6 +499,9 @@ NPC基準点の観測窓にある同一取得・フロー・MAP世代のBGMは�
   WAL不可時は既存journal方式へ戻し、実際の方式を診断へ記録する。既存列と保存件数を維持する。
 - `gui/main_window.py` はGUI側で保存・意味解析・行追加を行う。
   受渡しキューを有界化し、更新をまとめる。解析順序と接続世代を維持する。
+- パケット一覧は MEMORY_EVENT_LIMIT 到達後も最新ページ追従（#129）。
+  退避は表示更新ジョブより優先し、診断進捗ラベルは間引き（#131）。
+  本文容量調整の `setPlainText` 後は追従中なら末尾へ戻す（#133）。
 - パケット一覧をQTableWidgetの全行保持からモデル＋遅延参照へ移す候補を測定する。
   保存用履歴を削る代わりに、画面の行数・表示ログを制限し、DB／ログへ退避する。
 - 完了条件: 基準ログで件数・根拠・生成結果が一致し、停止で未保存が残らず、
@@ -542,24 +547,28 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-04時点（[v0.0.9](../releases/v0.0.9.md) 保存直後）。
-#45–#66・#71–#126 相当は完了または main 反映済み
+2026-11-06時点（[v0.0.9](../releases/v0.0.9.md) 保存後、#128–#133 反映）。
+#45–#66・#71–#133 相当は完了または main 反映済み
 （display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、
 OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント境界 #96–#107、
 MOB skill/spawn 編集根拠 #109/#110、ActorID／offscreen CI #113–#118、
 共有非同期保存 #119/#120、大容量再生上限 #122、ナビ08E2／cloak併記 #123–#125、
 actorコメント／ignorepacket flag／showevent・status抑制 #126、
-スナップショット v0.0.9 含む）。
+スナップショット v0.0.9、
+Auriga #97 `navigateto`／`progressbar_npc` #128、
+表 thrash／洪水耐性 #129/#131、Zeny差分・EXP資源採用 #130/#132、
+0ACC 観測抑制・観測ログ末尾固定 #133）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。
-残作業（採取必須のものは採取後）:
+Open issues は 2026-11-06 時点でなし。残作業（採取必須のものは採取後）:
 
-1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない。手動タイマー候補の本体読込含む）
+1. **実機・Npcap・Auriga実行確認**（合成通過と同一視しない。手動タイマー候補の本体読込、
+   #128 の `navigateto`／`progressbar_npc` 読込含む）
 2. 視覚エフェクト日本語は確認済み出典が揃うまで空のまま（[クライアント資料計画](client-data-utilization-plan.md)）。
    stateiconimginfo の画像名は辞書化しない。原資料の Git 持ち出し禁止。
-3. **O2（#77/#85）**: メモリ退避の合成計測は `python -m tools.profile_memory_eviction`。
-   既定 50000 は維持（退避動作は確認済み。実機ピークに基づく変更は別途）。
+3. **O1/O2**: 洪水耐性（#129/#131/#133）とメモリ退避（#77/#85）は合成／実機報告まで到達。
+   既定 MEMORY_EVENT_LIMIT 50000 は当面維持。実機ピークに基づく上限変更は別途計測。
    演出JSON差分キー抑止と、会話64件以上の統合計算ワーカー（古いキーは破棄）まで完了。
 4. P1-B タイマーの sound／music／progress_action／会話レイアウト／status_action 等は
    意図的拒否のまま維持（プレイヤー紐付けや開始条件の推測を増やさない）。
@@ -567,10 +576,10 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
    観測自動補完はしない。次のコード着手は採取で必要になった非対称、または
    既存 export／bundle の観測一貫性修正から。
 5. **OnTouch→cloakoff リスト命令**は未実装（観測のみ）。
-   Auriga [auriga/auriga#97](https://github.com/auriga/auriga/pull/97) により会話内
-   `navigateto`／`progressbar_npc` は生成可能。0A78 camerainfo は観測ログのみ（本文未生成）。
-   `viewpointmap` は 0144 と区別できないため未生成。
+   0A78 camerainfo は観測ログのみ（本文未生成）。`viewpointmap` は 0144 と区別できないため未生成。
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
+6. **次スナップショット v0.0.10** は利用者指示で作成（洪水耐性・EXP方針・Auriga #97 命令を含む想定）。
+   版同期手順は[リリース記録](../releases/README.md)。
 
 0x0B79／exchange の実機取得検証は該当 NPC 不在のため **保留**（#70）。
 合成契約は維持し、未採取のままレイアウトを広げない。
@@ -578,7 +587,7 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
 湧き数 amount・delay1／delay2 は今後も観測自動補完しない
 （[配置・再観測](../mob/mob-spawn-observations.md)）。
 
-完了済みの参照は releases と各PRに委ね、ここには残作業だけを列挙する。
+完了済みの参照は releases・progress-notes と各PRに委ね、ここには残作業だけを列挙する。
 最適化は計測結果に応じてO1/O2を挟む。完成条件を「全MARiA互換」にはせず、
 再現可能な観測と編集用候補の品質を基準にする。
 

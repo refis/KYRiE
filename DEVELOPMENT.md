@@ -1,5 +1,14 @@
 # Development baseline and plan
 
+## Roadmap / docs / tests sync after #128–#133 (2026-11-06)
+
+Resynced `docs/development/development-roadmap.md` next-work units with post-v0.0.9
+main (#128 Auriga navigateto/progressbar_npc, #129/#131 flood thrash, #130/#132
+Zeny/EXP adoption, #133 0ACC suppress + observation-log pin). Fixed stale EXP
+wording in receive-display / P1-A / MARiA §3 / O1. Tidied progress-notes and
+tests/README (grouped module count, point snapshot pointer to v0.0.9). Docs/tests
+catalog only; no runtime change. Not full discover.
+
 ## MARiA gap docs refresh (2026-11-01)
 
 Reconfirmed MARiA vs KYRiE claims against current code (local `.reference/MARiA`
