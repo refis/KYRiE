@@ -125,7 +125,14 @@ class BarterRenderer:
             raise ValueError('barter候補が出力上限を超えています。')
         return result
 
-    def hidden_definition(self, record, npc):
+    def hidden_definition(self, record, npc, *, item_ids_confirmed=False, review_unconfirmed=True):
+        """Review header + commented barter line (bundle preface; matches individual header)."""
+        if item_ids_confirmed is not True and review_unconfirmed is not True:
+            raise ValueError('生成形式と出力先DBの商品ID対応を確認してください。')
         items = format_barter_items(record['items'])
         name = barter_name_for(npc, record['items'], actor_id=record.get('actor_id'))
-        return name, self.templates['hidden_barter'].format_map(dict(shop_name=name, items=items))
+        review_key = 'review' if item_ids_confirmed else 'review_unconfirmed'
+        review = self.templates[review_key].format_map(
+            dict(map_origin='利用者入力' if not npc.get('map_name') else '観測'))
+        hidden = self.templates['hidden_barter'].format_map(dict(shop_name=name, items=items))
+        return name, review + '\n' + hidden

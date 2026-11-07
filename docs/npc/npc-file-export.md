@@ -103,7 +103,8 @@ Auriga本体でのスクリプト読込・実行確認は未実施。
 歩行先の根拠Packet3415、MAP移動Packet3419（0始まり）。同一フロー・旧MAPで最高優先クラスの
 最短距離候補が1体だったことをtouch_warp_inferencesに保持する。起因は確定しない。
 
-統合ON/OFFの両方で、次の配置行が一致した。
+全件出力（統合ON/OFF）および個別の配置付きNPC保存でも、次の配置行が一致する
+（warpのみのOnTouchは `script`+`OnTouch` ではなく native `warp` 行）。
 
 ```text
 ev_season01.gat,27,91,0	warp	#warp_season01	1,1,prontera.gat,86,58

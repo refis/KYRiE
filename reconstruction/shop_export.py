@@ -141,3 +141,15 @@ class ShopRenderer:
         if len(result) > 4 * 1024 * 1024:
             raise ValueError('ショップ候補が出力上限を超えています。')
         return result
+
+    def callshop_definition(self, record, *, conversation=None, item_ids_confirmed=False,
+                            map_name=None, review_unconfirmed=False):
+        """Review + 品名 + hidden shop line only (bundle preface; no NPC body)."""
+        full = self.render(record, 'callshop', conversation=conversation,
+                           item_ids_confirmed=item_ids_confirmed, map_name=map_name,
+                           review_unconfirmed=review_unconfirmed)
+        marker = '\n\n'
+        if marker not in full:
+            raise ValueError('callshop候補の区切りが不正です。')
+        preface, _body = full.split(marker, 1)
+        return preface.rstrip() + '\n'

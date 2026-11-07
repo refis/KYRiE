@@ -54,16 +54,28 @@ class TouchNpcTests(unittest.TestCase):
         self.assertIn('\n    {\n', code)
 
     def test_only_warp_becomes_native_warp_including_instances(self):
+        from reconstruction.auriga import AurigaRenderer
+        from reconstruction.branches import build_merged
         for target in ('target.gat', '1@target.gat'):
             with self.subTest(target=target):
                 world, dialogues, consume = self.scene()
                 self.position(consume)
                 consume(map_packet(target))
+                item = dialogues.sessions[0]
                 bundle = build_npc_bundle([], dialogues.sessions, merge=True)
-                self.assertIn('\twarp\tTouch\t1,1,' + target + ',100,120', bundle['auriga'])
+                expected = '\twarp\tTouch\t1,1,' + target + ',100,120'
+                self.assertIn(expected, bundle['auriga'])
                 self.assertNotIn('\tscript\t', bundle['auriga'])
                 self.assertEqual(bundle['review_only_count'], 0)
                 self.assertTrue(any(line.startswith('test.gat,') and '\twarp\t' in line for line in bundle['auriga'].splitlines()))
+                # Individual / merge NPC file export must match bundle declaration kind.
+                individual = AurigaRenderer().render_npc_file(item)
+                self.assertIn(expected, individual)
+                self.assertNotIn('\tscript\t', individual)
+                group = build_merged(('', row) for row in dialogues.sessions)['groups'][0]
+                merged_file = AurigaRenderer().render_npc_file(item, group)
+                self.assertIn(expected, merged_file)
+                self.assertNotIn('\tscript\t', merged_file)
 
     def test_ambiguous_nearby_npcs_do_not_claim_a_warp(self):
         world, dialogues, consume = self.scene(extra=True)
