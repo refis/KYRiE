@@ -4,8 +4,9 @@
 
 Warp-only OnTouch now uses native warp in individual NPC file export (same
 native_warp_target helper as bundle). Bundle callshop/barter prefaces keep the
-individual review headers (including shop 品名). Selected: npc shop dialogue
-touch presentation.
+individual review headers (including shop 品名). Individual shop/barter and
+manual timer candidates apply the same identity protection as dialogue/bundle.
+Selected: npc shop dialogue touch presentation identity events.
 
 ## v0.0.11 snapshot (2026-11-07)
 

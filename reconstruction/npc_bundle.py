@@ -60,7 +60,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             bucket['conversations'].append(deepcopy(item))
         else:
             excluded[-1]['conversation'] = asdict(item)
-    shop_renderer = ShopRenderer(client_names=client_names) if shops else None
+    shop_renderer = ShopRenderer(client_names=client_names, identity=identity) if shops else None
     lookup = {(item.capture_session, item.id): item for item in conversations}
     for record in shops:
         record = deepcopy(record)
@@ -95,7 +95,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
         else:
             entry['definition'] = definition
         bucket.setdefault('shops', []).append(entry)
-    barter_renderer = BarterRenderer() if barters else None
+    barter_renderer = BarterRenderer(identity=identity) if barters else None
     for record in barters:
         record = deepcopy(record)
         linked = lookup.get((record['capture_session'], record.get('conversation_id')))

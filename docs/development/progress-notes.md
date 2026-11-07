@@ -274,3 +274,4 @@ open Issue 空のため post-P2 backlog を Actions で再登録。
 
 warpのみ OnTouch の native `warp` 行を個別NPC保存にも適用（bundle と同判定）。
 全件 callshop／barter 前置に個別と同じ review・品名ヘッダを残す。
+個別 shop／barter と手動タイマー候補も会話／bundle と同じ本人情報保護を適用。

@@ -777,10 +777,13 @@ class EventTrialPanel(QWidget):
             QMessageBox.information(self, '試行選択が必要です', '現在の観測で比較して、採用する試行を選択してください。')
             return
         from gui.event_timer_editor import EventTimerEditor
+        from reconstruction.identity_protection import identity_from_store
         report, key = self.report, self.report_key
+        players = getattr(self.window(), 'players', None)
         try:
             dialog = EventTimerEditor(report, index, self,
-                is_current=lambda: self.report is report and self.current_key() == key)
+                is_current=lambda: self.report is report and self.current_key() == key,
+                identity=identity_from_store(players))
         except ValueError as exc:
             QMessageBox.warning(self, '試行を採用できません', str(exc))
             return
