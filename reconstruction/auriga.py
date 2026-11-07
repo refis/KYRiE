@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 from string import Formatter
-from reconstruction.branches import conversation_path, validate_resources, validate_external
+from reconstruction.branches import conversation_path, native_warp_target, validate_resources, validate_external
 from reconstruction.timing import build_timeline
 from reconstruction.entity_metadata import append_initialization, render_npc_initialization, metadata_values
 from reconstruction.quest_info import append_quest_info, collect_quest_info_links
@@ -393,6 +393,15 @@ class AurigaRenderer:
             if type(aid) is int:
                 npc = dict(npc, actor_id=aid)
         body = self.render_merged(group) if group is not None else self.render(conversation, presentation_check, shop_call_name)
+        # Match bundle: warp-only OnTouch becomes a native warp line (not script+OnTouch).
+        if (shop_call_name is None and is_touch(npc)
+                and not render_npc_initialization([npc], indent=self.templates['indent'])):
+            sources = ([conversation] if group is None
+                       else [row['conversation'] for row in group['contributions']])
+            if not collect_quest_info_links(*sources):
+                target = native_warp_target(sources)
+                if target:
+                    npc = dict(npc, warp_target=target)
         return self._wrap_npc(npc, body)
 
     def render_npc_metadata_file(self, npc):

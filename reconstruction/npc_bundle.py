@@ -9,7 +9,7 @@ import json
 from collections import Counter
 
 from reconstruction.auriga import AurigaRenderer
-from reconstruction.branches import build_merged, conversation_path
+from reconstruction.branches import build_merged, native_warp_target
 from reconstruction.entity_metadata import render_npc_initialization
 from reconstruction.quest_info import append_quest_info, collect_quest_info_links
 from reconstruction.npc_initial_state import visibility_state
@@ -83,8 +83,9 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             except (ValueError, OSError) as exc:
                 excluded.append(dict(kind='shop', record=record, reason=str(exc)))
                 continue
-            products = ','.join(f'{item["client_item_id"]}:{item["price"]}' for item in record['items'])
-            entry.update(name=name, definition=shop_renderer.templates['hidden_shop'].format(shop_name=name, items=products))
+            # Keep review + 品名 header with the hidden shop line (same as individual callshop).
+            entry.update(name=name, definition=shop_renderer.callshop_definition(
+                record, conversation=linked, review_unconfirmed=True))
             for item in bucket['conversations']:
                 if (item.capture_session, item.id) == (linked.capture_session, linked.id):
                     previous = item.termination.get('shop_call_name')
@@ -189,14 +190,10 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
         if touches:
             npc['touch'] = merge_contexts(touches)
         if (touches and items and not initialization and not shop_entries and not barter_entries
-                and all(not item.actions and not item.resource_observations and not item.parallel_presentations
-                        and not item.external_presentations for item in items)):
-            paths = [conversation_path('', item, strict=False) for item in items]
-            if all(path and all(token['kind'] in ('post_close_warp', 'end') for token in path)
-                   and sum(token['kind'] == 'post_close_warp' for token in path) == 1 for path in paths):
-                targets = [next(token['fields'] for token in path if token['kind'] == 'post_close_warp') for path in paths]
-                if all(target == targets[0] for target in targets):
-                    npc['warp_target'] = deepcopy(targets[0])
+                and not quest_links):
+            target = native_warp_target(items)
+            if target:
+                npc['warp_target'] = target
         try:
             states = {visibility_state(item) for item in bucket['metadata']} - {'unobserved'}
             observed = next((item for item in bucket['metadata'] if item.get('initial_options') is not None), None)
@@ -217,7 +214,8 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
                     code += '\n' + '\n\n'.join(direct) + '\n'
             preface = []
             if hidden:
-                preface.append(renderer.templates['npc_shop_ids_review'] + '\n' + '\n\n'.join(hidden))
+                # Each callshop definition already carries review + 品名 (parity with individual).
+                preface.append('\n\n'.join(hidden))
             if commented_barters:
                 preface.append('\n\n'.join(commented_barters))
             if preface:
