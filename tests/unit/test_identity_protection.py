@@ -85,3 +85,49 @@ class IdentityProtectionTests(unittest.TestCase):
         self.assertTrue(values['_protect_text_text'])
         self.assertEqual(values['actor_id'], 'self')
         self.assertEqual(values['target_id'], 9)
+
+    def test_shop_and_barter_candidates_protect_mes_like_dialogue(self):
+        from reconstruction.shop_export import ShopRenderer
+        from reconstruction.barter_export import BarterRenderer
+        from tests.unit.test_shop_export import observe_shop
+        from tests.unit.test_barter import observe_barter
+        identity = dict(character_name='英雄')
+        record, conversation = observe_shop(True)
+        mes = next(step for step in conversation.steps if step['kind'] == 'mes')
+        mes['fields']['text'] = 'ようこそ、英雄さん'
+        shop = ShopRenderer(identity=identity).render(
+            record, 'callshop', conversation=conversation, review_unconfirmed=True)
+        self.assertIn('mes "ようこそ、"+getstrcharinfo(0)+"さん";', shop)
+        plain = ShopRenderer().render(record, 'callshop', conversation=conversation, review_unconfirmed=True)
+        self.assertIn('mes "ようこそ、英雄さん";', plain)
+        barter_record, barter_conversation = observe_barter()
+        barter_mes = next(step for step in barter_conversation.steps if step['kind'] == 'mes')
+        barter_mes['fields']['text'] = '英雄の品'
+        barter = BarterRenderer(identity=identity).render(
+            barter_record, conversation=barter_conversation, review_unconfirmed=True)
+        self.assertIn('mes getstrcharinfo(0)+"の品";', barter)
+
+    def test_timer_candidate_protects_announce_and_unittalk_text(self):
+        from copy import deepcopy
+        from reconstruction.event_timer_export import build_timer_candidate, validate_timer_candidate
+        from reconstruction.event_trials import compare_event_trials
+        from tests.support.event_trials import observation
+        def announce(time, text):
+            return observation(time, kind='announcement', actor_id=None, target_observed=False,
+                entity_kind='unresolved', npc={}, fields=dict(text=text, broadcast_prefix=None))
+        def talk(time, text):
+            return observation(time, kind='unittalk', fields=dict(text=text))
+        rows = [observation(0), announce(1, '英雄へ告知'), talk(1.5, '英雄さん'),
+                observation(10), announce(11, '英雄へ告知'), talk(11.5, '英雄さん')]
+        report = compare_event_trials(rows, [0, 3], window_ms=2000)
+        identity = dict(character_name='英雄')
+        times = [100, 600, 700]
+        saved = build_timer_candidate(report, 0, times, confirmed=True, identity=identity)
+        self.assertIn('announce getstrcharinfo(0)+"へ告知",0;', saved['auriga'])
+        self.assertIn('unittalk getstrcharinfo(0)+"さん";', saved['auriga'])
+        self.assertNotIn('"英雄', saved['auriga'])
+        self.assertEqual(saved['protection_identity'], identity)
+        self.assertEqual(validate_timer_candidate(deepcopy(saved), report, 0), saved)
+        plain = build_timer_candidate(report, 0, times, confirmed=True)
+        self.assertIn('announce "英雄へ告知",0;', plain['auriga'])
+        self.assertNotIn('protection_identity', plain)

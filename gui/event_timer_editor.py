@@ -16,13 +16,14 @@ from gui.qt_messages import warning as warn
 
 
 class EventTimerEditor(QDialog):
-    def __init__(self, report, trial_index, parent=None, is_current=None):
+    def __init__(self, report, trial_index, parent=None, is_current=None, *, identity=None):
         if is_current is not None and not is_current():
             raise ValueError('観測または比較条件が更新されています。閉じて再比較してください。')
         trial = validate_timer_trial(report, trial_index)
         super().__init__(parent)
         self.report, self.trial_index = deepcopy(report), trial_index
         self.is_current = is_current
+        self.protection_identity = dict(identity or {})
         self.setWindowTitle('NPCタイマー候補の手動採用')
         self.resize(820, 750)
         layout = QVBoxLayout(self)
@@ -108,7 +109,9 @@ class EventTimerEditor(QDialog):
             if not re.fullmatch(r'[0-9]{1,10}', field.text()):
                 raise ValueError('全時刻を整数で明示してください。')
             values.append(int(field.text()))
-        return build_timer_candidate(self.report, self.trial_index, values, confirmed=self.confirmed.isChecked())
+        return build_timer_candidate(
+            self.report, self.trial_index, values, confirmed=self.confirmed.isChecked(),
+            identity=self.protection_identity)
 
     def generate(self):
         try:

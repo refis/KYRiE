@@ -60,9 +60,10 @@ def barter_name_for(npc, items, *, actor_id=None):
 
 
 class BarterRenderer:
-    def __init__(self, path=None):
+    def __init__(self, path=None, *, identity=None):
         from reconstruction.emulator_profiles import profile
         path = Path(path) if path is not None else profile('barters.json')
+        self.identity = dict(identity or {})
         self.templates = read_render_json(path)
         if isinstance(self.templates, dict):
             defaults = read_render_json(DEFAULT_BARTER_PROFILE)
@@ -119,13 +120,20 @@ class BarterRenderer:
         copied = deepcopy(conversation)
         copied.npc = npc
         copied.termination = dict(copied.termination, barter_call_name=shop_name)
-        body = AurigaRenderer().render_npc_file(copied)
+        body = AurigaRenderer(identity=self.identity).render_npc_file(copied)
         result = review + '\n' + hidden + '\n\n' + body
         if len(result) > 4 * 1024 * 1024:
             raise ValueError('barter候補が出力上限を超えています。')
         return result
 
-    def hidden_definition(self, record, npc):
+    def hidden_definition(self, record, npc, *, item_ids_confirmed=False, review_unconfirmed=True):
+        """Review header + commented barter line (bundle preface; matches individual header)."""
+        if item_ids_confirmed is not True and review_unconfirmed is not True:
+            raise ValueError('生成形式と出力先DBの商品ID対応を確認してください。')
         items = format_barter_items(record['items'])
         name = barter_name_for(npc, record['items'], actor_id=record.get('actor_id'))
-        return name, self.templates['hidden_barter'].format_map(dict(shop_name=name, items=items))
+        review_key = 'review' if item_ids_confirmed else 'review_unconfirmed'
+        review = self.templates[review_key].format_map(
+            dict(map_origin='利用者入力' if not npc.get('map_name') else '観測'))
+        hidden = self.templates['hidden_barter'].format_map(dict(shop_name=name, items=items))
+        return name, review + '\n' + hidden

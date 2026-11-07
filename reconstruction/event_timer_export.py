@@ -9,7 +9,20 @@ from string import Formatter
 from reconstruction.actor_appearance import VISUAL_FIELDS, render_display
 from reconstruction.announcements import template_values as announcement_values
 from reconstruction.event_trials import unassigned_in_scope
+from reconstruction.identity_protection import quote_text
 from reconstruction.instance_names import npc_name as base_npc_name
+
+
+def _protection_identity(values):
+    """Keep only known player-protection fields; never invent names."""
+    result = {}
+    for key in ('character_name', 'party_name', 'guild_name', 'actor_id'):
+        value = (values or {}).get(key)
+        if isinstance(value, str) and value.strip():
+            result[key] = value
+        elif key == 'actor_id' and type(value) is int and value > 0:
+            result[key] = value
+    return result
 
 TIMER_PRESENTATION_KINDS = frozenset((
     'emotion', 'effect', 'effect_remove', 'announcement', 'unittalk', 'overhead',
@@ -86,7 +99,9 @@ def load_timer_candidate(path, report, trial_index):
 def validate_timer_candidate(saved, report, trial_index):
     if not isinstance(saved, dict):
         raise ValueError('対応するタイマー設定JSONではありません。')
-    expected = build_timer_candidate(report, trial_index, saved.get('manual_times_ms'), confirmed=True)
+    expected = build_timer_candidate(
+        report, trial_index, saved.get('manual_times_ms'), confirmed=True,
+        identity=saved.get('protection_identity') or {})
     def canonical(value):
         normalized = json.loads(json.dumps(value, allow_nan=False))
         return json.dumps(normalized, sort_keys=True, ensure_ascii=True, allow_nan=False)
@@ -298,7 +313,7 @@ def validate_timer_trial(report, trial_index):
     return trial
 
 
-def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, profile=None):
+def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, profile=None, identity=None):
     trial = validate_timer_trial(report, trial_index)
     if confirmed is not True:
         raise ValueError('対象NPC・採用試行・全手入力時刻の確認が必要です。')
@@ -309,7 +324,8 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         raise ValueError('時刻は1〜2147483647msの整数で指定してください。')
     if times_ms != sorted(times_ms):
         raise ValueError('時刻は観測順で同じか増える値にしてください。')
-    identity = report['npc_identity']
+    npc = report['npc_identity']
+    protection = _protection_identity(identity)
     profile = _timer_profile(profile)
     templates = json.loads(Path(profile).read_text(encoding='utf-8'))
     if isinstance(templates, dict):
@@ -388,8 +404,8 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             if size > 4 * 1024 * 1024:
                 raise ValueError('タイマー候補が出力上限を超えています。')
             lines.append(line)
-    emit('header', npc_name=json.dumps(identity['name'], ensure_ascii=False),
-         map_name=json.dumps(identity['map_name'], ensure_ascii=False), trial=trial_index + 1)
+    emit('header', npc_name=json.dumps(npc['name'], ensure_ascii=False),
+         map_name=json.dumps(npc['map_name'], ensure_ascii=False), trial=trial_index + 1)
     emit('entry_end')
     previous_time = None
     for time, event in zip(times_ms, events):
@@ -401,9 +417,11 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         emit('evidence', True, packet=row['packet_index'], observed_ms=event['offset_ms'], manual_ms=time)
         if row['kind'] == 'announcement':
             template, values = announcement_values(row['fields'])
+            # Match dialogue render: protect player names in executable announce text.
+            values = dict(values, text=quote_text(row['fields']['text'], protection))
             emit(template, True, **values)
         elif row['kind'] in ('unittalk', 'overhead'):
-            emit(row['kind'], True, text=json.dumps(row['fields']['text'], ensure_ascii=False))
+            emit(row['kind'], True, text=quote_text(row['fields']['text'], protection))
         elif row['kind'] == 'effect_value':
             emit('effect_value', True, effect_id=row['fields']['effect_id'], value=row['fields']['value'])
         elif row['kind'] == 'event_marker':
@@ -412,7 +430,7 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             emit('hat_effect', True, enabled=row['fields']['enabled'], effect_id=row['fields']['effect_id'])
         elif row['kind'] == 'colored_speech':
             emit('colored_speech', True, color_hex=f"{row['fields']['color']:08X}",
-                 text=json.dumps(row['fields']['text'], ensure_ascii=False))
+                 text=quote_text(row['fields']['text'], protection))
         elif row['kind'] == 'progressbar':
             emit('progressbar', True, seconds=row['fields']['seconds'],
                  color_hex=f"{row['fields']['color'] & 0xffffff:06X}")
@@ -423,9 +441,9 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             emit('mapcell', True, map_name=json.dumps(row['fields']['map_name'], ensure_ascii=False),
                  x=row['fields']['x'], y=row['fields']['y'], cell_type=row['fields']['cell_type'])
         elif row['kind'] == 'classchange':
-            target = json.dumps(base_npc_name(identity['name'], identity.get('map_name')),
+            target = json.dumps(base_npc_name(npc['name'], npc.get('map_name')),
                                 ensure_ascii=False)
-            if '@' in (identity.get('map_name') or ''):
+            if '@' in (npc.get('map_name') or ''):
                 target = 'getmdnpcname(' + target + ')'
             emit('classchange', True, target=target, class_id=row['fields']['class_id'])
         elif row['kind'] == 'visibility_action':
@@ -445,11 +463,11 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         elif row['kind'] == 'npc_display_action':
             target = row['fields'].get('target') or {}
             if (base_npc_name(target.get('name'), target.get('map_name'))
-                    != base_npc_name(identity['name'], identity.get('map_name'))
-                    or target.get('map_name') != identity.get('map_name')):
+                    != base_npc_name(npc['name'], npc.get('map_name'))
+                    or target.get('map_name') != npc.get('map_name')):
                 raise ValueError('タイマー候補の外見変更は対象NPC自身のみです。')
             dialogue_templates = json.loads((Path(profile).parent / 'dialogue.json').read_text(encoding='utf-8'))
-            command = render_display(dict(name=identity['name'], map_name=identity['map_name']),
+            command = render_display(dict(name=npc['name'], map_name=npc['map_name']),
                                      row['fields']['display'], dialogue_templates, outside=False)
             unknown = dialogue_templates.get('npc_display_unknown')
             if (not isinstance(command, str) or not command or command == unknown
@@ -460,7 +478,10 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
             emit(row['kind'], True, value=row['fields']['value'])
         previous_time = time
     emit('label_end', True)
-    return dict(schema_version=1, kind='event_timer_candidate', trial_index=trial_index,
-        target_npc=deepcopy(identity), manual_times_ms=list(times_ms), setting_origin='manual_review',
+    result = dict(schema_version=1, kind='event_timer_candidate', trial_index=trial_index,
+        target_npc=deepcopy(npc), manual_times_ms=list(times_ms), setting_origin='manual_review',
         adoption_confirmed=True, cause_confirmed=False, server_timer_confirmed=False,
         automatic_start_generated=False, auriga='\n'.join(lines) + '\n', source_report=deepcopy(report))
+    if protection:
+        result['protection_identity'] = deepcopy(protection)
+    return result

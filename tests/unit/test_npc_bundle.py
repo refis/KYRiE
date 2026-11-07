@@ -50,10 +50,29 @@ class NpcBundleTests(unittest.TestCase):
         self.assertEqual(len(report['entries']), 1)
         self.assertTrue(report['entries'][0]['review_only'])
         text = report['auriga']
+        self.assertIn('// barterの編集用候補', text)
         self.assertIn('//-\tbarter\ttest.gat#callbarter', text)
         self.assertIn('// callbarter "test.gat#callbarter', text)
+        self.assertLess(text.index('// barterの編集用候補'), text.index('//-\tbarter\t'))
         self.assertLess(text.index('//-\tbarter\t'), text.index('\tscript\t'))
         self.assertLess(text.index('close2;'), text.index('// callbarter "'))
+
+    def test_bundle_callshop_keeps_item_name_review_like_individual(self):
+        from reconstruction.client_names import empty_client_names
+        from reconstruction.shop_export import ShopRenderer
+        from tests.unit.test_shop_export import observe_shop
+        linked, dialogue = observe_shop(True)
+        catalog = empty_client_names()
+        catalog['tables']['item_identified']['501'] = '赤ポーション'
+        individual = ShopRenderer(client_names=catalog).render(
+            linked, 'callshop', conversation=dialogue, review_unconfirmed=True)
+        report = build_npc_bundle([], [dialogue], shops=[linked], client_names=catalog)
+        text = report['auriga']
+        self.assertIn('// 品名（資料）: 501=赤ポーション', individual)
+        self.assertIn('// 品名（資料）: 501=赤ポーション', text)
+        self.assertIn('// shop/callshopの編集用候補', text)
+        self.assertLess(text.index('品名（資料）'), text.index('-\tshop\ttest.gat#callshop'))
+        self.assertLess(text.index('-\tshop\ttest.gat#callshop'), text.index('\tscript\t'))
 
     def test_bundle_shop_dialogues_follow_merge_checkbox_without_mutating_inputs(self):
         from tests.unit.test_shop_export import observe_shop

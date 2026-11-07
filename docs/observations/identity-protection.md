@@ -11,6 +11,10 @@
   観測済みのキャラクター名・パーティ名・ギルド名が含まれる場合
 - 注釈系: 表示テンプレートの `{actor_id}` などが本人ActorIDと一致する場合は `self`
 
+適用経路: 会話パネル／全件 bundle、個別 shop／barter 候補、手動採用タイマー候補
+（announce／unittalk／overhead／色付き発言コメントの本文）。観測JSONの生値は置換しない。
+タイマー候補JSONへは再検証用に `protection_identity` を残す（空なら省略）。
+
 Aurigaでは `getstrcharinfo(0/1/2)`、rAthenaでは `strcharinfo(0/1/2)` を用いる。
 書式は `config/*/identity_protection.json`。
 

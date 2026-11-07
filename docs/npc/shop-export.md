@@ -42,6 +42,8 @@ callshopの呼出し先は`{map名}#callshop`（barterは`{map名}#callbarter`�
 候補ヘッダへ `// 品名（資料）: <client_item_id>=<識別済名称>; …` を付ける。
 shop／callshop宣言の数値IDと価格は変えない。未登録ID・辞書未渡しは `未登録` と書き、名称を発明しない。
 GUIと全NPC出力は保持済み client_names を渡し、生成時に辞書ファイルを開き直さない（凍結出力の契約）。
+全件出力の callshop 前置定義にも、個別 callshop と同じ review／品名ヘッダを残す
+（hidden shop 行だけに落とさない）。barter 前置も個別と同じ review 行を付ける。
 未鑑定名称は採用しない。DB IDへの変換やコード引数の書書き換えではない。
 
 マップ・座標・向き・外見・名前が必要。

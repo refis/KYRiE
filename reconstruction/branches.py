@@ -210,9 +210,43 @@ def _reference(source_ref, conversation, step, index):
                 packet_id=step['packet_id'], timestamp=step['timestamp'], connection=step['connection'])
 
 
+def _conversation_view(conversation):
+    """Accept Conversation or asdict() rows from merge contributions."""
+    if hasattr(conversation, 'steps'):
+        return conversation
+    if isinstance(conversation, dict):
+        from types import SimpleNamespace
+        return SimpleNamespace(**conversation)
+    raise TypeError('conversation must be a Conversation or dict')
+
+
+def native_warp_target(conversations):
+    """Shared post_close_warp fields when every conversation is warp-only OnTouch.
+
+    Caller must still refuse when OnInit／quest_info／shop／barter accompany the placement.
+    """
+    items = [_conversation_view(item) for item in conversations]
+    if not items or not all(is_touch(item.npc) for item in items):
+        return None
+    if any(item.actions or item.resource_observations or item.parallel_presentations
+           or item.external_presentations for item in items):
+        return None
+    paths = [conversation_path('', item, strict=False) for item in items]
+    if not all(path and all(token['kind'] in ('post_close_warp', 'end') for token in path)
+               and sum(token['kind'] == 'post_close_warp' for token in path) == 1
+               for path in paths):
+        return None
+    targets = [next(token['fields'] for token in path if token['kind'] == 'post_close_warp')
+               for path in paths]
+    if not targets or not all(target == targets[0] for target in targets):
+        return None
+    return deepcopy(targets[0])
+
+
 def conversation_path(source_ref, conversation, strict=True):
     tokens = []
     continuing_close = None
+    conversation = _conversation_view(conversation)
     steps = conversation.steps
     validate_actions(conversation)
     scheduled = {}
