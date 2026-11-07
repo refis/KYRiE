@@ -85,6 +85,6 @@ Issue/PRはGitHub、確定仕様はdocsを正本とします。
 ## スナップショット
 
 - [手順・タグ前チェック](releases/README.md)
-- [v0.0.10](releases/v0.0.10.md) · [v0.0.9](releases/v0.0.9.md) · [v0.0.8](releases/v0.0.8.md) · [v0.0.7](releases/v0.0.7.md) · [v0.0.6](releases/v0.0.6.md) · [v0.0.5](releases/v0.0.5.md) · [v0.0.4](releases/v0.0.4.md)
+- [v0.0.11](releases/v0.0.11.md) · [v0.0.10](releases/v0.0.10.md) · [v0.0.9](releases/v0.0.9.md) · [v0.0.8](releases/v0.0.8.md) · [v0.0.7](releases/v0.0.7.md) · [v0.0.6](releases/v0.0.6.md) · [v0.0.5](releases/v0.0.5.md) · [v0.0.4](releases/v0.0.4.md)
 
 資料追加時は該当分類へ配置し、この目次へリンクを追加します。詳細仕様は各資料、全体方針は開発方針、作業履歴はDEVELOPMENT.mdへ記録します。

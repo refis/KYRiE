@@ -549,20 +549,23 @@ python -m tools.profile_mob_views --log logs/対象/capture.jsonl --definitions 
 
 ## 次の着手単位
 
-2026-11-06時点（[v0.0.10](../releases/v0.0.10.md) 保存後、GUI P2／ローカル設定まで到達）。
-#45–#66・#71–#139 相当は完了または main 反映済み
+2026-11-07時点（[v0.0.11](../releases/v0.0.11.md) 保存後）。
+#45–#66・#71–#148 相当は完了または main 反映済み
 （display_only、MapTypeProperty、履歴退避 #77、docs整理 #81/#82、
 OnQuestInfo／クエストタブ #93–#95、タイマー実行・コメント境界 #96–#107、
 MOB skill/spawn 編集根拠 #109/#110、ActorID／offscreen CI #113–#118、
 共有非同期保存 #119/#120、大容量再生上限 #122、ナビ08E2／cloak併記 #123–#125、
 actorコメント／ignorepacket flag／showevent・status抑制 #126、
-スナップショット v0.0.9／v0.0.10（#136）、
+スナップショット v0.0.9／v0.0.10（#136）／v0.0.11、
 Auriga #97 `navigateto`／`progressbar_npc` #128、
 表 thrash／洪水耐性 #129/#131、Zeny差分・EXP資源採用 #130/#132、
 0ACC 観測抑制・観測ログ末尾固定 #133、ロードマップ同期 #134、
 文書入口／GUI UX方針（EXE化なし確定）#135、
 Help／診断導線 #137、ショートカット・開始前確認 #138、
-ignorepacket ローカル化＋タブ初期プリセット P2-3 #139）。
+ignorepacket ローカル化＋タブ初期プリセット P2-3 #139、
+post-P2 backlog／着手単位同期 #140、
+OnTouch入場枠・再入場・未観測 cloakoff #146、
+ワークスペースNPC名簿 #147、プレイヤー waitingroom／スキル除外 #148）。
 文字input／実機 0x0B56／通常shop／02C1 MOB は採取リストの 2026-11-02 節。
 map_property カタログ外 type／099B flags は `manual_review` で人手確認
 （[MapTypeProperty と mapflag](../npc/maptype-property-mapflags.md)）。

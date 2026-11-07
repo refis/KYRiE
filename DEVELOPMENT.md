@@ -1,5 +1,12 @@
 # Development baseline and plan
 
+## v0.0.11 snapshot (2026-11-07)
+
+Private source snapshot after GUI P2, OnTouch entry/reentry/cloakoff comments,
+workspace NPC roster hints, and player waitingroom/skill exclusion (#137–#148).
+No EXE packaging. Selected release/catalog/commands/npc/player/presentation/
+events/mob/display/dialogue/shop plus gui-restoration/gui-display/offline/storage.
+
 ## Local ignorepacket defaults; no empty ZIP/Git overwrite (2026-11-06)
 
 ignorepacket.json is gitignored and omitted from source snapshots (like

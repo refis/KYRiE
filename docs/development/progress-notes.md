@@ -256,3 +256,16 @@ open Issue 空のため post-P2 backlog を Actions で再登録。
 範囲は入場セルの軸オフセットを候補とし、両軸非ゼロで暫定解除。カバレッジは外側→内側のみ入場。
 一意入場時は cloak／effect／viewpoint を warp と同様に OnTouch枠（`touch_range_entry`）。
 同セル同時候補は `simultaneous_colocated_touch_candidates`。リスト命令・キュー順は発明しない。
+
+### OnTouch再入場・未観測cloakoff・名簿・プレイヤー除外（2026-11-06〜07）
+
+再入場は `ontouch_reentry` で別 OnTouch 枠。未観測 0x0229 は同セッション後観測で
+`cloakoffnpc "名"; // actor_id`（複数ログ横断はしない）。ワークスペースNPC名簿は
+他取得の同 ActorID 名ヒントのみ（#147）。プレイヤー waitingroom／スキルは NPC 出力外。
+本人スキルは使用 SEND なしのときだけ `skill` 候補（#148）。
+
+## v0.0.11保存到達点（2026-11-07）
+
+詳細は[保存記録](../releases/v0.0.11.md)。#137–#148（GUI P2、OnTouch枠、名簿、
+プレイヤー除外）までをソースZIPへ保存。v0.0.4–v0.0.10 ZIPは変更しない。
+次の着手は「次の着手単位」を正とする。

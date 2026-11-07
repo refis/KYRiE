@@ -1,14 +1,16 @@
-# KYRiE v0.0.10 (Windows)
+# KYRiE v0.0.11 (Windows)
 
-v0.0.10は Auriga #97 命令生成、洪水耐性、Zeny／EXP方針、0ACC抑制、文書入口再編などを含むソース保存版です。
-GUI発見性など利用感が変わる作業の前基準点です。**EXE化・EXE配布は行いません**（起動は Python＋venv）。
-過去のv0.0.4–v0.0.9 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
+v0.0.11は GUI P2（Help／ショートカット／タブ初期）、ignorepacket ローカル化、
+OnTouch入場枠・未観測 cloakoff、ワークスペースNPC名簿、プレイヤー waitingroom／スキル除外を含むソース保存版です。
+**EXE化・EXE配布は行いません**（起動は Python＋venv）。
+過去のv0.0.4–v0.0.10 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
 
 Auriga形式のNPCコード復元と、MOB性能・使用スキルの観測解析を目的とする開発スナップショットです。
 MARiAを参考に、受信・観測可能な非暗号化送信パケットから編集用コードと根拠を生成します。
 完成した元スクリプトやサーバー設定を保証するものではありません。
 
-- [v0.0.10の変更点・検証・残作業](docs/releases/v0.0.10.md)
+- [v0.0.11の変更点・検証・残作業](docs/releases/v0.0.11.md)
+- [保存済みv0.0.10の記録](docs/releases/v0.0.10.md)
 - [保存済みv0.0.9の記録](docs/releases/v0.0.9.md)
 - [保存済みv0.0.8の記録](docs/releases/v0.0.8.md)
 - [保存済みv0.0.7の記録](docs/releases/v0.0.7.md)
@@ -43,26 +45,30 @@ python -m venv .venv
 
 [取得の診断](docs/capture/capture-analysis.md) / [非暗号化SEND](docs/capture/send-capture.md)
 
-## v0.0.10でできること
+## v0.0.11でできること
 
 - プロセス選択、複数接続追跡、TCP再構成、送受信共通PacketEvent、観測ログと生パケット保存。
 - マップ・XY・所持品・Zeny、NPC/MOBの初回と差分、サーバー別ActorID順の一覧・出力。
 - NPCの配置・会話統合、選択肢、反復menuのwhile化、入力応答、close/close2、shop/callshop。
 - close後2秒枠の一覧→callshop、拡張barter（0x0B56）コメント候補、openreform（0x0B8F）コメント候補。
 - HIDDEN/CLOAKED初期状態、group/title・waitingroom・職業外見のOnInit、接触NPCとインスタンス名の投影。
+- プレイヤー所有 waitingroom／スキルは NPC 出力から除外。本人スキルは使用 SEND なしのときだけ `skill` 候補。
 - 観測条件に応じた所持品・装備・精錬・姿勢・倉庫等の命令候補。未知の引数は確認用コメント。
 - MOBの性能・使用スキル・再観測の整理、手動確認した配置／スキルDB候補と編集時の読み取り専用根拠。
 - 演出・会話開始・マップ到着を基準とした比較、根拠保存・再開。タイマー候補は既存の手動採用と全時刻入力で作成。
 - 会話外タイマーの実行／コメント採用境界（classchange・visibility・viewpoint・event_marker 等）。
 - OnQuestInfo／クエスト年表、NPC walk／速度、生ログの単独／複数再解析（GUI上限は設定で変更可）、作業プロジェクト保存。
 - MAP・クエスト・ナビ資料の検索、状態／エフェクト辞書の任意日本語説明、接触試行比較表示。
+- OnTouch: 一意入場フレームの演出枠、再入場、未観測 0x0229→後観測で `cloakoffnpc` コメント候補。
+- 複数ログ作業のワークスペースNPC名簿（他取得同 ActorID の表示ヒントのみ。スクリプト合成はしない）。
 - display_only 観測保持（実績・色付き発言・アイテムプレビュー・map/status・傭兵・08E2ナビ等）。
 - 会話内ナビは `navigateto`、会話元 progressbar は `progressbar_npc`（Auriga #97）。camerainfo は観測のみ。
 - MapTypeProperty／mapflag コメント候補、通常shop識別済品名、パケット構造オーバーレイ。
 - rAthena向け生成／表示プロファイル切替（`--emulator`／GUI）。Auriga優先は維持。
 - DB確定後の表示履歴メモリ退避、会話・MOB・ショップ観測JSONの共有非同期保存。
 - 大容量／多パケット時の表 thrash 耐性、観測ログ切り詰め後の末尾追従。
-- actorコメントの名称付き整形、ignorepacket の保存スキップ flag、showeventflag／update_status のログ抑制。
+- Help/About・診断クリック、起動チェックリスト、取得ショートカット、タブ初期プリセット。
+- actorコメントの名称付き整形、ignorepacket のローカル既定＋保存スキップ flag、showeventflag／update_status のログ抑制。
 - Zeny既知差分の命令表示、戦闘EXPの観測ログ getexp 抑制（会話資源採用時のみ getexp）。詳細は各 docs とリリース記録を参照。
 
 [全NPC一括出力](docs/npc/npc-bundle-export.md) / [イベント比較](docs/npc/event-trials.md) /
