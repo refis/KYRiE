@@ -16,7 +16,7 @@ from gui.qt_messages import warning as warn
 
 
 class EventTimerEditor(QDialog):
-    def __init__(self, report, trial_index, parent=None, is_current=None, *, identity=None):
+    def __init__(self, report, trial_index, parent=None, is_current=None, *, identity=None, indent=None):
         if is_current is not None and not is_current():
             raise ValueError('観測または比較条件が更新されています。閉じて再比較してください。')
         trial = validate_timer_trial(report, trial_index)
@@ -24,6 +24,7 @@ class EventTimerEditor(QDialog):
         self.report, self.trial_index = deepcopy(report), trial_index
         self.is_current = is_current
         self.protection_identity = dict(identity or {})
+        self.script_indent = indent
         self.setWindowTitle('NPCタイマー候補の手動採用')
         self.resize(820, 750)
         layout = QVBoxLayout(self)
@@ -111,7 +112,7 @@ class EventTimerEditor(QDialog):
             values.append(int(field.text()))
         return build_timer_candidate(
             self.report, self.trial_index, values, confirmed=self.confirmed.isChecked(),
-            identity=self.protection_identity)
+            identity=self.protection_identity, indent=self.script_indent)
 
     def generate(self):
         try:

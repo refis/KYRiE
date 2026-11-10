@@ -101,6 +101,7 @@ touch_trial_comparisonへ並べる。NPC座標・観測位置・position_basis�
 歩行先が2方向でも半径2や5×5、OnTouch確定へ自動拡大しない。暫定半径1は既定の仮値であり、
 実測3×3ではない。GUIの時間経過欄とNPC一括出力JSONのtouch_trial_captionにも同じ注意を出す。
 全件出力（同期・凍結）は会話パネルと同じ `touch_warp_inferences` を渡し、候補数／選定理由を落とさない。
+CLI の `analyze_dialogues`／`merge_dialogues`／`analyze_session` も同じ根拠を build_merged へ渡す。
 hideon／cloakonの個体は接触に反応しないため、近傍候補の選別時は現在のoptionsを確認し、
 hide／cloak中の個体を除く。同一セルの複数個体でも適用する。初回状態は配置宣言用に保持し、
 現在のhideoff／cloakoffによる再反応と混同しない。同順位・同距離の反応可能候補が残る場合は割り当てない。

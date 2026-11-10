@@ -99,6 +99,19 @@ class TouchNpcTests(unittest.TestCase):
         self.assertEqual(rebuilt['entries'][0]['touch_trial_comparison'][0]['selection_reason'],
                          'unique_nearest_in_highest_priority_class')
 
+    def test_cli_style_merge_keeps_touch_inference_selection_like_gui(self):
+        from reconstruction.branches import build_merged
+        world, dialogues, consume = self.scene()
+        self.position(consume)
+        consume(map_packet('target.gat'))
+        inferences = list(dialogues.touch_warp_inferences)
+        omitted = build_merged(('', item) for item in dialogues.sessions)
+        kept = build_merged((('', item) for item in dialogues.sessions), touch_inferences=inferences)
+        self.assertIsNone(omitted['groups'][0]['touch_trial_comparison'][0]['selection_reason'])
+        self.assertEqual(kept['groups'][0]['touch_trial_comparison'][0]['selection_reason'],
+                         'unique_nearest_in_highest_priority_class')
+        self.assertEqual(kept['groups'][0]['touch_trial_comparison'][0]['candidate_count'], 1)
+
     def test_ambiguous_nearby_npcs_do_not_claim_a_warp(self):
         world, dialogues, consume = self.scene(extra=True)
         self.position(consume, x=150, y=201)

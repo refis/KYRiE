@@ -549,7 +549,8 @@ class DialoguePanel(QWidget):
             report = deepcopy(self.merged_report(force_sync=True))
             renderer = self.renderer()
             result = dict(report, **renderer.render_groups(report['groups']),
-                          source_sessions={str(key): value for key, value in self.store.source_refs.items()})
+                          source_sessions={str(key): value for key, value in self.store.source_refs.items()},
+                          protection_identity=dict(renderer.identity))
             protected = self.export_protected_paths()
             path, _ = QFileDialog.getSaveFileName(self, '統合観測と候補を保存', 'merged-npcs.json', 'JSON (*.json)')
             if path:

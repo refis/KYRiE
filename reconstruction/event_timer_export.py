@@ -101,7 +101,8 @@ def validate_timer_candidate(saved, report, trial_index):
         raise ValueError('対応するタイマー設定JSONではありません。')
     expected = build_timer_candidate(
         report, trial_index, saved.get('manual_times_ms'), confirmed=True,
-        identity=saved.get('protection_identity') or {})
+        identity=saved.get('protection_identity') or {},
+        indent=saved.get('script_indent'))
     def canonical(value):
         normalized = json.loads(json.dumps(value, allow_nan=False))
         return json.dumps(normalized, sort_keys=True, ensure_ascii=True, allow_nan=False)
@@ -313,7 +314,8 @@ def validate_timer_trial(report, trial_index):
     return trial
 
 
-def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, profile=None, identity=None):
+def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, profile=None, identity=None,
+                           indent=None):
     trial = validate_timer_trial(report, trial_index)
     if confirmed is not True:
         raise ValueError('対象NPC・採用試行・全手入力時刻の確認が必要です。')
@@ -340,6 +342,9 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         for _, name, spec, conversion in Formatter().parse(template):
             if name is not None and (name not in FIELDS[key] or spec or conversion):
                 raise ValueError('タイマー候補の書式引数が不正です。')
+    # Match dialogue/shop/bundle: GUI script_indent overrides the profile indent.
+    if indent is not None:
+        templates = dict(templates, indent=indent)
     if not 1 <= len(templates['indent']) <= 16 or any(c not in ' \t' for c in templates['indent']):
         raise ValueError('タイマー候補のインデントが不正です。')
     lines, size = [], 0
@@ -484,4 +489,6 @@ def build_timer_candidate(report, trial_index, times_ms, *, confirmed=False, pro
         automatic_start_generated=False, auriga='\n'.join(lines) + '\n', source_report=deepcopy(report))
     if protection:
         result['protection_identity'] = deepcopy(protection)
+    if indent is not None:
+        result['script_indent'] = indent
     return result

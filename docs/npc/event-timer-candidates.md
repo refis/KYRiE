@@ -63,6 +63,9 @@ cutin／mapcell（対象ActorIDなし）も同様にコメント採用可
 先頭にendを置いて通常処理からの流入を止め、各ラベルもendで閉じる。
 OnInit・initnpctimer・startnpctimer・ループ・変数条件は生成しない。
 タイマーをいつ誰が開始するか、既存OnTimerラベルとの重複、演出の配信範囲は別途確認する。
+GUI の script_indent はタイマー候補本文にも適用する（会話／shop／全件と同じ）。
+再検証用に非既定インデントは候補JSONの `script_indent` へ残す。
+
 実行命令の既定の配信範囲が元のサーバーと一致するかは、受信だけでは確定できない。
 
 書式・注意文・インデントはconfig/auriga/event_timers.json。
