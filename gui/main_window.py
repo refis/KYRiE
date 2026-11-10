@@ -658,15 +658,19 @@ class MainWindow(QMainWindow):
             from storage.user_settings import indent_value
             identity = identity_from_store(self.players)
             indent = indent_value(self.script_indent.currentData()) if hasattr(self, 'script_indent') else None
+            # Same touch_warp_inferences the dialogue merge/trial UI already uses.
+            touch_inferences = list(self.dialogues.touch_warp_inferences)
             prepared=None
             if large:
                 from reconstruction.report_snapshot import freeze_npc_report
                 prepared=freeze_npc_report(entities,self.dialogues.sessions,sources,merge=merge,
                                           shops=self.shops.records,barters=self.barters.records,identity=identity,
-                                          client_names=getattr(self,'client_names',None), indent=indent)
+                                          client_names=getattr(self,'client_names',None), indent=indent,
+                                          touch_inferences=touch_inferences)
             report=None if prepared is not None else build_npc_bundle(entities,self.dialogues.sessions,
                 sources,merge=merge,shops=self.shops.records,barters=self.barters.records,identity=identity,
-                client_names=getattr(self,'client_names',None), indent=indent)
+                client_names=getattr(self,'client_names',None), indent=indent,
+                touch_inferences=touch_inferences)
             if report is not None and not report['entries'] and not report['excluded']:
                 raise ValueError('NPCの観測がありません。')
             mode = '統合' if merge else '個別'

@@ -60,10 +60,11 @@ def barter_name_for(npc, items, *, actor_id=None):
 
 
 class BarterRenderer:
-    def __init__(self, path=None, *, identity=None):
+    def __init__(self, path=None, *, identity=None, indent=None):
         from reconstruction.emulator_profiles import profile
         path = Path(path) if path is not None else profile('barters.json')
         self.identity = dict(identity or {})
+        self.indent = indent
         self.templates = read_render_json(path)
         if isinstance(self.templates, dict):
             defaults = read_render_json(DEFAULT_BARTER_PROFILE)
@@ -120,7 +121,7 @@ class BarterRenderer:
         copied = deepcopy(conversation)
         copied.npc = npc
         copied.termination = dict(copied.termination, barter_call_name=shop_name)
-        body = AurigaRenderer(identity=self.identity).render_npc_file(copied)
+        body = AurigaRenderer(identity=self.identity, indent=self.indent).render_npc_file(copied)
         result = review + '\n' + hidden + '\n\n' + body
         if len(result) > 4 * 1024 * 1024:
             raise ValueError('barter候補が出力上限を超えています。')

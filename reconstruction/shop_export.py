@@ -47,7 +47,7 @@ def format_shop_item_names(catalog, items):
 
 
 class ShopRenderer:
-    def __init__(self, path=None, *, client_names=None, identity=None):
+    def __init__(self, path=None, *, client_names=None, identity=None, indent=None):
         from reconstruction.emulator_profiles import profile
         path = Path(path) if path is not None else profile('shops.json')
         self.templates = read_render_json(path)
@@ -68,6 +68,7 @@ class ShopRenderer:
         # Callers that already hold a catalog (GUI / freeze snapshot) pass it explicitly.
         self.client_names = empty_client_names() if client_names is None else client_names
         self.identity = dict(identity or {})
+        self.indent = indent
 
     def render(self, record, mode, *, item_ids_confirmed=False, map_name=None, conversation=None, review_unconfirmed=False):
         if mode not in ('shop', 'callshop') or (item_ids_confirmed is not True and review_unconfirmed is not True):
@@ -136,7 +137,8 @@ class ShopRenderer:
             shop_name = shop_name_for(npc, record['items'], actor_id=record.get('actor_id'))
             copied = deepcopy(conversation)
             copied.npc = npc
-            body = AurigaRenderer(identity=self.identity).render_npc_file(copied, shop_call_name=shop_name)
+            body = AurigaRenderer(identity=self.identity, indent=self.indent).render_npc_file(
+                copied, shop_call_name=shop_name)
             result = (review + '\n' + self.templates['hidden_shop'].format_map(dict(shop_name=shop_name, items=items))
                       + '\n\n' + body)
         if len(result) > 4 * 1024 * 1024:

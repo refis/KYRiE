@@ -162,6 +162,16 @@ class ShopExportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             renderer.render(direct, 'shop', item_ids_confirmed=True, conversation=opened, map_name='test.gat')
 
+    def test_callshop_body_honors_script_indent_like_dialogue_export(self):
+        record, conversation = observe_shop(True)
+        tabbed = ShopRenderer(indent='\t').render(
+            record, 'callshop', conversation=conversation, review_unconfirmed=True)
+        spaced = ShopRenderer(indent='    ').render(
+            record, 'callshop', conversation=conversation, review_unconfirmed=True)
+        self.assertIn('\tmes "before shop";', tabbed)
+        self.assertIn('    mes "before shop";', spaced)
+        self.assertNotIn('\tmes "before shop";', spaced)
+
     def test_shop_candidate_annotates_identified_names_without_rewriting_ids(self):
         catalog = load_client_names()
         empty = empty_client_names()

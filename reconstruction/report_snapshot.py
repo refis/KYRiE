@@ -35,22 +35,25 @@ class NpcReportSnapshot:
     identity: dict | None=None
     client_names: dict | None=None
     indent: str | None=None
+    touch_inferences: list | None=None
 
     def build(self):
         from reconstruction.npc_bundle import build_npc_bundle
         with self.rendering.activate():
             report=build_npc_bundle(self.entities,self.conversations,self.sources,merge=self.merge,shops=self.shops,
                                    barters=self.barters, identity=self.identity, client_names=self.client_names,
-                                   indent=self.indent)
+                                   indent=self.indent, touch_inferences=self.touch_inferences)
         if not report['entries'] and not report['excluded']:raise ValueError('NPCの観測がありません。')
         return report
 
 
 def freeze_npc_report(entities,conversations,sources,*,merge,shops=(),barters=(),identity=None,client_names=None,
-                      indent=None):
+                      indent=None, touch_inferences=None):
     from reconstruction.render_inputs import freeze_npc_render_inputs
-    entities,conversations,sources,shops,barters=deepcopy(
-        (list(entities),list(conversations),dict(sources),list(shops),list(barters)))
+    entities,conversations,sources,shops,barters,touch_inferences=deepcopy(
+        (list(entities),list(conversations),dict(sources),list(shops),list(barters),
+         list(touch_inferences or ())))
     # Share the already-loaded catalog; never reopen client_names.json during build().
     return NpcReportSnapshot(entities,conversations,sources,merge,shops,barters,freeze_npc_render_inputs(),
-                             identity=dict(identity or {}), client_names=client_names, indent=indent)
+                             identity=dict(identity or {}), client_names=client_names, indent=indent,
+                             touch_inferences=touch_inferences)

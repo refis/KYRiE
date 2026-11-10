@@ -77,6 +77,28 @@ class TouchNpcTests(unittest.TestCase):
                 self.assertIn(expected, merged_file)
                 self.assertNotIn('\tscript\t', merged_file)
 
+    def test_bundle_and_freeze_keep_touch_warp_inference_selection(self):
+        from reconstruction.report_snapshot import freeze_npc_report
+        world, dialogues, consume = self.scene()
+        self.position(consume)
+        consume(map_packet('target.gat'))
+        inferences = list(dialogues.touch_warp_inferences)
+        self.assertTrue(inferences)
+        missing = build_npc_bundle([], dialogues.sessions, merge=True)
+        kept = build_npc_bundle([], dialogues.sessions, merge=True, touch_inferences=inferences)
+        missing_row = missing['entries'][0]['touch_trial_comparison'][0]
+        kept_row = kept['entries'][0]['touch_trial_comparison'][0]
+        self.assertIsNone(missing_row['selection_reason'])
+        self.assertIsNone(missing_row['candidate_count'])
+        self.assertEqual(kept_row['selection_reason'], 'unique_nearest_in_highest_priority_class')
+        self.assertEqual(kept_row['candidate_count'], 1)
+        frozen = freeze_npc_report([], dialogues.sessions, {0: 'a.jsonl'}, merge=True,
+                                   touch_inferences=inferences)
+        dialogues.touch_warp_inferences.clear()
+        rebuilt = frozen.build()
+        self.assertEqual(rebuilt['entries'][0]['touch_trial_comparison'][0]['selection_reason'],
+                         'unique_nearest_in_highest_priority_class')
+
     def test_ambiguous_nearby_npcs_do_not_claim_a_warp(self):
         world, dialogues, consume = self.scene(extra=True)
         self.position(consume, x=150, y=201)
