@@ -12,16 +12,25 @@ from tools.cli_emulator import add_emulator_argument, apply_emulator, active_emu
 
 def merge(paths, definitions):
     sources = []
+    protection = {}
     def observations():
+        nonlocal protection
         for path in sorted({Path(path).resolve() for path in paths}):
             report = analyze(path, definitions)
             sources.append(dict(source_log=str(path), replay=report['replay'],
                                 definitions_sha256=report['definitions_sha256']))
+            # Prefer a named character when multiple logs contribute identities.
+            identity = dict(report.get('protection_identity') or {})
+            if identity.get('character_name'):
+                protection = identity
+            elif not protection and identity:
+                protection = identity
             for row in report['conversations']:
                 yield str(path), Conversation(**row)
     result = build_merged(observations())
-    renderer = AurigaRenderer()
+    renderer = AurigaRenderer(identity=protection)
     return dict(result, emulator=active_emulator(), sources=sources,
+                protection_identity=protection,
                 **renderer.render_groups(result['groups']))
 
 

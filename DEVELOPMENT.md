@@ -1,5 +1,12 @@
 # Development baseline and plan
 
+## Bundle touch inferences and shop indent parity (2026-11-10)
+
+GUI/frozen NPC bundle exports pass dialogue touch_warp_inferences so trial
+selection_reason/candidate_count match the conversation panel. Shop/barter
+renderers honor script_indent; merge_dialogues applies protection_identity.
+Selected: npc shop dialogue touch presentation offline.
+
 ## Export/bundle observation parity (2026-11-07)
 
 Warp-only OnTouch now uses native warp in individual NPC file export (same

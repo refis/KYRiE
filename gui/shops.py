@@ -18,11 +18,12 @@ ASSOCIATION_LABELS = {'selector_and_buy_reply': '対象選択と購入応答を�
 
 
 class ShopExportDialog(QDialog):
-    def __init__(self, record, conversation, parent=None, *, names=None, identity=None):
+    def __init__(self, record, conversation, parent=None, *, names=None, identity=None, indent=None):
         super().__init__(parent)
         self.record, self.conversation, self.result_text = deepcopy(record), deepcopy(conversation), None
         self.names = names if names is not None else empty_client_names()
         self.identity = dict(identity or {})
+        self.indent = indent
         self.setWindowTitle('通常ショップのAuriga編集用候補')
         self.resize(650, 250)
         form = QFormLayout(self)
@@ -60,7 +61,8 @@ class ShopExportDialog(QDialog):
 
     def generate(self):
         try:
-            self.result_text = ShopRenderer(client_names=self.names, identity=self.identity).render(
+            self.result_text = ShopRenderer(
+                client_names=self.names, identity=self.identity, indent=self.indent).render(
                 self.record, self.mode.currentData(),
                 item_ids_confirmed=self.confirm_ids.isChecked(), map_name=self.map_name.text().strip() or None,
                 conversation=self.conversation)
@@ -167,9 +169,14 @@ class ShopPanel(QWidget):
         conversation = next((item for item in self.store.dialogues.sessions
             if item.capture_session == record['capture_session'] and item.id == record.get('conversation_id')), None) if self.store.dialogues else None
         from reconstruction.identity_protection import identity_from_store
-        players = getattr(self.window(), 'players', None)
+        from storage.user_settings import indent_value
+        window = self.window()
+        players = getattr(window, 'players', None)
+        indent = None
+        if hasattr(window, 'script_indent'):
+            indent = indent_value(window.script_indent.currentData())
         dialog = ShopExportDialog(record, conversation, self, names=self.names,
-                                  identity=identity_from_store(players))
+                                  identity=identity_from_store(players), indent=indent)
         protected = self.export_protected_paths()
         if dialog.exec() != QDialog.Accepted:
             return
