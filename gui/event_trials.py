@@ -778,12 +778,17 @@ class EventTrialPanel(QWidget):
             return
         from gui.event_timer_editor import EventTimerEditor
         from reconstruction.identity_protection import identity_from_store
+        from storage.user_settings import indent_value
         report, key = self.report, self.report_key
-        players = getattr(self.window(), 'players', None)
+        window = self.window()
+        players = getattr(window, 'players', None)
+        indent = None
+        if hasattr(window, 'script_indent'):
+            indent = indent_value(window.script_indent.currentData())
         try:
             dialog = EventTimerEditor(report, index, self,
                 is_current=lambda: self.report is report and self.current_key() == key,
-                identity=identity_from_store(players))
+                identity=identity_from_store(players), indent=indent)
         except ValueError as exc:
             QMessageBox.warning(self, '試行を採用できません', str(exc))
             return

@@ -1,5 +1,12 @@
 # Development baseline and plan
 
+## CLI touch inferences and timer indent parity (2026-11-10)
+
+analyze_dialogues/merge_dialogues/analyze_session pass touch_warp_inferences into
+build_merged like the GUI. Timer candidates honor script_indent and store it for
+round-trips; GUI merged JSON records protection_identity. Selected: npc events
+dialogue presentation.
+
 ## Bundle touch inferences and shop indent parity (2026-11-10)
 
 GUI/frozen NPC bundle exports pass dialogue touch_warp_inferences so trial

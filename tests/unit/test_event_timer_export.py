@@ -9,6 +9,17 @@ from tests.support.event_trials import repeated_report
 
 
 class EventTimerExportTests(unittest.TestCase):
+    def test_script_indent_matches_dialogue_export_and_round_trips(self):
+        from reconstruction.event_timer_export import validate_timer_candidate
+        report = repeated_report('effect')
+        tabbed = build_timer_candidate(report, 0, [100, 1100], confirmed=True, indent='\t')
+        spaced = build_timer_candidate(report, 0, [100, 1100], confirmed=True, indent='    ')
+        self.assertEqual(tabbed['script_indent'], '\t')
+        self.assertIn('\tmisceffect ', tabbed['auriga'])
+        self.assertIn('    misceffect ', spaced['auriga'])
+        self.assertNotIn('\tmisceffect ', spaced['auriga'])
+        self.assertEqual(validate_timer_candidate(deepcopy(tabbed), report, 0), tabbed)
+
     def test_text_keeps_full_evidence_commented_and_only_regenerated_code_active(self):
         report = repeated_report('effect')
         report['source_sessions'] = {0: 'capture\ninitnpctimer;\n.jsonl', 10: 'other.jsonl'}

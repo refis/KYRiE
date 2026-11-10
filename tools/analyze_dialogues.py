@@ -34,12 +34,18 @@ def analyze(path, definitions):
                   definitions_sha256=hashlib.sha256(definition_text.encode('utf-8')).hexdigest())
     from reconstruction.identity_protection import identity_for_connection, identity_from_store
     source = str(Path(path).resolve())
-    merged = build_merged((source, conversation) for conversation in store.sessions)
+    # Keep selection_reason/candidate_count aligned with GUI merge and NPC bundle.
+    merged = build_merged(((source, conversation) for conversation in store.sessions),
+                          touch_inferences=result.get('touch_warp_inferences') or [])
     checks = {(ref['source_ref'], ref['capture_session'], ref['conversation_id']): group['presentation_check']
               for group in merged['groups'] for ref in group['contributions']
               }
     result['presentation_checks'] = [dict(npc=group['npc'], **group['presentation_check'])
                                      for group in merged['groups']]
+    result['merged_touch_trials'] = [
+        dict(npc=group['npc'], touch_trial_comparison=group.get('touch_trial_comparison') or [],
+             touch_trial_caption=group.get('touch_trial_caption') or '')
+        for group in merged['groups'] if group.get('touch_trial_comparison')]
     result['protection_identity'] = identity_from_store(players)
     result['auriga'] = [
         AurigaRenderer(identity=identity_for_connection(

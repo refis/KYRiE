@@ -67,7 +67,9 @@ def analyze(path, definitions):
     if fingerprint(path, MAX_LOG_BYTES) != source_hash:
         raise ValueError('解析中に生ログが変更されました。取得停止後に再実行してください。')
     source_ref = str(path)
-    merged = build_merged((source_ref, item) for item in dialogues.sessions)
+    # Same touch_warp_inferences GUI merge/bundle use, so trial selection stays consistent.
+    merged = build_merged(((source_ref, item) for item in dialogues.sessions),
+                          touch_inferences=list(dialogues.touch_warp_inferences))
     from reconstruction.identity_protection import identity_from_store
     generated = AurigaRenderer(identity=identity_from_store(players)).render_groups(merged['groups'])
     if fingerprint(generation_profile('dialogue.json'), 2 * 1024 * 1024) != profile_hash:
