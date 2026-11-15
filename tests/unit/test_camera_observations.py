@@ -65,4 +65,3 @@ class CameraObservationTests(unittest.TestCase):
         broken = replace(camera(), raw=camera().raw[:-1])
         store.apply(broken)
         self.assertEqual(store.issue_count, 1)
-
