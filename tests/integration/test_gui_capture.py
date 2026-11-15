@@ -14,6 +14,30 @@ from tests.support.qt import WindowTestCase
 
 
 class CaptureGuiTests(WindowTestCase):
+    def test_startup_process_preference_and_refresh_preserves_selection(self):
+        from storage import user_settings
+        w = self.window
+        document = dict(user_settings.DEFAULTS, startup_process_name=' Client.EXE ')
+        user_settings.apply_to_window(w, document)
+        user_settings.save(user_settings.collect_from_window(w), self.settings_path)
+        self.assertEqual(user_settings.load(self.settings_path)['startup_process_name'], 'Client.EXE')
+        processes = [(10, 'other.exe'), (20, 'client.exe'), (30, 'CLIENT.EXE')]
+        with patch('gui.main_window.list_processes', return_value=processes):
+            w.populate_processes(startup=True)
+            self.assertEqual(w.process.currentData(), 20)
+            w.process.setCurrentIndex(w.process.findData(10))
+            w.refresh_processes.click()
+            self.assertEqual(w.process.currentData(), 10)
+            w.startup_process_name.setText('missing.exe')
+            w.populate_processes(startup=True)
+            self.assertEqual(w.process.currentData(), 10)
+            w.process.setCurrentIndex(0)
+            w.populate_processes(startup=True)
+            self.assertIsNone(w.process.currentData())
+            w.startup_process_name.clear()
+            w.populate_processes(startup=True)
+            self.assertIsNone(w.process.currentData())
+
     def test_close_seals_admission_and_drains_queued_packets_before_database_close(self):
         from contextlib import closing
         from threading import Thread

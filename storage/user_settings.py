@@ -31,6 +31,7 @@ DEFAULTS = dict(
     capture_send=True,
     include_children=False,
     attach_existing=False,
+    startup_process_name='',
     definitions_path=str(PROJECT_ROOT / 'PacketLength.txt'),
     overlay_path='',
     interface='',
@@ -198,6 +199,7 @@ def collect_from_window(window):
         capture_send=window.capture_send.isChecked(),
         include_children=window.children.isChecked(),
         attach_existing=window.attach_existing.isChecked(),
+        startup_process_name=window.startup_process_name.text().strip(),
         definitions_path=window.path.text().strip(),
         overlay_path=window.overlay_path.text().strip(),
         interface=window.iface.text().strip(),
@@ -247,6 +249,7 @@ def apply_to_window(window, settings):
         window.capture_send.setChecked(document['capture_send'])
         window.children.setChecked(document['include_children'])
         window.attach_existing.setChecked(document['attach_existing'])
+        window.startup_process_name.setText(document['startup_process_name'])
         window.path.setText(document['definitions_path'])
         window.overlay_path.setText(document['overlay_path'])
         window.iface.setText(document['interface'])
