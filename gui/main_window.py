@@ -152,7 +152,7 @@ class MainWindow(QMainWindow):
         self.entity_timer.start()
         self.workspace_tabs.currentChanged.connect(self.refresh_entity_views)
         self.bridge.connections.connect(self.show_connections)
-        self.populate_processes()
+        self.populate_processes(startup=True)
         self.start_button.clicked.connect(self.start)
         self.stop_button.clicked.connect(self.stop)
         self.packet_pager.changed.connect(self.render_packet_page)
@@ -1212,7 +1212,7 @@ class MainWindow(QMainWindow):
                      '入力データ・保存先・空き容量・アクセス権を確認してください。保存を完了できませんでした。')
             QMessageBox.critical(self,'ファイルを保存できません',message)
 
-    def populate_processes(self):
+    def populate_processes(self, checked=False, *, startup=False):
         if self.offline:
             self.process.clear()
             self.process.addItem('保存ログの再解析（取得しません）', None)
@@ -1220,8 +1220,15 @@ class MainWindow(QMainWindow):
         selected = self.process.currentData()
         self.process.clear()
         self.process.addItem('手動指定（接続先は設定から入力）', None)
+        preferred_name = self.startup_process_name.text().strip().casefold() if startup else ''
+        preferred_index = None
         for pid, name in list_processes():
             self.process.addItem(f'{name} (PID {pid})', pid)
+            if preferred_name and name.casefold() == preferred_name and preferred_index is None:
+                preferred_index = self.process.count() - 1
+        if preferred_index is not None:
+            self.process.setCurrentIndex(preferred_index)
+            return
         if selected is not None:
             idx = self.process.findData(selected)
             if idx >= 0:

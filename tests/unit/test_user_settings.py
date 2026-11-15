@@ -79,6 +79,7 @@ class UserSettingsTests(unittest.TestCase):
         self.assertEqual(result['offline_max_packet_mib'], DEFAULT_OFFLINE_MAX_PACKET_MIB)
         self.assertFalse(result['startup_checklist_seen'])
         self.assertEqual(result['workspace_preset'], 'observe')
+        self.assertEqual(result['startup_process_name'], '')
 
     def test_startup_checklist_seen_roundtrip_does_not_require_other_keys(self):
         result = validate(dict(version=1, startup_checklist_seen=True))
