@@ -18,7 +18,7 @@ GROUPS = {'catalog': ['tests.unit.test_skill_catalog','tests.unit.test_skill_uni
               'tests.unit.test_instance_mode',
               'tests.unit.test_presentation_json_key',
               'tests.unit.test_npc_codegen_rules'],
- 'presentation': ['tests.unit.test_script_commands', 'tests.unit.test_conversation_actions', 'tests.unit.test_announcement_observations',
+ 'presentation': ['tests.unit.test_camera_observations', 'tests.unit.test_script_commands', 'tests.unit.test_conversation_actions', 'tests.unit.test_announcement_observations',
                   'tests.unit.test_classchange_observations',
                   'tests.unit.test_effect_removal',
                   'tests.unit.test_effect_value',

@@ -102,6 +102,26 @@ def observe_barter(*, gap=1.0, items=None, packet_id=0xb56, b79_variant='2026010
 
 
 class BarterTests(unittest.TestCase):
+    def test_product_and_currency_names_match_individual_and_bundle_without_changing_items(self):
+        from copy import deepcopy
+        from reconstruction.client_names import empty_client_names
+        from reconstruction.npc_bundle import build_npc_bundle
+        names = empty_client_names()
+        names['tables']['item_identified'].update({'450206': '商品テスト', '1000608': '素材テスト'})
+        record, conversation = observe_barter()
+        before = deepcopy(record)
+        renderer = BarterRenderer(client_names=names)
+        code = renderer.render(record, item_ids_confirmed=True, conversation=conversation)
+        _, definition = renderer.hidden_definition(record, conversation.npc)
+        bundled = build_npc_bundle([], [conversation], barters=[record], client_names=names)['auriga']
+        for text in (code, definition, bundled):
+            self.assertIn('450206=商品テスト', text)
+            self.assertIn('1000608=素材テスト', text)
+            self.assertIn('450206:-1:0 { 1000608:-1:100 }', text)
+        self.assertEqual(record, before)
+        fallback = BarterRenderer().hidden_definition(record, conversation.npc)[1]
+        self.assertIn('450206=未登録', fallback)
+
     def test_decode_matches_callbarter_sample_and_rejects_trailing_bytes(self):
         body = barter_body([
             (450206, 4, -1, 0, [(1000608, 0, 100, 3)]),

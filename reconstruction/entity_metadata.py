@@ -5,6 +5,7 @@ from pathlib import Path
 from string import Formatter
 from reconstruction.decoder import Reader, ObservationError
 from reconstruction.actor_appearance import player_class, render_display, VISUAL_FIELDS
+from reconstruction.identity_protection import redact_literal
 
 DEFAULT_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'entity_metadata.json'
 FIELDS = {'npc_context': {'actor_id', 'actor_name'}, 'mob_context': {'actor_id', 'actor_name'},
@@ -89,7 +90,7 @@ def _walk_speeds(npcs):
     return speeds
 
 
-def render_npc_initialization(npcs, profile=None, *, indent=None):
+def render_npc_initialization(npcs, profile=None, *, indent=None, identity=None):
     npcs = list(npcs)
     observed_rooms = [(room['title'], room['limit']) for npc in npcs for room in npc.get('waitingrooms', [])]
     if any(not isinstance(title, str) or type(limit) is not int or not 0 <= limit <= 65535
@@ -128,7 +129,10 @@ def render_npc_initialization(npcs, profile=None, *, indent=None):
         if conflict:
             lines.append(style['indent'] + style['block_open'].format_map({}))
         depth = style['indent'] * (2 if conflict else 1)
-        lines.extend(depth + line for line in commands(values, 'npc', 0, style))
+        protected = dict(values)
+        if 'title' in protected:
+            protected['title'] = redact_literal(protected['title'], identity)
+        lines.extend(depth + line for line in commands(protected, 'npc', 0, style))
         if conflict:
             lines.append(style['indent'] + style['block_close'].format_map({}))
     if len(rooms) > 1:
@@ -137,7 +141,7 @@ def render_npc_initialization(npcs, profile=None, *, indent=None):
         if len(rooms) > 1:
             lines.append(style['indent'] + style['block_open'].format_map({}))
         lines.append(style['indent'] * (2 if len(rooms) > 1 else 1) +
-                     style['waitingroom'].format(title=json.dumps(title, ensure_ascii=False), limit=limit))
+                     style['waitingroom'].format(title=json.dumps(redact_literal(title, identity), ensure_ascii=False), limit=limit))
         if len(rooms) > 1:
             lines.append(style['indent'] + style['block_close'].format_map({}))
     if len(speeds) > 1:
@@ -156,8 +160,8 @@ def render_npc_initialization(npcs, profile=None, *, indent=None):
     return result
 
 
-def append_initialization(body, npcs, profile=None, *, indent=None):
-    initialization = render_npc_initialization(npcs, profile, indent=indent)
+def append_initialization(body, npcs, profile=None, *, indent=None, identity=None):
+    initialization = render_npc_initialization(npcs, profile, indent=indent, identity=identity)
     if not initialization:
         return body
     # Dialogue rendering already emits close/end on its paths. Metadata must

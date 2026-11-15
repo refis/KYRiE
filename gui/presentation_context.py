@@ -23,6 +23,10 @@ def presentation_context(row, roster=None):
         result.update(actor_role='sound_origin',player_context_required=True,
             short='効果音のIDは音源です。受信者・配信範囲・呼出元は未確定。',
             summary='効果音の個体IDは音源の根拠で、再生を受けるプレイヤーのIDではありません。Aurigaのsoundeffectは接続プレイヤーを必要とします。既存の会話内生成と、NPCタイマーへの直接変換は別で、タイマー候補には追加しません。')
+    elif kind in ('camera', 'camera_action'):
+        result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
+            short='プレイヤー向けカメラ通知。対象ActorID・起因NPCは未確定。',
+            summary='会話中は同一フローへ時間関連付けします。Auriga命令で再現可能な値のみcamerainfoを生成し、会話外・close待ちは観測保持のみ。タイマーへは変換しません。')
     elif kind=='music':
         result.update(actor_role='not_recorded',observed_actor_id=None,player_context_required=True,
             short='BGMの対象ActorIDは未記録。会話との同時観測だけではNPCへ割り当てません。',

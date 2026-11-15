@@ -15,6 +15,25 @@ from tests.support.dialogue import packet
 
 
 class EntityMetadataTests(unittest.TestCase):
+    def test_oninit_redacts_known_identity_without_player_expressions_or_source_mutation(self):
+        from reconstruction.npc_bundle import build_npc_bundle
+        identity = dict(character_name='Alice', party_name='Team', guild_name='Guild')
+        item, _ = self.conversation(title='Alice Team Guild', group=7)
+        item.npc['waitingrooms'] = [dict(title='Aliceの部屋', limit=5)]
+        original = deepcopy(item.npc)
+        texts = [AurigaRenderer(identity=identity).render(item),
+                 AurigaRenderer(identity=identity).render_npc_metadata_file(dict(item.npc, kind='NPC')),
+                 build_npc_bundle([], [item], identity=identity)['auriga']]
+        for text in texts:
+            initialization = text.split('OnInit:', 1)[1]
+            self.assertIn('[本人名]', initialization)
+            self.assertIn('[パーティー名]', initialization)
+            self.assertIn('[ギルド名]', initialization)
+            self.assertNotIn('Alice', initialization)
+            self.assertNotIn('getstrcharinfo', initialization)
+            self.assertIn('setnpcgroup 7;', initialization)
+        self.assertEqual(item.npc, original)
+
     def test_metadata_only_file_requires_observed_placement_and_does_not_invent_dialogue(self):
         world = WorldStore()
         for event in (map_packet(), actor_packet(), name_packet(name='案内人', title='案内役', group_id=9)):

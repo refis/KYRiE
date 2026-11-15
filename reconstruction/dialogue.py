@@ -2,6 +2,7 @@
 from collections import deque
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field
+import math
 
 from reconstruction.touch import (context as touch_context, is_touch, TOUCH_CLASSES, can_trigger,
                                   MAX_TOUCH_RADIUS, priority, compare_conversation_trials,
@@ -42,7 +43,7 @@ def decode_dialogue(packet):
                  0xab9: 'item_preview', 0xb13: 'item_preview',
                  0x1d6: 'map_property', 0x99b: 'map_property', 0x2e7: 'map_property',
                  0x8ff: 'status_enter', 0x984: 'status_enter', 0x29b: 'mercenary',
-                 0x8e2: 'navigation_active'}
+                 0x8e2: 'navigation_active', 0xa78: 'camera'}
         kinds.update({0x9a: 'announcement', 0x1c3: 'announcement', 0x40c: 'announcement'})
     if packet.direction == 'RECV' and pid in DIALOGUE_LAYOUT_IDS:
         expected = 3 if pid == 0xba1 else 10
@@ -61,6 +62,14 @@ def decode_dialogue(packet):
     kind = kinds.get(pid)
     if kind is None:
         return None
+    if kind == 'camera':
+        if len(packet.raw) != 15:
+            raise ObservationError('Camera packet length does not match supported layout')
+        fields = dict(show=r.number(2, 'B'), range=r.number(3, 'f'),
+                      rotation=r.number(7, 'f'), latitude=r.number(11, 'f'))
+        if not all(math.isfinite(fields[key]) for key in ('range', 'rotation', 'latitude')):
+            raise ObservationError('Non-finite camera value')
+        return kind, None, fields
     if kind == 'effect_value':
         if len(packet.raw) != 14:
             raise ObservationError('Valued effect length does not match supported layout')
@@ -767,6 +776,13 @@ class DialogueStore:
             except ObservationError as exc:
                 invalid(exc)
             return True
+        if packet.packet_id == 0xa78 and conversation:
+            try:
+                _, _, fields = decode_dialogue(packet)
+                self._retain_action(packet, session, index, conversation, 'camera_action', fields)
+            except ObservationError as exc:
+                invalid(exc)
+            return True
         if packet.packet_id == 0x8e2 and conversation:
             # Player Navigation UI (PACKET_ZC_NAVIGATION_ACTIVE). Link to the active
             # dialogue as an action; do not invent ownership beyond same-flow timing.
@@ -902,7 +918,9 @@ class DialogueStore:
         recent = self.after_close.get(key)
         after_reply = False
         if (action_conversation is None and recent and packet.direction == 'RECV'
-                and packet.packet_id in (0xf2, 0xb8f) and 0 <= packet.timestamp - recent[0] <= 2):
+                and (packet.packet_id in (0xf2, 0xb8f, 0xa38, 0xae2, 0xaa0, 0xab4, 0x294)
+                     or packet.packet_id == 0xa02 and packet.raw[2:] == b'\x01\x00')
+                and 0 <= packet.timestamp - recent[0] <= 2):
             action_conversation = recent[1]
             after_reply = True
         try:
@@ -996,7 +1014,7 @@ class DialogueStore:
             self._retain_presentation(packet, session, index, None, 'during_dialogue')
         elif packet.direction == 'RECV' and packet.packet_id in (
                 0x2f0, 0x7fe, 0xb8c, 0x9a, 0x1c3, 0x40c, 0xa24, 0xab9, 0xb13, 0x1d6, 0x99b, 0x2e7,
-                0x8e2):
+                0x8e2, 0xa78):
             # No actor ID: never assign this notification to the active NPC.
             context = 'during_dialogue' if conversation else 'outside_dialogue'
             if key in self.close_pending:

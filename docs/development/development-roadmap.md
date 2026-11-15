@@ -589,7 +589,7 @@ map_property カタログ外 type／099B flags は `manual_review` で人手確�
    残る生成経路の観測一貫性（例: barter 品名併記、OnInit 文字列の本人保護）から。
 5. **OnTouch**: 一意入場時は cloak／effect／viewpoint を OnTouch枠へ載せる（再入場のみ／同セル同時は曖昧）。
    cloakoff **リスト追加命令**自体は未実装（観測のみ。命令発明しない）。
-   0A78 camerainfo は観測ログのみ（本文未生成）。`viewpointmap` は 0144 と区別できないため未生成。
+   0A78 camerainfo は構造化・会話内生成まで対応（show=0・Auriga整数引数でfloat32を再現できる値のみ）。実パケット・Auriga実行確認は残る。`viewpointmap` は 0144 と区別できないため未生成。
    他の多出力パケット抑制は ignorepacket flag で利用者が対応可能。
 6. **docs 物理移動（任意）**: `docs/user/` 等へのディレクトリ移動は明示指示後
    （段階C。リンク一括更新とセット）。

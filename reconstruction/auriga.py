@@ -93,7 +93,7 @@ for _command in ('hideonnpc', 'hideoffnpc', 'cloakonnpc', 'cloakoffnpc'):
     FILE_FIELDS[_command] = set()
     FILE_FIELDS[_command + '_target'] = {'target'}
     FILE_FIELDS[_command + '_target_id'] = {'target', 'actor_id'}
-FILE_FIELDS.update({'unittalk_target': {'text', 'target'}, 'progress_action': {'seconds', 'color'},
+FILE_FIELDS.update({'camera_action': {'range', 'rotation', 'latitude'}, 'camera_review': {'show', 'range', 'rotation', 'latitude'}, 'unittalk_target': {'text', 'target'}, 'progress_action': {'seconds', 'color'},
                     'navigation_action': {'type', 'set_type', 'hide', 'map_name', 'x', 'y', 'spr_index'},
                     'status_start': {'symbol', 'duration', 'value'}, 'status_end': {'symbol'},
                     'status_review': {'evidence'}, 'action_observation': {'evidence'}, 'action_wait_review': set()})
@@ -245,7 +245,7 @@ class AurigaRenderer:
             return body
         from reconstruction.emulator_profiles import profile
         body = append_initialization(body, [conversation.npc], profile('entity_metadata.json', self._target),
-                                     indent=self.templates['indent'])
+                                     indent=self.templates['indent'], identity=self.identity)
         return append_quest_info(body, conversation.quest_info_links, self.templates,
                                  map_name=conversation.npc.get('map_name'))
 
@@ -395,7 +395,7 @@ class AurigaRenderer:
         body = self.render_merged(group) if group is not None else self.render(conversation, presentation_check, shop_call_name)
         # Match bundle: warp-only OnTouch becomes a native warp line (not script+OnTouch).
         if (shop_call_name is None and is_touch(npc)
-                and not render_npc_initialization([npc], indent=self.templates['indent'])):
+                and not render_npc_initialization([npc], indent=self.templates['indent'], identity=self.identity)):
             sources = ([conversation] if group is None
                        else [row['conversation'] for row in group['contributions']])
             if not collect_quest_info_links(*sources):
@@ -409,7 +409,7 @@ class AurigaRenderer:
             raise ValueError('NPCの出現記録を選択してください。')
         from reconstruction.emulator_profiles import profile
         initialization = render_npc_initialization([npc], profile('entity_metadata.json', self._target),
-                                                   indent=self.templates['indent'])
+                                                   indent=self.templates['indent'], identity=self.identity)
         if not initialization and not metadata_values(npc):
             raise ValueError('0x0ADFのグループ・タイトルが未観測か、命令化できません。')
         body = self.templates['npc_metadata_only'] + '\n' + self.templates['end'] + '\n\n' + initialization
@@ -732,6 +732,13 @@ class AurigaRenderer:
                 if not 0 <= fields['seconds'] <= 2147483 or not 0 <= fields['color'] <= 0xffffffff:
                     raise ValueError('Invalid progressbar values')
                 emit('progress_action', depth, seconds=fields['seconds'], color=f"0x{fields['color']:06X}")
+            elif kind == 'camera_action':
+                from reconstruction.camera import auriga_arguments
+                arguments = auriga_arguments(fields)
+                if arguments is None:
+                    emit('camera_review', depth, **fields)
+                else:
+                    emit('camera_action', depth, **arguments)
             elif kind == 'navigation_action':
                 # Auriga navigateto (auriga/auriga#97): map[,x,y,flag,hide,mob id].
                 # Emit observed wire fields; type is derived server-side from x/y/mob.
@@ -852,7 +859,7 @@ class AurigaRenderer:
             from reconstruction.emulator_profiles import profile
             result = append_initialization(
                 body, [row['conversation'].get('npc', {}) for row in group['contributions']],
-                profile('entity_metadata.json', self._target), indent=self.templates['indent'])
+                profile('entity_metadata.json', self._target), indent=self.templates['indent'], identity=self.identity)
             links = collect_quest_info_links(*[
                 Conversation(**row['conversation']) if isinstance(row['conversation'], dict)
                 else row['conversation'] for row in group['contributions']])

@@ -33,7 +33,7 @@ TIMER_ROLES = {'command': '実行命令候補', 'comment': 'コメント採用�
 QUALITY = {'overlapping_windows': '観測窓が重複', 'invalid_time': '時刻不正・逆行',
            'event_limit': '演出保持上限', 'assumed_boundary': '途中取得'}
 KINDS = {'visibility_action':'NPC表示状態', 'status_action':'状態変化（クライアントID）',
-    'progress_action':'プログレスバー通知', 'script_command':'会話内命令候補', 'npc_display_action':'NPC外見変更',
+    'progress_action':'プログレスバー通知', 'camera':'カメラ通知', 'camera_action':'カメラ変更', 'script_command':'会話内命令候補', 'npc_display_action':'NPC外見変更',
     'dialogue_start': '会話開始', 'map_arrival': 'マップ到着', 'emotion': 'エモーション', 'effect': 'エフェクト', 'sound': '効果音', 'cutin': 'カットイン',
          'music': 'BGM（対象未特定）', 'mapcell': 'マップセル変更',
          'effect_remove': 'エフェクト解除',
@@ -780,7 +780,7 @@ class EventTrialPanel(QWidget):
         from reconstruction.identity_protection import identity_from_store
         from storage.user_settings import indent_value
         report, key = self.report, self.report_key
-        window = self.window()
+        window = QWidget.window(self)
         players = getattr(window, 'players', None)
         indent = None
         if hasattr(window, 'script_indent'):

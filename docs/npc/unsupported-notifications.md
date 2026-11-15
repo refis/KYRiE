@@ -176,7 +176,12 @@ mapflag **コメント候補**を別ツールで出せる（実行 mapflag の�
 | `progressbar`（09D1／窓内02F0） | 構造化 | 会話元への 09D1 は Auriga `progressbar_npc`。02F0 会話内は `progressbar`。タイマーはコメント採用のみ（秒数≠OnTimer） |
 | `navigation_action`／`navigation_active`（08E2） | 構造化 | 会話中は Auriga `navigateto`。会話外観測は保持のみ・タイマーへ出さない。viewpoint／warp と分離 |
 | `viewpointmap` | （未観測専用経路） | Auriga #97 で命令追加。0144 単体観測から viewpoint と区別できないため未生成 |
-| `camerainfo`（0A78） | 観測ログのみ | Auriga #97。show@2／range@3 f32／rotation@7 f32／latitude@11 f32（15B）。`@camerainfo ...` 表示。NPC本文・タイマーへは未生成。スクリプト引数は wire float×100 |
+| `camerainfo`（0A78） | 構造化 | 15B固定。show@2／range@3 f32／rotation@7 f32／latitude@11 f32。会話中は同一フローの `camera_action`、会話外・close待ちは対象IDなしの `camera` 観測。起因NPCは未確定。Auriga命令でfloat32値を再現でき、show=0の場合だけ会話本文へ生成。その他はコメント。タイマーへは出さない |
+
+カメラのAuriga引数はrange／rotation／latitudeを100倍した整数。整数のfloat変換と100.0f除算を再現し、
+元のfloat32バイトと一致する場合だけ `camerainfo range,rotation,latitude;` を出す。
+非有限値・不正長は診断へ残す。rAthenaはコメント保持のみ。
+合成パケットで確認しており、実パケット採取・Auriga実行確認は未実施。
 
 ## 変更時の確認
 

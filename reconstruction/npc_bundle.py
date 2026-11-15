@@ -95,7 +95,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
         else:
             entry['definition'] = definition
         bucket.setdefault('shops', []).append(entry)
-    barter_renderer = BarterRenderer(identity=identity, indent=indent) if barters else None
+    barter_renderer = BarterRenderer(client_names=client_names, identity=identity, indent=indent) if barters else None
     for record in barters:
         record = deepcopy(record)
         linked = lookup.get((record['capture_session'], record.get('conversation_id')))
@@ -173,7 +173,7 @@ def build_npc_bundle(entities, conversations, source_sessions=None, *, merge=Fal
             body = '\n'.join(lines)
         if not bodies:
             body = ''
-        initialization = render_npc_initialization(bucket['metadata'], indent=renderer.templates['indent'])
+        initialization = render_npc_initialization(bucket['metadata'], indent=renderer.templates['indent'], identity=identity)
         if initialization:
             if not body:
                 body = renderer.templates['end']

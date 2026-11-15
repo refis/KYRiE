@@ -64,7 +64,7 @@ def _action_observations(item,seen_packets,seen_actions):
         elif action['kind']=='visibility_action':
             effect_target=dict(role='dialogue_npc',name=npc_name(item.npc.get('name'),item.npc.get('map_name')))
         else:
-            effect_target=dict(role='player' if action['kind'] in ('status_action', 'navigation_action')
+            effect_target=dict(role='player' if action['kind'] in ('status_action', 'navigation_action', 'camera_action')
                                else 'unassigned')
         # actor_id/npc describe the dialogue scope, never the effect recipient.
         yield dict(kind=action['kind'],fields=fields,raw_fields=raw,
