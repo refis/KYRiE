@@ -14,6 +14,30 @@ from parser.display import DEFAULT_PROFILE, DEFAULT_SEND_PROFILE, DisplayProfile
 
 
 class DisplayTests(unittest.TestCase):
+    def test_book_and_refine_ui_notifications_display_observed_values(self):
+        display = ReceiveDisplay(DisplayProfile.load())
+        book = display.decode(event(0x294, struct.pack('<ii', 11000, 7)))
+        self.assertEqual(book.status, 'decoded')
+        self.assertEqual(book.fields, dict(item_id=11000, page=7))
+        self.assertEqual(book.text, '@openbook item_id=11000, page=7;')
+        self.assertEqual(display.decode(event(0xaa0)).text, '@openrefineui;')
+
+    def test_dressroom_and_stylist_display_retains_wire_fields(self):
+        display = ReceiveDisplay(DisplayProfile.load())
+        for pid, body, fields in ((0xa02, struct.pack('<H', 1), dict(type=1)),
+                                  (0xa38, b'\x01', dict(type=1)),
+                                  (0xae2, struct.pack('<BI', 1, 123), dict(type=1, value=123))):
+            with self.subTest(pid=pid):
+                result = display.decode(event(pid, body))
+                self.assertEqual(result.status, 'decoded')
+                self.assertEqual(result.fields, fields)
+
+    def test_digit_display_keeps_signed_wire_value(self):
+        result = ReceiveDisplay(DisplayProfile.load()).decode(event(0x1b1, struct.pack('<Bi', 3, -123)))
+        self.assertEqual(result.status, 'decoded')
+        self.assertEqual(result.fields, dict(type=3, value=-123))
+        self.assertEqual(result.text, 'showdigit -123,3;')
+
     def setUp(self):
         self.profile = DisplayProfile.load()
         self.display = ReceiveDisplay(self.profile)

@@ -63,7 +63,7 @@ def validate_actions(conversation):
         raise ValueError('Conversation action capacity exceeded')
     for row in conversation.actions:
         anchor = row.get('after_step_index')
-        if (row.get('kind') not in ('visibility_action', 'status_action', 'progress_action', 'navigation_action',
+        if (row.get('kind') not in ('visibility_action', 'status_action', 'progress_action', 'navigation_action', 'camera_action',
                                     'script_command', 'npc_display_action', 'dialogue_size', 'dialogue_position',
                                     'dialogue_alignment')
                 or row.get('capture_session') != conversation.capture_session or row.get('flow_id') != conversation.flow_id
@@ -99,6 +99,12 @@ def validate_actions(conversation):
             valid = command in COMMAND_ARGS and isinstance(fields.get('arguments'), dict) and set(fields['arguments']) == set(COMMAND_ARGS[command])
         elif kind == 'progress_action':
             valid = row['packet_id'] == 0x2f0 and set(fields) == {'seconds', 'color'} and all(uint(v) for v in fields.values())
+        elif kind == 'camera_action':
+            valid = (row['packet_id'] == 0xa78
+                     and set(fields) == {'show', 'range', 'rotation', 'latitude'}
+                     and type(fields['show']) is int and 0 <= fields['show'] <= 255
+                     and all(type(fields[key]) in (int, float) and math.isfinite(fields[key])
+                             for key in ('range', 'rotation', 'latitude')))
         elif kind == 'navigation_action':
             # PACKET_ZC_NAVIGATION_ACTIVE → Auriga navigateto (auriga/auriga#97).
             valid = (row['packet_id'] == 0x8e2

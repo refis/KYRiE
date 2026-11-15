@@ -115,6 +115,10 @@ look／equip／refine は観測保持。脚本候補の商品行は従来どお�
 
 書式はconfig/auriga/barters.json。
 
+barter候補には商品名と交換素材名を参考コメントとして併記する。識別済名称辞書を使用し、
+未登録IDは「未登録」と表示する。数値ID・個数・精錬値・在庫・Zeny条件は変更しない。
+個別出力と全件出力の前置定義で同じ品名コメントを使う。生成中に辞書を再読込しない。
+
 ## 書式と検証
 
 shop宣言と注意文はconfig/auriga/shops.json、callshopや本文はconfig/auriga/dialogue.jsonで変更できる。

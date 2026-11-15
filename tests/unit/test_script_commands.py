@@ -16,6 +16,126 @@ from tests.support.dialogue import packet as dialogue_packet
 
 
 class ScriptCommandTests(unittest.TestCase):
+    def test_openbook_preserves_signed_id_and_page_and_rejects_invalid_length(self):
+        _, store, consume = self.setup_store()
+        for item_id, page in ((11000, 3), (2147483647, 2147483647), (-1, 0)):
+            consume(raw_packet(0x294, struct.pack('<ii', item_id, page)))
+        self.close(consume)
+        code = self.code(store)
+        self.assertIn('openbook 11000,3;', code)
+        self.assertIn('openbook 2147483647,2147483647;', code)
+        self.assertIn('// openbook -1,0;', code)
+        self.assertEqual(store.commands.observations[-1]['observed'], dict(item_id=-1, page=0))
+        consume(raw_packet(0x294, b'bad'))
+        self.assertEqual(store.issue_count, 1)
+
+    def test_openbook_close_continuation_and_outside_send_boundaries(self):
+        _, store, consume = self.setup_store()
+        self.close(consume)
+        consume(raw_packet(0x146, struct.pack('<I', 42), direction='SEND'))
+        consume(raw_packet(0x294, struct.pack('<ii', 11000, 5)))
+        code = self.code(store)
+        self.assertIn('close2;', code)
+        self.assertIn('openbook 11000,5;', code)
+        _, outside, receive = self.setup_store(opened=False)
+        receive(raw_packet(0x294, struct.pack('<ii', 11000, 2)))
+        self.assertIsNone(outside.commands.observations[-1]['conversation_id'])
+        receive(raw_packet(0x294, struct.pack('<ii', 11000, 2), direction='SEND'))
+        self.assertEqual(len(outside.commands.observations), 1)
+
+    def test_upgrade_and_refine_ui_preserve_layout_and_reject_invalid_packets(self):
+        _, store, consume = self.setup_store()
+        for pid, body in ((0xab4, struct.pack('<H', 1234)), (0xab4, struct.pack('<I', 1000608)),
+                          (0xaa0, b''), (0xab4, struct.pack('<I', 0xffffffff))):
+            consume(raw_packet(pid, body))
+        self.close(consume)
+        code = self.code(store)
+        self.assertIn('openupgrade 1234;', code)
+        self.assertIn('openupgrade 1000608;', code)
+        self.assertIn('openrefineui;', code)
+        self.assertIn('// openupgrade 4294967295;', code)
+        self.assertEqual([row['observed'].get('item_id_bits') for row in store.commands.observations],
+                         [16, 32, None, 32])
+        for pid, body in ((0xab4, b'bad'), (0xab4, bytes(4)), (0xaa0, b'bad')):
+            consume(raw_packet(pid, body))
+        self.assertEqual(store.issue_count, 3)
+
+    def test_upgrade_and_refine_ui_close_continuation_and_unassigned_send_boundary(self):
+        for pid, body in ((0xab4, struct.pack('<I', 1000608)), (0xaa0, b'')):
+            with self.subTest(pid=pid):
+                _, store, consume = self.setup_store()
+                self.close(consume)
+                consume(raw_packet(0x146, struct.pack('<I', 42), direction='SEND'))
+                consume(raw_packet(pid, body))
+                self.assertIn('close2;', self.code(store))
+                self.assertEqual(store.commands.observations[-1]['conversation_id'], store.sessions[0].id)
+                _, outside, receive = self.setup_store(opened=False)
+                receive(raw_packet(pid, body))
+                self.assertIsNone(outside.commands.observations[-1]['conversation_id'])
+                receive(raw_packet(pid, body, direction='SEND'))
+                self.assertEqual(len(outside.commands.observations), 1)
+
+    def test_dressroom_and_stylist_variants_preserve_ui_fields_and_review_unknowns(self):
+        _, store, consume = self.setup_store()
+        for pid, body in ((0xa02, struct.pack('<H', 1)), (0xa02, struct.pack('<H', 0)),
+                          (0xa38, b'\x01'), (0xae2, struct.pack('<BI', 1, 0)),
+                          (0xa02, struct.pack('<H', 9)), (0xae2, struct.pack('<BI', 1, 123))):
+            consume(raw_packet(pid, body))
+        self.close(consume)
+        code = self.code(store)
+        self.assertIn('opendressroom 1;', code)
+        self.assertIn('opendressroom 0;', code)
+        self.assertEqual(sum(line.strip() == 'openstylist;' for line in code.splitlines()), 2)
+        self.assertIn('// opendressroom 9;', code)
+        self.assertIn('// openstylist;', code)
+        self.assertEqual(store.commands.observations[-1]['observed'], dict(type=1, value=123))
+        for pid in (0xa02, 0xa38, 0xae2):
+            consume(raw_packet(pid, b''))
+        self.assertEqual(store.issue_count, 3)
+
+    def test_ui_open_after_close_links_but_room_close_and_expired_open_stay_unassigned(self):
+        for pid, body in ((0xa02, b'\x01\x00'), (0xa38, b'\x01'), (0xae2, struct.pack('<BI', 1, 0))):
+            with self.subTest(pid=pid):
+                _, store, consume = self.setup_store()
+                self.close(consume)
+                consume(raw_packet(0x146, struct.pack('<I', 42), direction='SEND'))
+                consume(raw_packet(pid, body))
+                self.assertIn('close2;', self.code(store))
+                self.assertEqual(store.commands.observations[-1]['conversation_id'], store.sessions[0].id)
+        _, store, consume = self.setup_store()
+        self.close(consume)
+        consume(raw_packet(0x146, struct.pack('<I', 42), direction='SEND'))
+        consume(raw_packet(0xa02, b'\x00\x00'))
+        self.assertIsNone(store.commands.observations[-1]['conversation_id'])
+        for _ in range(25):
+            consume(raw_packet(0x7f, bytes(4)))
+        consume(raw_packet(0xa38, b'\x01'))
+        self.assertIsNone(store.commands.observations[-1]['conversation_id'])
+        count = len(store.commands.observations)
+        consume(raw_packet(0xa38, b'\x01', direction='SEND'))
+        self.assertEqual(len(store.commands.observations), count)
+
+    def test_showdigit_preserves_signed_values_types_and_unassigned_evidence(self):
+        _, store, consume = self.setup_store()
+        for kind, value in ((0, -2147483648), (1, 0), (2, 123), (3, 2147483647), (4, 42)):
+            consume(raw_packet(0x1b1, struct.pack('<Bi', kind, value)))
+        self.close(consume)
+        code = self.code(store)
+        for kind, value in ((0, -2147483648), (1, 0), (2, 123), (3, 2147483647)):
+            self.assertIn(f'showdigit {value},{kind};', code)
+        self.assertIn('// showdigit 42,4;', code)
+        self.assertFalse(any(line.strip() == 'showdigit 42,4;' for line in code.splitlines()))
+        self.assertTrue(all(not row['cause_confirmed'] for row in store.commands.observations))
+        _, outside, receive = self.setup_store(opened=False)
+        receive(raw_packet(0x1b1, struct.pack('<Bi', 0, -1)))
+        self.assertFalse(outside.sessions)
+        self.assertIsNone(outside.commands.observations[0]['conversation_id'])
+        before = len(outside.commands.observations)
+        receive(raw_packet(0x1b1, struct.pack('<Bi', 0, 9), direction='SEND'))
+        self.assertEqual(len(outside.commands.observations), before)
+        receive(raw_packet(0x1b1, b'bad'))
+        self.assertEqual(outside.issue_count, 1)
+
     def setup_store(self, opened=True, gear=False, split_connections=False):
         world, players = WorldStore(), PlayerStore()
         store = DialogueStore(world=world)

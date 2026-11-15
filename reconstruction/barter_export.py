@@ -7,6 +7,8 @@ from string import Formatter
 
 from reconstruction.auriga import AurigaRenderer
 from reconstruction.branches import conversation_path
+from reconstruction.client_names import empty_client_names
+from reconstruction.shop_export import format_shop_item_names
 
 DEFAULT_BARTER_PROFILE = Path(__file__).resolve().parents[1] / 'config' / 'auriga' / 'barters.json'
 FIELDS = {
@@ -14,6 +16,7 @@ FIELDS = {
     'review_unconfirmed': {'map_origin'},
     'hidden_barter': {'shop_name', 'items'},
     'callbarter_review': {'shop_name'},
+    'item_names_review': {'products', 'currencies'},
 }
 
 
@@ -60,11 +63,12 @@ def barter_name_for(npc, items, *, actor_id=None):
 
 
 class BarterRenderer:
-    def __init__(self, path=None, *, identity=None, indent=None):
+    def __init__(self, path=None, *, client_names=None, identity=None, indent=None):
         from reconstruction.emulator_profiles import profile
         path = Path(path) if path is not None else profile('barters.json')
         self.identity = dict(identity or {})
         self.indent = indent
+        self.client_names = empty_client_names() if client_names is None else client_names
         self.templates = read_render_json(path)
         if isinstance(self.templates, dict):
             defaults = read_render_json(DEFAULT_BARTER_PROFILE)
@@ -78,6 +82,15 @@ class BarterRenderer:
             for _, name, spec, conversion in Formatter().parse(value):
                 if name is not None and (name not in FIELDS[key] or spec or conversion):
                     raise ValueError('barter書式の引数が不正です。')
+
+    def names_review(self, items):
+        currencies = {}
+        for item in items:
+            for currency in item['currencies']:
+                currencies.setdefault(currency['client_item_id'], currency)
+        return self.templates['item_names_review'].format_map(dict(
+            products=format_shop_item_names(self.client_names, items),
+            currencies=format_shop_item_names(self.client_names, currencies.values())))
 
     def render(self, record, *, item_ids_confirmed=False, map_name=None, conversation=None, review_unconfirmed=False):
         if item_ids_confirmed is not True and review_unconfirmed is not True:
@@ -122,7 +135,7 @@ class BarterRenderer:
         copied.npc = npc
         copied.termination = dict(copied.termination, barter_call_name=shop_name)
         body = AurigaRenderer(identity=self.identity, indent=self.indent).render_npc_file(copied)
-        result = review + '\n' + hidden + '\n\n' + body
+        result = review + '\n' + self.names_review(record['items']) + '\n' + hidden + '\n\n' + body
         if len(result) > 4 * 1024 * 1024:
             raise ValueError('barter候補が出力上限を超えています。')
         return result
@@ -137,4 +150,4 @@ class BarterRenderer:
         review = self.templates[review_key].format_map(
             dict(map_origin='利用者入力' if not npc.get('map_name') else '観測'))
         hidden = self.templates['hidden_barter'].format_map(dict(shop_name=name, items=items))
-        return name, review + '\n' + hidden
+        return name, review + '\n' + self.names_review(record['items']) + '\n' + hidden

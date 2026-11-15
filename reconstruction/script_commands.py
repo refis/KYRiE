@@ -15,7 +15,10 @@ COMMAND_ARGS = {
     'getitem2': ('item_id', 'amount', 'identified', 'refine', 'attribute', 'card1', 'card2', 'card3', 'card4'),
     'delitem': ('item_id', 'amount'), 'delequip': ('slot',), 'unequip': ('slot',),
     'successrefitem': ('slot',), 'failedrefitem': ('slot',), 'downrefitem': ('slot', 'decrement'),
-    'sit': (), 'stand': (), 'skill': ('skill_id', 'level'),
+    'sit': (), 'stand': (), 'skill': ('skill_id', 'level'), 'showdigit': ('value', 'type'),
+    'opendressroom': ('type',), 'openstylist': (),
+    'openupgrade': ('item_id',), 'openrefineui': (),
+    'openbook': ('item_id', 'page'),
     'dropitem': ('map_name', 'x', 'y', 'item_id', 'amount', 'extra_lifetime_ms')}
 
 
@@ -66,7 +69,8 @@ def render_command(fields, style):
                 raise ValueError('Unknown drop map')
             reference = json.dumps(map_name(value), ensure_ascii=False)
             values[name] = style['instance_map_reference'].format(name=reference) if '@' in value else reference
-        elif name == 'extra_lifetime_ms' and type(value) is int and -2147483648 <= value <= 2147483647:
+        elif (name == 'extra_lifetime_ms' or command == 'showdigit' and name == 'value'
+              or command == 'openbook') and type(value) is int and -2147483648 <= value <= 2147483647:
             values[name] = value
         elif type(value) is not int or not 0 <= value <= 0xffffffff:
             raise ValueError('Invalid script command value')
@@ -75,6 +79,12 @@ def render_command(fields, style):
                 missing = True
             values[name] = value
     code = style['script_' + command].format_map(values)
+    if command == 'showdigit' and args.get('type') not in (0, 1, 2, 3):
+        missing = True
+    if command == 'opendressroom' and args.get('type') not in (0, 1):
+        missing = True
+    if command == 'openbook' and any(value is None or value <= 0 for value in args.values()):
+        missing = True
     if missing or fields.get('review_only'):
         code = style['script_review'].format(code=code, reason=fields.get('reason') or '引数が未観測またはスクリプト数値範囲外')
     if command == 'dropitem' and fields.get('lifetime_ms') is not None and fields.get('base_lifetime_ms') is not None:
@@ -199,6 +209,52 @@ class ScriptCommandStore:
             if not state['storage']:
                 emit('openstorage', {}, observed=dict(amount=r.number(2,'H'), capacity=r.number(4,'H')))
             state['storage'] = True
+        if pid == 0x294:
+            if len(packet.raw) != 10:
+                raise ObservationError('Invalid book UI open packet')
+            arguments = dict(item_id=r.number(2, 'i'), page=r.number(6, 'i'))
+            unsupported = any(value <= 0 for value in arguments.values())
+            emit('openbook', arguments, review=unsupported,
+                 reason='本IDまたは開始ページが非正値のため要確認' if unsupported else '',
+                 observed=arguments)
+        if pid == 0xaa0:
+            if len(packet.raw) != 2:
+                raise ObservationError('Invalid refine UI open packet')
+            emit('openrefineui', {})
+        if pid == 0xab4:
+            if len(packet.raw) not in (4, 6):
+                raise ObservationError('Invalid upgrade UI open packet')
+            item_id = r.number(2, 'H' if len(packet.raw) == 4 else 'I')
+            if item_id == 0:
+                raise ObservationError('Zero upgrade trigger item ID')
+            emit('openupgrade', dict(item_id=item_id), review=item_id > 2147483647,
+                 reason='強化アイテムIDがAurigaの正の整数範囲外' if item_id > 2147483647 else '',
+                 observed=dict(item_id=item_id, item_id_bits=16 if len(packet.raw) == 4 else 32))
+        if pid == 0xa02:
+            if len(packet.raw) != 4:
+                raise ObservationError('Invalid dressing room packet')
+            arguments = dict(type=r.number(2, 'H'))
+            unsupported = arguments['type'] not in (0, 1)
+            emit('opendressroom', arguments, review=unsupported,
+                 reason='未対応のドレスルーム操作種別' if unsupported else '', observed=arguments)
+        if pid in (0xa38, 0xae2):
+            if len(packet.raw) != (3 if pid == 0xa38 else 7):
+                raise ObservationError('Invalid stylist open packet')
+            observed = dict(type=r.number(2, 'B'))
+            if pid == 0xae2:
+                observed['value'] = r.number(3, 'I')
+            unsupported = observed['type'] != 1 or observed.get('value', 0) != 0
+            emit('openstylist', {}, review=unsupported,
+                 reason='Aurigaのスタイリスト開放形式と異なる通知: ' + json.dumps(observed, sort_keys=True)
+                 if unsupported else '', observed=observed)
+        if pid == 0x1b1:
+            if len(packet.raw) != 7:
+                raise ObservationError('Invalid digit display packet')
+            arguments = dict(value=r.number(3, 'i'), type=r.number(2, 'B'))
+            unsupported = arguments['type'] not in (0, 1, 2, 3)
+            emit('showdigit', arguments, review=unsupported,
+                 reason='Auriga未対応のshowdigit表示種別' if unsupported else '',
+                 observed=arguments)
         if pid == 0xb8f:
             # ZC_OPEN_REFORM_UI: PacketType u16 + ITID u32. Auriga has no openreform.
             if len(packet.raw) != 6:

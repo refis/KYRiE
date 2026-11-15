@@ -89,6 +89,24 @@ def _replacements(identity, style):
     return rows
 
 
+def redact_literal(text, identity=None):
+    """Protect text without player-dependent expressions (e.g. OnInit)."""
+    labels = dict(character_name='[本人名]', party_name='[パーティー名]', guild_name='[ギルド名]')
+    rows = [(value, labels[key]) for key, value in (identity or {}).items()
+            if key in labels and isinstance(value, str) and value]
+    rows.sort(key=lambda row: (-len(row[0]), row[0], row[1]))
+    parts, index = [], 0
+    while index < len(text):
+        match = next(((value, label) for value, label in rows if text.startswith(value, index)), None)
+        if match:
+            parts.append(match[1])
+            index += len(match[0])
+        else:
+            parts.append(text[index])
+            index += 1
+    return ''.join(parts)
+
+
 def script_text(text, identity=None, profile=None):
     """Return a script expression: quoted literal and/or getstrcharinfo concatenations."""
     if not isinstance(text, str):
