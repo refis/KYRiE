@@ -57,6 +57,20 @@ class CaptureGuiTests(WindowTestCase):
         self.assertIn('JSON キー: windowLayout', saved)
         self.assertIn('data=配列 (0件) | totalPage=0', saved)
 
+    def test_observation_text_keeps_http_between_game_packets(self):
+        from types import SimpleNamespace
+        from gui.observation_save import ObservationTextSnapshot
+
+        snapshot = ObservationTextSnapshot(
+            events=[SimpleNamespace(packet_id=1), SimpleNamespace(packet_id=2)],
+            results=[SimpleNamespace(text='before', status='mapped'),
+                     SimpleNamespace(text='after', status='mapped')],
+            tags=[None, None], count=2, query='',
+            ignored=SimpleNamespace(hides=lambda *_: False), unmapped=True,
+            http_rows=((11, 'HTTP'),), event_origin=10,
+        )
+        self.assertEqual(''.join(snapshot), 'before\nHTTP\nafter')
+
     def test_close_seals_admission_and_drains_queued_packets_before_database_close(self):
         from contextlib import closing
         from threading import Thread

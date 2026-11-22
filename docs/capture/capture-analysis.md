@@ -229,6 +229,8 @@ JSONL ではそれぞれ `data_state`、`data_count`、`total_page` に記録し
 TCP セグメントのバイトを記録した JSONL に対し、リプレイ CLI の
 `--analyze-http` を指定すると、結果の `http_starts` に方向、HTTP バージョン、
 HTTP/1.x のメソッドまたは応答コード、HTTP/2 の接続プリフェースを件数付きで出力します。
+セッションに `http_start` が保存されている場合は、その記録を集計します。
+記録がない旧ログでは、保存された TCP バイトから識別可能な範囲を再判定します。
 
 ```powershell
 python -m tools.replay_capture capture.jsonl --definitions PacketLength.used.txt --output replay.json --analyze-http

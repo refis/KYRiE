@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self.monitor_timer.timeout.connect(self.poll_connections)
         self.events = []
         self.http_observations = deque(maxlen=4096)
+        self.http_observation_count = 0
         self.observation_tags = []
         self.ignorepacket = IgnorePacket()
         ignore_error = ''
@@ -1057,26 +1058,45 @@ class MainWindow(QMainWindow):
         unmapped=self.display_unmapped.isChecked()
         def project():
             indices=[];chunks=deque();size=0;index=0
+            http_rows = iter(tuple(self.http_observations) if not query else ())
+            http_row = next(http_rows, None)
+            http_count = self.http_observation_count
+
+            def append(text):
+                nonlocal size
+                text = text[-self.DISPLAY_TEXT_LIMIT:]
+                chunks.append(text)
+                size += len(text) + 1
+                while chunks and size-len(chunks[0])-1 >= self.DISPLAY_TEXT_LIMIT:
+                    size -= len(chunks.popleft())+1
+
             while index<len(self.events):
                 event=self.events[index];result=self.display_results[index]
                 logical=self.event_origin+index
+                while http_row is not None and http_row[0] <= logical:
+                    append(http_row[1])
+                    http_row = next(http_rows, None)
                 if not query or query in f'{event.packet_id:04x}':
                     indices.append(logical)
                     if result.text and not ignored.hides(event,self.observation_tags[index]) and (result.status!='unmapped' or unmapped):
-                        text=result.text[-self.DISPLAY_TEXT_LIMIT:]
-                        chunks.append(text);size+=len(text)+1
-                        while chunks and size-len(chunks[0])-1>=self.DISPLAY_TEXT_LIMIT:
-                            size-=len(chunks.popleft())+1
+                        append(result.text)
                 index+=1
                 yield
+            while http_row is not None:
+                append(http_row[1])
+                http_row = next(http_rows, None)
+            # HTTP rows received while an asynchronous history refresh was running.
+            added = self.http_observation_count - http_count
+            if not query and added:
+                for row in list(self.http_observations)[-added:]:
+                    append(row[1])
             return indices,'\n'.join(chunks)[-self.DISPLAY_TEXT_LIMIT:]
         def commit(value):
             self.history_view_stale=False
             indices,text=value
             self.packet_indices[:]=indices
             self.packet_pager.set_rows(self.packet_indices,'packets')
-            http_text = '' if query else '\n'.join(self.http_observations)
-            self.display_log.setPlainText(self.bounded_display_text('\n'.join(filter(None, (text, http_text)))))
+            self.display_log.setPlainText(self.bounded_display_text(text))
             # Bounded rebuild replaces the document; keep the tail in view.
             self._pin_display_log_to_end()
         def abort():self.history_view_stale=True
@@ -1146,7 +1166,8 @@ class MainWindow(QMainWindow):
                 text += f" | data={label[state]}"
             if 'total_page' in fields:
                 text += f" | totalPage={fields['total_page']}"
-        self.http_observations.append(text)
+        self.http_observations.append((self.event_origin + len(self.events), text))
+        self.http_observation_count += 1
         if not self.filter.text().strip():
             self.append_display_text(text)
 
@@ -1157,10 +1178,10 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage('表示更新を完了してください。取消後は「表示を再更新」を実行してください。')
             return
         query = self.filter.text().strip().lower().removeprefix('0x')
-        http_text = '\n'.join(self.http_observations) if not query else ''
+        http_rows = tuple(self.http_observations) if not query else ()
         fallback = self.display_log.toPlainText() if not self.events and not self.http_observations else ''
         snapshot=ObservationTextSnapshot(self.events,self.display_results,self.observation_tags,
-            len(self.events),query,self.ignorepacket,self.display_unmapped.isChecked(),fallback,http_text)
+            len(self.events),query,self.ignorepacket,self.display_unmapped.isChecked(),fallback,http_rows,self.event_origin)
         protected=[*self.world_sources.values(),self.path.text()]
         path,_=QFileDialog.getSaveFileName(self,'Save visible packet text','packets.txt','Text (*.txt)')
         if not path or self.workspace_closing:return
