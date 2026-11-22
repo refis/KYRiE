@@ -28,6 +28,7 @@ python -m tools.build_snapshot --output-dir dist
 ```
 
 - 既存ZIPは上書きしない。別の出力先を使う。
+- Git作業ツリーでは追跡対象のソースファイルだけを収録する。展開済みZIPから作り直す場合は、同梱の `SNAPSHOT.json` にあるファイル一覧を使う。
 - ZIP内 `SNAPSHOT.json` にファイルごとのサイズとSHA-256、ZIP横に全体のSHA-256を残す。
 - リポジトリ直下の `SNAPSHOT.json` を版マニフェストとして置く場合は、**作成したZIP内の同名ファイルをコピー**して更新する（手編集しない）。版・日付は `version.py` と一致させる。
 - `logs/`、DB、クライアントEXE、`.reference`、生成コード、キャッシュは含めない。

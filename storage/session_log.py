@@ -6,7 +6,7 @@ from pathlib import Path
 from threading import Lock
 import time
 import uuid
-from storage.observation_export import save_observation_bytes, MAX_EXPORT_BYTES
+from storage.observation_export import save_observation_bytes, save_observation_chunks, MAX_EXPORT_BYTES
 
 
 class SessionLog:
@@ -69,11 +69,23 @@ class SessionLog:
                 except OSError as exc:
                     self.error = f'Session log close failed: {exc}'
 
-    def export(self, target, source_paths=()):
+    def export(self, target, source_paths=(), *, include_payload=True):
         with self.lock:
             target = Path(target)
-            if target.resolve() != self.path.resolve():
+            protected = [self.path, self.directory / 'PacketLength.used.txt', *source_paths]
+            if not include_payload:
+                with self.path.open(encoding='utf-8') as source:
+                    save_observation_chunks(target, self._diagnostic_rows(source), protected)
+            elif target.resolve() != self.path.resolve():
                 with self.path.open('rb') as source:
                     data = source.read(MAX_EXPORT_BYTES + 1)
-                save_observation_bytes(target, data,
-                    [self.path, self.directory / 'PacketLength.used.txt', *source_paths])
+                save_observation_bytes(target, data, protected)
+
+    @staticmethod
+    def _diagnostic_rows(source):
+        for line in source:
+            row = json.loads(line)
+            row.pop('data_hex', None)
+            if row.get('kind') == 'session_start':
+                row['record_payload'] = False
+            yield json.dumps(row, ensure_ascii=False) + '\n'
