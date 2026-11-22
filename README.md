@@ -1,15 +1,16 @@
-# KYRiE v0.0.11 (Windows)
+# KYRiE v0.0.12 (Windows)
 
-v0.0.11は GUI P2（Help／ショートカット／タブ初期）、ignorepacket ローカル化、
-OnTouch入場枠・未観測 cloakoff、ワークスペースNPC名簿、プレイヤー waitingroom／スキル除外を含むソース保存版です。
+v0.0.12 は HTTP 観測と rAthena の応答要約、診断ログと生ログの出力分離、
+NPC 個別出力と一括出力の整合、Auriga のカメラ・UI 命令候補を含むソース保存版です。
 **EXE化・EXE配布は行いません**（起動は Python＋venv）。
-過去のv0.0.4–v0.0.10 ZIPは保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
+過去の v0.0.4–v0.0.11 ZIP は保持します。開発履歴は[開発記録](DEVELOPMENT.md)に記載します。
 
 Auriga形式のNPCコード復元と、MOB性能・使用スキルの観測解析を目的とする開発スナップショットです。
 MARiAを参考に、受信・観測可能な非暗号化送信パケットから編集用コードと根拠を生成します。
 完成した元スクリプトやサーバー設定を保証するものではありません。
 
-- [v0.0.11の変更点・検証・残作業](docs/releases/v0.0.11.md)
+- [v0.0.12の変更点・検証・残作業](docs/releases/v0.0.12.md)
+- [保存済みv0.0.11の記録](docs/releases/v0.0.11.md)
 - [保存済みv0.0.10の記録](docs/releases/v0.0.10.md)
 - [保存済みv0.0.9の記録](docs/releases/v0.0.9.md)
 - [保存済みv0.0.8の記録](docs/releases/v0.0.8.md)
@@ -45,9 +46,10 @@ python -m venv .venv
 
 [取得の診断](docs/capture/capture-analysis.md) / [非暗号化SEND](docs/capture/send-capture.md)
 
-## v0.0.11でできること
+## v0.0.12でできること
 
 - プロセス選択、複数接続追跡、TCP再構成、送受信共通PacketEvent、観測ログと生パケット保存。
+- 平文 HTTP の観測と rAthena のフォーム項目・応答構造の要約。診断用 JSONL と再解析用の生ログを個別に保存。
 - マップ・XY・所持品・Zeny、NPC/MOBの初回と差分、サーバー別ActorID順の一覧・出力。
 - NPCの配置・会話統合、選択肢、反復menuのwhile化、入力応答、close/close2、shop/callshop。
 - close後2秒枠の一覧→callshop、拡張barter（0x0B56）コメント候補、openreform（0x0B8F）コメント候補。
