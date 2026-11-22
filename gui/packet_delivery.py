@@ -13,6 +13,7 @@ class PacketDelivery:
 class Bridge(QObject):
     packet = Signal(object)
     status = Signal(str)
+    http_start = Signal(int, object)
     connections = Signal(object)
     overflow = Signal()
 

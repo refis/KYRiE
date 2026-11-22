@@ -15,11 +15,12 @@ class ReplayCancelled(Exception):
 
 
 def replay(path, definitions, on_packet=None, *, is_cancelled=None, on_progress=None,
-           max_line_chars=None, max_input_chars=None):
+           max_line_chars=None, max_input_chars=None, analyze_http=False):
     framers, failed, boundaries = {}, set(), {}
     counts = Counter()
     direction_counts = {'RECV': Counter(), 'SEND': Counter()}
     errors = []
+    http_counts = Counter()
     saw_payload_mode = False
     ended = False
     chunks = 0
@@ -30,6 +31,8 @@ def replay(path, definitions, on_packet=None, *, is_cancelled=None, on_progress=
         def write(self, kind, **fields):
             if kind == 'framing_error':
                 errors.append(fields)
+            elif kind == 'http_start':
+                http_counts[fields['direction'], fields['version'], fields['start']] += 1
 
     allow_midstream = False
 
@@ -82,7 +85,7 @@ def replay(path, definitions, on_packet=None, *, is_cancelled=None, on_progress=
                 tcp_receiver = Receiver('', None, definitions,
                     count_packet, lambda message: None, process_pid=0,
                     allow_midstream=allow_midstream, recorder=Collector(),
-                    capture_send=row.get('capture_send', False))
+                    capture_send=row.get('capture_send', False), analyze_http=analyze_http)
             if tcp_receiver is not None:
                 if kind == 'tcp_segment':
                     if not saw_payload_mode or 'data_hex' not in row:
@@ -143,13 +146,21 @@ def replay(path, definitions, on_packet=None, *, is_cancelled=None, on_progress=
         incomplete = [dict(endpoints=list(key[0]), initial_sequence=key[1], **framer.snapshot())
                       for key, framer in framers.items() if key not in failed and framer.buffer]
         connection_count, failed_count, tcp_stats = len(framers), len(failed), None
-    return dict(schema=1, source_log=str(path), session_end_present=ended,
+    if analyze_http and tcp_receiver is None:
+        raise ValueError('HTTP analysis requires a TCP segment capture')
+    report = dict(schema=1, source_log=str(path), session_end_present=ended,
         observed_chunks=chunks, connection_count=connection_count, failed_connections=failed_count,
         packet_counts={f'0x{pid:04X}': count for pid, count in sorted(counts.items())},
         packet_counts_by_direction={direction: {f'0x{pid:04X}': count for pid, count in sorted(entries.items())}
                                    for direction, entries in direction_counts.items()},
         errors=errors, tcp_statistics=tcp_stats, incomplete_streams=incomplete,
         note='No unknown-ID skipping or inferred resynchronization. Successful framing alone does not prove layout compatibility.')
+    if analyze_http:
+        report['http_starts'] = [
+            dict(direction=direction, version=version, start=start, count=count)
+            for (direction, version, start), count in sorted(http_counts.items())
+        ]
+    return report
 
 
 def main():
@@ -157,10 +168,11 @@ def main():
     cli.add_argument('log', type=Path)
     cli.add_argument('--definitions', type=Path, required=True)
     cli.add_argument('--output', type=Path, required=True)
+    cli.add_argument('--analyze-http', action='store_true', help='Count initial HTTP start lines in recorded TCP segments')
     args = cli.parse_args()
     if args.output.resolve() in (args.log.resolve(), args.definitions.resolve()):
         cli.error('Output must differ from log and definitions')
-    report = replay(args.log, load_lengths(args.definitions))
+    report = replay(args.log, load_lengths(args.definitions), analyze_http=args.analyze_http)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(f'{report["connection_count"]} connections, {report["failed_connections"]} stopped; {args.output}')
 

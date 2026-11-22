@@ -38,6 +38,25 @@ class CaptureGuiTests(WindowTestCase):
             w.populate_processes(startup=True)
             self.assertIsNone(w.process.currentData())
 
+    def test_http_observation_is_visible_and_saved_as_text(self):
+        w = self.window
+        w.record_http.setChecked(True)
+        w.bridge.http_start.emit(w.capture_session, dict(timestamp=0, direction='SEND',
+            version='HTTP/1.1', start='POST', rathena_route='/charconfig/load'))
+        expected = 'SEND HTTP/1.1 POST /charconfig/load'
+        self.assertIn(expected, w.display_log.toPlainText())
+        w.bridge.http_start.emit(w.capture_session, dict(timestamp=0, direction='RECV',
+            version='HTTP/1.1', start='200', rathena_route=None,
+            form_fields=[], json_keys=['windowLayout'], data_state='array', data_count=0, total_page=0))
+        self.assertIn('JSON キー: windowLayout', w.display_log.toPlainText())
+        destination = Path(self.log_folder.name) / 'http-observation.txt'
+        with patch('gui.main_window.QFileDialog.getSaveFileName', return_value=(str(destination), '')):
+            w.save_display()
+        saved = destination.read_text(encoding='utf-8')
+        self.assertIn(expected, saved)
+        self.assertIn('JSON キー: windowLayout', saved)
+        self.assertIn('data=配列 (0件) | totalPage=0', saved)
+
     def test_close_seals_admission_and_drains_queued_packets_before_database_close(self):
         from contextlib import closing
         from threading import Thread

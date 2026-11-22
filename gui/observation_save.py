@@ -16,16 +16,17 @@ class ObservationTextSnapshot:
     ignored: object
     unmapped: bool
     fallback: str=''
+    http_text: str=''
 
     @property
     def needs_worker(self):
         if self.count>2000:return True
         characters=sum(len(self.results[index].text) for index in range(self.count)) if self.count else len(self.fallback)
-        return characters>262144
+        return characters+len(self.http_text)>262144
 
     def __iter__(self):
         if not self.count:
-            yield self.fallback
+            yield self.fallback or self.http_text
             return
         first=True
         for index in range(self.count):
@@ -38,6 +39,10 @@ class ObservationTextSnapshot:
                 first=False
             else:
                 yield ''  # Also let cancellation run during long excluded ranges.
+        if self.http_text:
+            if not first:
+                yield '\n'
+            yield self.http_text
 
 
 class ObservationSaveWorker(QThread):
