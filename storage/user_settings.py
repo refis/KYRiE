@@ -44,6 +44,7 @@ DEFAULTS = dict(
     display_timestamps=False,
     display_unmapped=False,
     record_stream=False,
+    record_http=False,
     log_root=str(PROJECT_ROOT / 'logs'),
     offline_max_packets=DEFAULT_OFFLINE_MAX_PACKETS,
     offline_max_packet_mib=DEFAULT_OFFLINE_MAX_PACKET_MIB,
@@ -212,6 +213,7 @@ def collect_from_window(window):
         display_timestamps=window.display_timestamps.isChecked(),
         display_unmapped=window.display_unmapped.isChecked(),
         record_stream=window.record_stream.isChecked(),
+        record_http=window.record_http.isChecked(),
         log_root=window.log_root.text().strip(),
         offline_max_packets=int(window.offline_max_packets.value()),
         offline_max_packet_mib=int(window.offline_max_packet_mib.value()),
@@ -238,7 +240,7 @@ def apply_to_window(window, settings):
     document = validate(settings)
     controls = [
         window.capture_send, window.children, window.attach_existing, window.emulator,
-        window.display_timestamps, window.display_unmapped, window.record_stream,
+        window.display_timestamps, window.display_unmapped, window.record_stream, window.record_http,
         window.pipe_enabled, window.dialogue_panel.merge_checkbox,
     ]
     if hasattr(window, 'script_indent'):
@@ -276,6 +278,7 @@ def apply_to_window(window, settings):
         window.display_unmapped.setChecked(document['display_unmapped'])
         window.render_timestamps = document['display_timestamps']
         window.record_stream.setChecked(document['record_stream'])
+        window.record_http.setChecked(document['record_http'])
         window.log_root.setText(document['log_root'])
         window.offline_max_packets.blockSignals(True)
         window.offline_max_packet_mib.blockSignals(True)

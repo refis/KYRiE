@@ -197,3 +197,44 @@ DBを先に閉じることによる見かけの保存エラーや、閉じたDB�
 ログがまだ開いていれば、packet_delivery_shutdownに終了時点の処理・保存確認／未確認・受付拒否件数を記録する。
 手動停止等でログが既に閉じている場合は、そのログを開き直さない。
 一度閉じた画面に遅れて届く直接呼出しは、DBやウィジェットへ反映しない。
+## HTTP の初期メッセージを集計
+
+「観測・表示の設定 → 記録 → HTTP 通信も観測ログに出力する」を有効にしてから
+観測を開始します。観測ログ画面と「観測ログを保存…」のテキストには方向別の先頭行の要約が、
+`capture.jsonl` には `http_start` が出力されます。HTTP 要約には生バイト記録を必要としません。
+Packet ID で絞り込み中は HTTP 要約がテキストの表示・保存対象から外れます。
+
+rAthena の既知の POST ルートは [web.cpp](https://github.com/rathena/rathena/blob/master/src/web/web.cpp)
+の登録パスを照合し、`/charconfig/load` などの固定名を出力します。
+実機では送信観測も有効にしてから接続し、既知ルートと応答ステータスが同じ
+`flow_id` で出ることを確認してください。手動フィルターを使う場合は Web サーバーのポートを指定します。
+HTTP/1.x の最初の応答が `100 Continue` などの中間応答の場合は、
+同じ接続上の最終応答まで記録します。ヘッダーと本文は要約に含めません。
+同一接続での後続リクエストや HTTPS の復号は対象外です。
+
+既知の rAthena POST リクエストの multipart フォームと、JSON 応答は、
+本文全体が TCP から再構成できると、フォーム項目名と JSON のキー階層を
+観測テキストおよび `http_body` レコードに出力します。応答 JSON の最上位に
+整数の `Type` がある場合は、その値も記録します。設定値やフォームの値は要約に含めません。
+応答が JSON オブジェクトの場合は `data` の状態、配列の場合はその件数も表示します。
+最上位に非負整数の `totalPage` がある場合は、その値を表示します。
+JSONL ではそれぞれ `data_state`、`data_count`、`total_page` に記録します。
+本文の対応範囲は `Content-Length` または `Transfer-Encoding: chunked` を使う
+非圧縮の HTTP/1.x（最大 256 KiB）です。
+本文を要約できない場合は `body_skip_reason` が理由を示します。
+キャラクター設定・アカウント設定・パーティー募集の既知ルートでは、
+応答が汎用の Content-Type を使っていても、本文が有効な JSON なら要約します。
+設定内容を確認するには、この機能を有効にした状態で再取得してください。
+
+TCP セグメントのバイトを記録した JSONL に対し、リプレイ CLI の
+`--analyze-http` を指定すると、結果の `http_starts` に方向、HTTP バージョン、
+HTTP/1.x のメソッドまたは応答コード、HTTP/2 の接続プリフェースを件数付きで出力します。
+
+```powershell
+python -m tools.replay_capture capture.jsonl --definitions PacketLength.used.txt --output replay.json --analyze-http
+```
+
+集計は接続ごとに最初に識別できた平文 HTTP が対象です。送信側の識別には送信記録が必要です。
+HTTP 判定後のセグメントは従来どおりメタデータのみ記録されます。
+レポートの HTTP 集計には URL、ヘッダー、本文を含めません。元の JSONL は生バイトを含むため、
+ローカルで管理してください。

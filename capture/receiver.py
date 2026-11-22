@@ -11,7 +11,7 @@ from parser.framer import PacketFramer, FramingError
 
 
 class Receiver:
-    def __init__(self, server_ip, server_port, definitions, on_packet, on_status, iface=None, process_pid=None, include_children=False, allow_midstream=False, recorder=None, capture_send=False):
+    def __init__(self, server_ip, server_port, definitions, on_packet, on_status, iface=None, process_pid=None, include_children=False, allow_midstream=False, recorder=None, capture_send=False, *, analyze_http=False, observe_http_body=False):
         self.server_ip = server_ip if process_pid is None else ''
         self.server_port = int(server_port) if process_pid is None and server_port not in (None, "") else None
         self.lock = RLock()
@@ -28,6 +28,9 @@ class Receiver:
         self.include_children = include_children
         self.allow_midstream = allow_midstream
         self.capture_send = capture_send
+        self.analyze_http = analyze_http
+        self.observe_http_body = analyze_http and observe_http_body
+        self.on_http_start = None
         if capture_send and process_pid is None and not self.server_ip and self.server_port is None:
             raise ValueError('Manual SEND capture requires a remote Server IP or Port; select an EXE for automatic direction detection')
         self.stream_directions = {}
@@ -154,6 +157,7 @@ class Receiver:
         self.stats['matched_segments'] += 1
         self.stats['matched_payload_bytes'] += len(payload)
         syn = bool(flags & 0x02)
+        deferred_peer_syn = False
         canonical = key if direction == 'RECV' else self.reverse_key(key)
         state = self.flow_states.get(canonical)
         if state is None or (syn and direction in state and state[direction] != seq):
@@ -173,12 +177,19 @@ class Receiver:
             if deferred_peer_syn:
                 self.initial_sequences[key] = seq
             else:
+                if self.analyze_http and key in self.passed_http:
+                    peer = self.reverse_key(key)
+                    self.connections.pop(peer, None)
+                    self.protocol_probes.pop(peer, None)
+                    self.gap_since.pop(peer, None)
                 self.passed_http.discard(key)
                 self.passed_http.discard(self.reverse_key(key))
         if key in self.passed_http:
             self.stats['passed_http_segments'] += 1
             self._record('protocol_pass_segment', endpoints=key, sequence=seq, flags=flags,
                          timestamp=timestamp, byte_count=len(payload), direction=direction, protocol='HTTP')
+            if self.analyze_http:
+                self._observe_http_peer(key, seq, flags, payload, timestamp, direction, deferred_peer_syn)
             return
         # Retain the original segment sequence even after framing stops, so a
         # corrected definition can be replayed against later received data.
@@ -188,7 +199,8 @@ class Receiver:
             if syn and self.initial_sequences.get(key) != seq:
                 self.connections[key] = (TCPReassembler(), PacketFramer(self.definitions))
                 self.protocol_probes[key] = InitialProtocolProbe(self.definitions,
-                    expected_account=state.get('expected_account') if direction == 'RECV' else None)
+                    expected_account=state.get('expected_account') if direction == 'RECV' else None,
+                    observe_body=self.observe_http_body)
                 self.initial_sequences[key] = seq
                 self.midstream_keys.discard(key)
                 self.gap_since.pop(key, None)
@@ -200,7 +212,7 @@ class Receiver:
                 stream = TCPReassembler()
                 stream.start_at(seq)
                 self.connections[key] = (stream, PacketFramer(self.definitions))
-                self.protocol_probes[key] = InitialProtocolProbe(self.definitions)
+                self.protocol_probes[key] = InitialProtocolProbe(self.definitions, observe_body=self.observe_http_body)
                 self.initial_sequences[key] = seq
                 self.midstream_keys.add(key)
                 self.stats['assumed_boundaries'] += 1
@@ -227,7 +239,8 @@ class Receiver:
                     self.connections.pop(self.reverse_key(key), None)
                 return
             stream, framer = self.connections[key]
-            for chunk in stream.feed(seq, payload, syn=syn):
+            chunks = iter(stream.feed(seq, payload, syn=syn))
+            for chunk in chunks:
                 probe = self.protocol_probes[key]
                 protocol, chunk = probe.feed(chunk)
                 if probe.account_echo_consumed and not probe.account_echo_reported:
@@ -237,6 +250,8 @@ class Receiver:
                                  flow_id=state['id'], byte_count=4, basis='matching_character_login')
                 if protocol == 'HTTP':
                     self._pass_http(key, timestamp, direction)
+                    if self.analyze_http and key in self.connections:
+                        self._observe_http_chunks(key, chunks, flags, timestamp, direction)
                     return
                 if protocol == 'PENDING':
                     continue
@@ -272,8 +287,17 @@ class Receiver:
             self.on_status(f'Capture error: {e}')
 
     def _pass_http(self, key, timestamp, direction):
+        if self.analyze_http:
+            self._record_http_start(key, timestamp, direction)
+            self._record_following_http(key, timestamp, direction)
+            route = self.protocol_probes[key].rathena_route
+            if self.observe_http_body and route and route.startswith(('/charconfig/', '/userconfig/', '/party/')):
+                canonical = key if direction == 'RECV' else self.reverse_key(key)
+                self.flow_states[canonical]['http_json_route'] = route
         for half in (key, self.reverse_key(key)):
             self.passed_http.add(half)
+            if self.analyze_http and (half != key or self.protocol_probes[key].observing_http):
+                continue
             self.connections.pop(half, None)
             self.protocol_probes.pop(half, None)
             self.gap_since.pop(half, None)
@@ -281,6 +305,68 @@ class Receiver:
         self._record('protocol_pass', endpoints=key, timestamp=timestamp, direction=direction,
                      protocol='HTTP', reason='recognized initial HTTP start line or HTTP/2 preface')
         self.on_status(f'PASS HTTP connection (both directions): {key}')
+
+    def _record_http_start(self, key, timestamp, direction, body_fields=None):
+        probe = self.protocol_probes[key]
+        version, start = probe.http_summary
+        canonical = key if direction == 'RECV' else self.reverse_key(key)
+        flow = self.flow_states.get(canonical, {})
+        fields = dict(version=version, start=start, direction=direction,
+                     method=start if start.isalpha() and start.isupper() else None,
+                     status_code=int(start) if start.isdecimal() else None,
+                     endpoints=key, timestamp=timestamp,
+                     rathena_route=probe.rathena_route or flow.get('http_json_route'),
+                     flow_id=flow.get('id'))
+        if body_fields is not None:
+            if not start.isdecimal():
+                for field in ('response_type', 'data_state', 'data_count', 'total_page'):
+                    body_fields.pop(field, None)
+            fields.update(body_fields)
+        self._record('http_body' if body_fields is not None else 'http_start', **fields)
+        if self.on_http_start is not None:
+            self.on_http_start(fields)
+
+    def _observe_http_peer(self, key, seq, flags, payload, timestamp, direction, new_peer):
+        if new_peer:
+            self.connections[key] = (TCPReassembler(), PacketFramer(self.definitions))
+            self.protocol_probes[key] = InitialProtocolProbe({}, observe_body=self.observe_http_body)
+        if key not in self.connections:
+            return
+        stream, _ = self.connections[key]
+        canonical = key if direction == 'RECV' else self.reverse_key(key)
+        self.protocol_probes[key].allow_generic_json = bool(self.flow_states.get(canonical, {}).get('http_json_route'))
+        chunks = stream.feed(seq, payload, syn=bool(flags & 0x02)) if not flags & 0x04 else ()
+        self._observe_http_chunks(key, chunks, flags, timestamp, direction)
+
+    def _record_following_http(self, key, timestamp, direction, chunk=b''):
+        probe = self.protocol_probes[key]
+        if probe.awaiting_final:
+            for _ in probe.follow_response(chunk):
+                self._record_http_start(key, timestamp, direction)
+            chunk = b''
+        body_fields = probe.feed_body(chunk)
+        if body_fields is not None:
+            self._record_http_start(key, timestamp, direction, body_fields)
+
+    def _observe_http_chunks(self, key, chunks, flags, timestamp, direction):
+        stream, _ = self.connections[key]
+        probe = self.protocol_probes[key]
+        for chunk in chunks:
+            if probe.observing_http:
+                self._record_following_http(key, timestamp, direction, chunk)
+            elif probe.protocol is None:
+                protocol, _ = probe.feed(chunk)
+                if protocol == 'HTTP':
+                    self._record_http_start(key, timestamp, direction)
+                    self._record_following_http(key, timestamp, direction)
+            if probe.protocol is not None and not probe.observing_http:
+                break
+        if probe.body is not None and not probe.body.done and (stream.failed or flags & 0x05):
+            self._record_http_start(key, timestamp, direction, probe.body.skip('incomplete_body'))
+        if (probe.protocol is not None and not probe.observing_http) or stream.failed or flags & 0x05:
+            self.connections.pop(key, None)
+            self.protocol_probes.pop(key, None)
+            self.gap_since.pop(key, None)
 
     def _discard_early(self, key):
         segments = self.early_segments.pop(key, [])

@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
         self.bridge = Bridge()
         self.bridge.packet.connect(self.add_packet)
         self.bridge.status.connect(self.show_capture_status)
+        self.bridge.http_start.connect(self.add_http_start)
         self.bridge.overflow.connect(self.packet_delivery_overflow)
         self.receiver = None
         self.pipe = None
@@ -59,6 +60,7 @@ class MainWindow(QMainWindow):
         self.monitor_timer.setInterval(300)
         self.monitor_timer.timeout.connect(self.poll_connections)
         self.events = []
+        self.http_observations = deque(maxlen=4096)
         self.observation_tags = []
         self.ignorepacket = IgnorePacket()
         ignore_error = ''
@@ -821,7 +823,8 @@ class MainWindow(QMainWindow):
         manual = self.process.currentData() is None
         for control in (self.process, self.children, self.refresh_processes, self.iface,
                         self.interface_picker, self.path, self.definitions_browse, self.attach_existing,
-                        self.pipe_enabled, self.pipe_name, self.record_stream, self.log_root, self.capture_send):
+                        self.pipe_enabled, self.pipe_name, self.record_stream, self.log_root, self.capture_send,
+                        self.record_http):
             control.setEnabled(not running)
         for control in (self.ip, self.port):
             control.setEnabled(not running and manual)
@@ -1072,7 +1075,8 @@ class MainWindow(QMainWindow):
             indices,text=value
             self.packet_indices[:]=indices
             self.packet_pager.set_rows(self.packet_indices,'packets')
-            self.display_log.setPlainText(self.bounded_display_text(text))
+            http_text = '' if query else '\n'.join(self.http_observations)
+            self.display_log.setPlainText(self.bounded_display_text('\n'.join(filter(None, (text, http_text)))))
             # Bounded rebuild replaces the document; keep the tail in view.
             self._pin_display_log_to_end()
         def abort():self.history_view_stale=True
@@ -1118,15 +1122,45 @@ class MainWindow(QMainWindow):
         if follow:
             self._pin_display_log_to_end()
 
+    def add_http_start(self, session, fields):
+        if session != self.capture_session or self.workspace_closing:
+            return
+        route = fields['rathena_route']
+        timestamp = datetime.fromtimestamp(fields['timestamp']).strftime('%H:%M:%S.%f')[:-3]
+        text = f"[{timestamp}] {fields['direction']} {fields['version']} {fields['start']}"
+        if route:
+            text += f' {route}'
+        if fields.get('body_skip_reason'):
+            text += f" | 本文要約なし ({fields['body_skip_reason']})"
+        elif 'json_keys' in fields:
+            form = ', '.join(fields['form_fields']) or 'なし'
+            keys = ', '.join(fields['json_keys']) or 'なし'
+            text += f' | フォーム項目: {form} | JSON キー: {keys}'
+            if 'response_type' in fields:
+                text += f" | Type={fields['response_type']}"
+            state = fields.get('data_state')
+            if state == 'array':
+                text += f" | data=配列 ({fields['data_count']}件)"
+            elif state:
+                label = {'missing': 'なし', 'null': 'null', 'object': 'オブジェクト', 'scalar': '単一値'}
+                text += f" | data={label[state]}"
+            if 'total_page' in fields:
+                text += f" | totalPage={fields['total_page']}"
+        self.http_observations.append(text)
+        if not self.filter.text().strip():
+            self.append_display_text(text)
+
     def save_display(self):
         from storage.observation_export import save_observation_chunks,validate_export_destination,ExportLimitError
         if self.workspace_closing or self.display_export is not None:return
         if self.history_tasks.busy or self.history_view_stale:
             self.statusBar().showMessage('表示更新を完了してください。取消後は「表示を再更新」を実行してください。')
             return
+        query = self.filter.text().strip().lower().removeprefix('0x')
+        http_text = '\n'.join(self.http_observations) if not query else ''
+        fallback = self.display_log.toPlainText() if not self.events and not self.http_observations else ''
         snapshot=ObservationTextSnapshot(self.events,self.display_results,self.observation_tags,
-            len(self.events),self.filter.text().strip().lower().removeprefix('0x'),self.ignorepacket,
-            self.display_unmapped.isChecked(),self.display_log.toPlainText() if not self.events else '')
+            len(self.events),query,self.ignorepacket,self.display_unmapped.isChecked(),fallback,http_text)
         protected=[*self.world_sources.values(),self.path.text()]
         path,_=QFileDialog.getSaveFileName(self,'Save visible packet text','packets.txt','Text (*.txt)')
         if not path or self.workspace_closing:return
@@ -1299,6 +1333,7 @@ class MainWindow(QMainWindow):
                 packet_db_wal_fallback=self.db.wal_fallback, process_pid=self.process.currentData(),
                 include_children=self.children.isChecked(), interface=self.iface.text().strip(),
                 capture_send=self.capture_send.isChecked(),
+                analyze_http=self.record_http.isChecked(),
                 allow_midstream=self.attach_existing.isChecked(),
                 manual_server_ip=self.ip.text().strip() if self.process.currentData() is None else None,
                 manual_server_port=port)
@@ -1310,8 +1345,11 @@ class MainWindow(QMainWindow):
                                      self.iface.text().strip(),
                                      self.process.currentData(), self.children.isChecked(),
                                      allow_midstream=self.attach_existing.isChecked(), recorder=self.session_log,
-                                     capture_send=self.capture_send.isChecked())
+                                     capture_send=self.capture_send.isChecked(),
+                                     analyze_http=self.record_http.isChecked(),
+                                     observe_http_body=self.record_http.isChecked())
             self.receiver.on_connections = self.bridge.connections.emit
+            self.receiver.on_http_start = lambda fields: self.bridge.http_start.emit(next_session, fields)
             if self.pipe_enabled.isChecked():
                 self.pipe = PipeServer(self.pipe_name.text().strip(), definitions,
                                        on_packet, self.bridge.status.emit)
