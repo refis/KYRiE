@@ -2,6 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 import unittest
 import zipfile
 from tools.build_snapshot import build_snapshot, require_versioned_readme
@@ -16,6 +17,23 @@ def versioned_readme(extra=''):
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_git_snapshot_excludes_untracked_files_in_source_directories(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / 'source'
+            (root / 'config' / 'local' / 'logs').mkdir(parents=True)
+            (root / 'main.py').write_text('pass\n', encoding='utf-8')
+            (root / 'README.md').write_text(versioned_readme(), encoding='utf-8')
+            (root / 'config' / 'reference.json').write_text('{}', encoding='utf-8')
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            subprocess.run(['git', '-C', str(root), 'add', '--', 'main.py', 'README.md',
+                            'config/reference.json'], check=True)
+            for relative in ('config/local-note.txt', 'config/local/logs/notes.txt'):
+                (root / relative).write_text('synthetic local-only data', encoding='utf-8')
+            result = build_snapshot(root, Path(folder) / 'out')
+            with zipfile.ZipFile(result['archive']) as bundle:
+                names = {name.split('/', 1)[1] for name in bundle.namelist()}
+            self.assertEqual(names, {'main.py', 'README.md', 'config/reference.json', 'SNAPSHOT.json'})
+
     def test_repo_readme_and_release_notes_match_version_py(self):
         require_versioned_readme(REPO)
         notes = REPO / 'docs' / 'releases' / f'v{__version__}.md'
@@ -57,6 +75,9 @@ class SnapshotTests(unittest.TestCase):
             (root/'config/user_settings.json').write_text('{"version":1,"capture_send":false}',encoding='utf-8')
             original=(root/'config/ignorepacket.json').read_bytes()
             original_settings=(root/'config/user_settings.json').read_bytes()
+            (root/'SNAPSHOT.json').write_text(json.dumps({'files': [
+                {'path': path.relative_to(root).as_posix()} for path in root.rglob('*') if path.is_file()
+            ]}), encoding='utf-8')
             first=build_snapshot(root,Path(folder)/'one')
             second=build_snapshot(root,Path(folder)/'two')
             self.assertEqual(first['sha256'],second['sha256'])
@@ -93,6 +114,9 @@ class SnapshotTests(unittest.TestCase):
             (github/'ISSUE_TEMPLATE'/'bug.yml').write_text('name: Bug\n',encoding='utf-8')
             (github/'workflows'/'ci.yml').write_text('name: CI\n',encoding='utf-8')
             (root/'logs').mkdir();(root/'logs'/'capture.jsonl').write_text('secret',encoding='utf-8')
+            (root/'SNAPSHOT.json').write_text(json.dumps({'files': [
+                {'path': path.relative_to(root).as_posix()} for path in root.rglob('*') if path.is_file()
+            ]}), encoding='utf-8')
             result=build_snapshot(root,Path(folder)/'out')
             with zipfile.ZipFile(result['archive']) as bundle:
                 prefix='KYRiE-v'+__version__+'/'

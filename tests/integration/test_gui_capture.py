@@ -429,11 +429,18 @@ class CaptureGuiTests(WindowTestCase):
             self.assertIs(receiver.call_args.kwargs['recorder'], w.session_log)
             self.assertTrue(w.session_log.record_payload)
             w.show_capture_status('saved diagnostic')
+            w.session_log.write('tcp_segment', data=b'synthetic payload')
             path = Path(self.log_folder.name) / 'export.jsonl'
             with patch('gui.main_window.QFileDialog.getSaveFileName', return_value=(str(path), '')):
                 w.save_capture_log()
             rows = [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines()]
             self.assertTrue(any(row.get('message') == 'saved diagnostic' for row in rows))
+            self.assertFalse(rows[0]['record_payload'])
+            self.assertFalse(any('data_hex' in row for row in rows))
+            raw_path = path.with_name('raw.jsonl')
+            with patch('gui.main_window.QFileDialog.getSaveFileName', return_value=(str(raw_path), '')):
+                w.save_raw_capture_log()
+            self.assertEqual(raw_path.read_bytes(), w.session_log.path.read_bytes())
             self.assertTrue((w.session_log.directory / 'PacketLength.used.txt').exists())
             w.stop()
             self.assertTrue(w.session_log.closed)

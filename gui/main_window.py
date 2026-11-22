@@ -792,19 +792,27 @@ class MainWindow(QMainWindow):
         self._reformat_with(self._make_display(profile),on_complete=committed)
 
     def save_capture_log(self):
+        self._save_capture_log(include_payload=False)
+
+    def save_raw_capture_log(self):
+        if self.session_log is not None:
+            self._save_capture_log(include_payload=True)
+
+    def _save_capture_log(self, *, include_payload):
         from storage.observation_export import save_observation_text
         session = self.session_log
         text = self.capture_log.toPlainText() if session is None else None
         protected = [*self.world_sources.values(), self.path.text()]
-        default = 'capture.jsonl' if session else 'capture-diagnostics.txt'
-        path, _ = QFileDialog.getSaveFileName(self, 'Save diagnostic log', default,
-                                            'Diagnostic logs (*.jsonl *.txt);;All files (*)')
+        default = ('capture.jsonl' if include_payload else 'capture-diagnostics.jsonl') if session else 'capture-diagnostics.txt'
+        title = '生ログを保存（記録済みペイロードを含む）' if include_payload else '診断ログを保存'
+        path, _ = QFileDialog.getSaveFileName(self, title, default,
+                                            'Capture logs (*.jsonl *.txt);;All files (*)')
         if not path:
             return
         try:
             target = Path(path)
             if session:
-                session.export(target, protected)
+                session.export(target, protected, include_payload=include_payload)
             else:
                 save_observation_text(target, text, protected)
         except (OSError, ValueError) as exc:
@@ -820,6 +828,7 @@ class MainWindow(QMainWindow):
             self.iface.setText('' if index == 0 else interfaces[index - 1].network_name)
 
     def update_capture_controls(self):
+        self.save_raw_diagnostics.setEnabled(self.session_log is not None)
         running = self.receiver is not None or self.offline
         manual = self.process.currentData() is None
         for control in (self.process, self.children, self.refresh_processes, self.iface,

@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import tempfile
 import zipfile
 from version import __version__, SNAPSHOT_DATE
@@ -14,6 +15,20 @@ ROOT_FILES = ('main.py','events.py','version.py','README.md','DEVELOPMENT.md','C
               'requirements.txt','requirements-lock.txt','PacketLength.txt','.gitignore','LICENSE','NOTICE',
               '.cursor/rules/project.mdc','client/README.md','.github/CODEOWNERS')
 SUFFIXES = {'.py','.md','.json','.txt','.yml','.yaml'}
+LOCAL_DIRECTORIES = {'logs', '.reference', 'dist', '.venv', '__pycache__', '.git', '.pytest_cache'}
+
+
+def source_file_names(root):
+    if (root / '.git').exists():
+        try:
+            result = subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z'])
+        except (OSError, subprocess.CalledProcessError) as exc:
+            raise ValueError('Cannot list tracked snapshot sources') from exc
+        return result.decode('utf-8').split('\0')
+    manifest = root / 'SNAPSHOT.json'
+    if manifest.is_file():
+        return [item['path'] for item in json.loads(manifest.read_text(encoding='utf-8'))['files']]
+    raise ValueError('Snapshot sources require a Git checkout or an existing SNAPSHOT.json')
 
 
 def require_versioned_readme(root):
@@ -38,23 +53,28 @@ def build_snapshot(root, output_dir):
         raise ValueError('Snapshot source root is incomplete')
     require_versioned_readme(root)
     files = {}
-    candidates = [root/name for name in ROOT_FILES if (root/name).is_file()]
-    for name in DIRECTORIES:
-        directory = root/name
-        if directory.is_symlink():
-            raise ValueError('Source directories must not be symlinks')
-        if directory.is_dir():
-            candidates.extend(p for p in directory.rglob('*') if p.is_file() and p.suffix in SUFFIXES
-                              and not any(part in ('__pycache__','.git','.pytest_cache') for part in p.relative_to(root).parts))
+    candidates = []
+    for name in source_file_names(root):
+        relative = Path(name)
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('Invalid snapshot source path')
+        if not relative.parts or LOCAL_DIRECTORIES.intersection(relative.parts):
+            continue
+        if (relative.as_posix() in ROOT_FILES
+                or (relative.parts[0] in DIRECTORIES and relative.suffix in SUFFIXES)):
+            candidates.append(root / relative)
     total = 0
     for path in sorted(set(candidates)):
-        if path.is_symlink() or not path.resolve().is_relative_to(root):
+        if (path.is_symlink() or any(parent.is_symlink() for parent in path.parents if parent != root and parent.is_relative_to(root))
+                or not path.resolve().is_relative_to(root)):
             raise ValueError('Source file resolves outside snapshot root')
         name = path.relative_to(root).as_posix()
         if name == 'config/ignorepacket.json':
             continue  # Local exclusions; never ship or overwrite with empty defaults.
         if name == 'config/user_settings.json':
             continue  # Local GUI preference profile; never ship machine-specific settings.
+        if not path.is_file():
+            raise ValueError(f'Snapshot source is missing: {name}')
         size = path.stat().st_size
         if size > 16*1024*1024 or total + size > 64*1024*1024:
             raise ValueError('Source snapshot size limit reached')
