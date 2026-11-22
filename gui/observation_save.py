@@ -16,20 +16,29 @@ class ObservationTextSnapshot:
     ignored: object
     unmapped: bool
     fallback: str=''
-    http_text: str=''
+    http_rows: tuple=()
+    event_origin: int=0
 
     @property
     def needs_worker(self):
         if self.count>2000:return True
         characters=sum(len(self.results[index].text) for index in range(self.count)) if self.count else len(self.fallback)
-        return characters+len(self.http_text)>262144
+        return characters+sum(len(text) for _, text in self.http_rows)>262144
 
     def __iter__(self):
-        if not self.count:
-            yield self.fallback or self.http_text
+        if not self.count and not self.http_rows:
+            yield self.fallback
             return
         first=True
+        http_rows = iter(self.http_rows)
+        http_row = next(http_rows, None)
         for index in range(self.count):
+            while http_row is not None and http_row[0] <= self.event_origin + index:
+                if not first:
+                    yield '\n'
+                yield http_row[1]
+                first = False
+                http_row = next(http_rows, None)
             event=self.events[index];result=self.results[index]
             if ((not self.query or self.query in f'{event.packet_id:04x}') and result.text
                     and not self.ignored.hides(event,self.tags[index])
@@ -39,10 +48,12 @@ class ObservationTextSnapshot:
                 first=False
             else:
                 yield ''  # Also let cancellation run during long excluded ranges.
-        if self.http_text:
+        while http_row is not None:
             if not first:
                 yield '\n'
-            yield self.http_text
+            yield http_row[1]
+            first = False
+            http_row = next(http_rows, None)
 
 
 class ObservationSaveWorker(QThread):

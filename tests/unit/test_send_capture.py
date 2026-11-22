@@ -117,6 +117,24 @@ class SendCaptureTests(unittest.TestCase):
                          ('array', 1, 1))
         self.assertNotIn('private', repr(response))
 
+    def test_replay_prefers_recorded_http_observations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = SessionLog(directory, self.r.definitions, record_payload=True)
+            receiver = Receiver('', None, self.r.definitions, self.events.append,
+                                self.status.append, process_pid=42, capture_send=True,
+                                recorder=log, analyze_http=True)
+            receiver.allowed.add(self.endpoint.key)
+            self.send(100, flags='S', receiver=receiver)
+            self.send(200, flags='SA', direction='RECV', receiver=receiver)
+            self.send(101, b'POST /party/list HTTP/1.1\r\n\r\n', receiver=receiver)
+            self.send(201, b'HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\n\r\n',
+                      direction='RECV', receiver=receiver)
+            log.close()
+            report = replay(log.path, self.r.definitions, analyze_http=True)
+            self.assertEqual({(row['direction'], row['start']): row['count']
+                              for row in report['http_starts']},
+                             {('SEND', 'POST'): 1, ('RECV', '100'): 1, ('RECV', '200'): 1})
+
     def test_json_response_distinguishes_missing_null_empty_and_object(self):
         for body, state in ((b'{"Type":1}', 'missing'), (b'{"data":null}', 'null'),
                             (b'{"data":[]}', 'array'), (b'{"data":{}}', 'object')):

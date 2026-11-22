@@ -21,6 +21,7 @@ def replay(path, definitions, on_packet=None, *, is_cancelled=None, on_progress=
     direction_counts = {'RECV': Counter(), 'SEND': Counter()}
     errors = []
     http_counts = Counter()
+    recorded_http_counts = Counter()
     saw_payload_mode = False
     ended = False
     chunks = 0
@@ -73,6 +74,10 @@ def replay(path, definitions, on_packet=None, *, is_cancelled=None, on_progress=
             if not isinstance(row, dict):
                 raise ValueError(f'Invalid JSONL record at line {lineno}')
             kind = row.get('kind')
+            if analyze_http and kind == 'http_start':
+                key = tuple(row.get(field) for field in ('direction', 'version', 'start'))
+                if all(isinstance(value, str) for value in key):
+                    recorded_http_counts[key] += 1
             if kind == 'session_start':
                 if row.get('schema') != 1 or not row.get('record_payload'):
                     raise ValueError('Replay requires a schema 1 session with Record receive bytes for replay enabled')
@@ -158,7 +163,7 @@ def replay(path, definitions, on_packet=None, *, is_cancelled=None, on_progress=
     if analyze_http:
         report['http_starts'] = [
             dict(direction=direction, version=version, start=start, count=count)
-            for (direction, version, start), count in sorted(http_counts.items())
+            for (direction, version, start), count in sorted((recorded_http_counts or http_counts).items())
         ]
     return report
 
